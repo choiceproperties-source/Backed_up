@@ -252,6 +252,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/stats/market-insights", async (req, res) => {
+    try {
+      const cacheKey = "stats:market-insights";
+      const cached = cache.get(cacheKey);
+      if (cached) {
+        return res.json(success(cached, "Market insights fetched successfully"));
+      }
+
+      const insights = [
+        {
+          title: "Average Approval Time",
+          value: "2.4 days",
+          change: "-40% faster",
+          description: "Our streamlined process gets you approved quickly",
+          icon: "zap"
+        },
+        {
+          title: "Properties Available",
+          value: "500+",
+          change: "New listings daily",
+          description: "Fresh inventory added constantly",
+          icon: "target"
+        },
+        {
+          title: "Avg Rent Price (Market)",
+          value: "$1,450",
+          change: "Stable market",
+          description: "Compare with actual listings",
+          icon: "trending-up"
+        },
+        {
+          title: "Active Users",
+          value: "2,000+",
+          change: "Growing monthly",
+          description: "Join our community of renters",
+          icon: "users"
+        }
+      ];
+
+      cache.set(cacheKey, insights, CACHE_TTL.PROPERTIES_LIST);
+
+      return res.json(success(insights, "Market insights fetched successfully"));
+    } catch (err: any) {
+      console.error("[STATS] Market insights error:", err);
+      return res.status(500).json(errorResponse("Failed to fetch market insights"));
+    }
+  });
+
   // ===== PROPERTIES =====
   app.get("/api/properties", async (req, res) => {
     try {

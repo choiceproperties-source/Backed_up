@@ -18,6 +18,7 @@ export function Navbar() {
   const links = [
     { href: "/", label: "Home" },
     { href: "/properties", label: "Rent" },
+    { href: "/success-stories", label: "Success Stories" },
     { href: "/faq", label: "FAQ" },
     ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
     ...(isLoggedInUser ? [

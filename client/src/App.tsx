@@ -52,6 +52,7 @@ const LandlordPaymentsVerification = lazy(() => import("@/pages/landlord-payment
 const LandlordPaymentHistory = lazy(() => import("@/pages/landlord-payment-history"));
 const AdminStorageMonitor = lazy(() => import("@/pages/admin-storage-monitor"));
 const PropertyRequirements = lazy(() => import("@/pages/property-requirements"));
+const SuccessStories = lazy(() => import("@/pages/success-stories"));
 
 function LoadingFallback() {
   return (
@@ -147,6 +148,11 @@ function Router() {
       <Route path="/about">
         <ReactSuspense fallback={<LoadingFallback />}>
           <About />
+        </ReactSuspense>
+      </Route>
+      <Route path="/success-stories">
+        <ReactSuspense fallback={<LoadingFallback />}>
+          <SuccessStories />
         </ReactSuspense>
       </Route>
       <Route path="/contact">
