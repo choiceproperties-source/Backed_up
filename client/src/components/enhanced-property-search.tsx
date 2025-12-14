@@ -93,16 +93,15 @@ export function EnhancedPropertySearch() {
   return (
     <div className="w-full max-w-4xl mx-auto">
       <div 
-        className="relative bg-white/10 backdrop-blur-xl rounded-2xl md:rounded-full shadow-2xl border border-white/20 p-2 md:p-3 overflow-visible"
+        className="relative bg-white rounded-2xl md:rounded-full shadow-2xl p-2 md:p-3 overflow-visible"
         role="search"
         aria-label="Property search"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-white/10 to-white/5 rounded-2xl md:rounded-full pointer-events-none" />
         
         <div className="relative grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
           <div className="md:col-span-4 relative" ref={containerRef}>
             <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" aria-hidden="true" />
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" aria-hidden="true" />
               <input
                 ref={inputRef}
                 type="text"
@@ -114,7 +113,7 @@ export function EnhancedPropertySearch() {
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 onKeyDown={handleKeyDown}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:bg-white/15 transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-muted/70 transition-all"
                 data-testid="input-search-location"
                 aria-label="Location search"
                 aria-expanded={showSuggestions && allSuggestions.length > 0}
@@ -164,45 +163,45 @@ export function EnhancedPropertySearch() {
           </div>
 
           <div className="md:col-span-2 relative">
-            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" aria-hidden="true" />
+            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" aria-hidden="true" />
             <input
               type="number"
               placeholder="Min $"
               value={minPrice}
               onChange={(e) => setMinPrice(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:bg-white/15 transition-all"
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-muted/70 transition-all"
               data-testid="input-search-min-price"
               aria-label="Minimum monthly rent in dollars"
             />
           </div>
 
           <div className="md:col-span-2 relative">
-            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" aria-hidden="true" />
+            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" aria-hidden="true" />
             <input
               type="number"
               placeholder="Max $"
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:bg-white/15 transition-all"
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-muted/70 transition-all"
               data-testid="input-search-max-price"
               aria-label="Maximum monthly rent in dollars"
             />
           </div>
 
           <div className="md:col-span-2 relative">
-            <Bed className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" aria-hidden="true" />
+            <Bed className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" aria-hidden="true" />
             <select
               value={bedrooms}
               onChange={(e) => setBedrooms(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:bg-white/15 transition-all appearance-none cursor-pointer"
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-muted/50 border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-muted/70 transition-all appearance-none cursor-pointer"
               data-testid="select-search-bedrooms"
               aria-label="Number of bedrooms"
             >
-              <option value="" className="bg-slate-800 text-white">Beds</option>
-              <option value="1" className="bg-slate-800 text-white">1 Bed</option>
-              <option value="2" className="bg-slate-800 text-white">2 Beds</option>
-              <option value="3" className="bg-slate-800 text-white">3 Beds</option>
-              <option value="4" className="bg-slate-800 text-white">4+ Beds</option>
+              <option value="" className="bg-background text-foreground">Beds</option>
+              <option value="1" className="bg-background text-foreground">1 Bed</option>
+              <option value="2" className="bg-background text-foreground">2 Beds</option>
+              <option value="3" className="bg-background text-foreground">3 Beds</option>
+              <option value="4" className="bg-background text-foreground">4+ Beds</option>
             </select>
           </div>
 
