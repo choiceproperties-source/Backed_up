@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
 import type { Property, Review, Owner } from "@/lib/types";
 import { formatPrice, parseDecimal } from "@/lib/types";
 import { useAuth } from "@/lib/auth-context";
@@ -17,7 +17,7 @@ import {
   Share2, Heart, Mail, Phone, Star, MapPin, Bed, Bath, Maximize, 
   Calendar, Home, PawPrint, Sofa, ChevronDown, ChevronUp, X,
   ChevronLeft, ChevronRight, Grid3X3, Building2, Settings, ImageIcon, DollarSign,
-  PhoneCall, MessageCircle
+  PhoneCall, MessageCircle, Shield, CheckCircle2, Clock, Eye, Video, Users
 } from "lucide-react";
 import { CredibilityBar } from "@/components/trust-badges";
 import { useFavorites } from "@/hooks/use-favorites";
@@ -391,117 +391,169 @@ export default function PropertyDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Property Details */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Header Section */}
-            <div className="space-y-4">
-              {/* Price and Stats Row */}
-              <div className="flex flex-wrap items-center gap-4 md:gap-8">
-                <div>
-                  <span className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-                    {formatPrice(property.price)}
-                  </span>
-                  <span className="text-xl text-gray-600 dark:text-gray-400">/mo</span>
-                </div>
-                <div className="flex items-center gap-6 text-gray-700 dark:text-gray-300">
-                  <div className="flex items-center gap-2">
-                    <Bed className="h-5 w-5" />
-                    <span className="font-bold text-lg">{bedrooms}</span>
-                    <span className="text-gray-500">bd</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Bath className="h-5 w-5" />
-                    <span className="font-bold text-lg">{bathrooms}</span>
-                    <span className="text-gray-500">ba</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Maximize className="h-5 w-5" />
-                    <span className="font-bold text-lg">{sqft.toLocaleString()}</span>
-                    <span className="text-gray-500">sqft</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Address */}
-              <div className="flex items-start gap-2">
-                <MapPin className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h1 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
-                    {property.address}
+            {/* Unified Property Header Card */}
+            <Card className="border-gray-200 dark:border-gray-800 overflow-hidden">
+              <CardContent className="p-6 space-y-5">
+                {/* Compelling Headline */}
+                <div className="space-y-2">
+                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight" data-testid="property-headline">
+                    {property.title || `Spacious ${bedrooms}-Bedroom ${property.property_type || 'Home'}`}
+                    {property.furnished && ' | Furnished'}
+                    {sqft > 2000 && ' | Large Layout'}
                   </h1>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {property.city}, {property.state} {property.zip_code}
-                  </p>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                    <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span className="text-base">{property.address}, {property.city}, {property.state} {property.zip_code}</span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Property Type & Status Badges */}
-              <div className="flex flex-wrap gap-2">
-                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                  {property.status === 'active' ? 'Available' : property.status}
-                </Badge>
-                <TrustBadgeInline variant="verified" />
-                <TrustBadgeInline variant="photos" />
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Building2 className="h-3 w-3" />
-                  {property.property_type || 'Apartment'}
-                </Badge>
-                {property.furnished && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Sofa className="h-3 w-3" />
-                    Furnished
-                  </Badge>
-                )}
-                {property.pets_allowed && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <PawPrint className="h-3 w-3" />
-                    Pets OK
-                  </Badge>
-                )}
-              </div>
+                {/* Manager Rating & Response */}
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map(i => (
+                        <Star key={i} className={`h-3.5 w-3.5 ${i <= Math.round(averageRating || 4.8) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                      ))}
+                    </div>
+                    <span className="font-medium">{(averageRating || 4.8).toFixed(1)}</span>
+                    <span className="text-gray-500">({reviews?.length || 0} reviews)</span>
+                  </div>
+                  <Separator orientation="vertical" className="h-4" />
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>Responds within 2 hours</span>
+                  </div>
+                  <Separator orientation="vertical" className="h-4" />
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                    <span>98% response rate</span>
+                  </div>
+                </div>
 
-              {/* Action Buttons - Desktop */}
-              <div className="hidden md:flex gap-3">
-                <Button
-                  onClick={() => toggleFavorite(property.id)}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                  data-testid="button-save"
-                >
-                  <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-red-500 text-red-500' : ''}`} />
-                  {isFavorited(property.id) ? 'Saved' : 'Save'}
-                </Button>
-                <Button
-                  onClick={() => navigator.share?.({ title: property.title, url: window.location.href })}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                  data-testid="button-share"
-                >
-                  <Share2 className="h-5 w-5" />
-                  Share
-                </Button>
-              </div>
-            </div>
+                <Separator />
+
+                {/* Key Details Row */}
+                <div className="flex flex-wrap items-center gap-3 md:gap-6">
+                  <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-lg">
+                    <Bed className="h-5 w-5 text-primary" />
+                    <span className="font-bold text-lg text-gray-900 dark:text-white">{bedrooms}</span>
+                    <span className="text-gray-500 dark:text-gray-400">bd</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-lg">
+                    <Bath className="h-5 w-5 text-primary" />
+                    <span className="font-bold text-lg text-gray-900 dark:text-white">{bathrooms}</span>
+                    <span className="text-gray-500 dark:text-gray-400">ba</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-lg">
+                    <Maximize className="h-5 w-5 text-primary" />
+                    <span className="font-bold text-lg text-gray-900 dark:text-white">{sqft.toLocaleString()}</span>
+                    <span className="text-gray-500 dark:text-gray-400">sqft</span>
+                  </div>
+                  {property.furnished && (
+                    <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-lg">
+                      <Sofa className="h-5 w-5 text-primary" />
+                      <span className="font-medium text-gray-900 dark:text-white">Furnished</span>
+                    </div>
+                  )}
+                  {property.pets_allowed !== undefined && (
+                    <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-lg">
+                      <PawPrint className="h-5 w-5 text-primary" />
+                      <span className="font-medium text-gray-900 dark:text-white">{property.pets_allowed ? 'Pets OK' : 'No Pets'}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Availability & Lease */}
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-green-600" />
+                    <span className="font-medium text-green-700 dark:text-green-400">Available Now</span>
+                  </div>
+                  <Separator orientation="vertical" className="h-4" />
+                  <span className="text-gray-600 dark:text-gray-400">{property.lease_term || '12 month'} lease minimum</span>
+                </div>
+
+                <Separator />
+
+                {/* Status Badges */}
+                <div className="flex flex-wrap gap-2">
+                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    {property.status === 'active' ? 'Available' : property.status}
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800">
+                    <Shield className="h-3 w-3" />
+                    Verified Listing
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Verified Photos
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Building2 className="h-3 w-3" />
+                    {property.property_type || 'Apartment'}
+                  </Badge>
+                </div>
+
+                {/* Action Buttons - Desktop */}
+                <div className="hidden md:flex gap-3 pt-2">
+                  <Button
+                    onClick={() => toggleFavorite(property.id)}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                    data-testid="button-save"
+                  >
+                    <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                    {isFavorited(property.id) ? 'Saved' : 'Save'}
+                  </Button>
+                  <Button
+                    onClick={() => navigator.share?.({ title: property.title, url: window.location.href })}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                    data-testid="button-share"
+                  >
+                    <Share2 className="h-5 w-5" />
+                    Share
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Overview Section */}
-            <div className="border-t pt-6">
-              <button
-                onClick={() => toggleSection('overview')}
-                className="flex items-center justify-between w-full text-left"
-                data-testid="section-overview-toggle"
-              >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Overview</h2>
-                {expandedSections.overview ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-              </button>
-              {expandedSections.overview && (
-                <div className="mt-4 space-y-4">
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {property.description || 'No description available for this property.'}
-                  </p>
-                </div>
-              )}
-            </div>
+            <Card className="border-gray-200 dark:border-gray-800">
+              <CardContent className="p-5">
+                <button
+                  onClick={() => toggleSection('overview')}
+                  className="flex items-center justify-between w-full text-left"
+                  data-testid="section-overview-toggle"
+                >
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">About This Property</h2>
+                  {expandedSections.overview ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </button>
+                {expandedSections.overview && (
+                  <div className="mt-4 space-y-4">
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {property.description || `Welcome to this beautiful ${bedrooms}-bedroom, ${bathrooms}-bathroom ${property.property_type || 'home'} in the heart of ${property.city}. ${property.furnished ? 'This fully furnished property is move-in ready and includes all essential furniture.' : ''} ${sqft > 2000 ? `With ${sqft.toLocaleString()} square feet of living space, there is plenty of room for comfortable living.` : ''} ${property.pets_allowed ? 'Pets are welcome in this home.' : ''}`}
+                    </p>
+                    {nearbyPlaces && Array.isArray(nearbyPlaces) && nearbyPlaces.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-2">Neighborhood Highlights</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {nearbyPlaces.slice(0, 4).map((place: { name: string; distance: string }, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {place.name} - {place.distance}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Facts & Features Section */}
-            <div className="border-t pt-6">
+            <Card className="border-gray-200 dark:border-gray-800">
+              <CardContent className="p-5">
               <button
                 onClick={() => toggleSection('facts')}
                 className="flex items-center justify-between w-full text-left"
@@ -556,7 +608,8 @@ export default function PropertyDetails() {
                   </div>
                 </div>
               )}
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Amenities Section */}
             <div className="border-t pt-6">
@@ -689,20 +742,63 @@ export default function PropertyDetails() {
           {/* Right Column - Contact Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-4">
-              {/* Main CTA Card */}
+              {/* Unified Pricing Card */}
               <Card className="border-gray-200 dark:border-gray-800 shadow-lg overflow-hidden">
                 <CardContent className="p-0">
-                  <div className="bg-primary p-4">
-                    <h3 className="text-white font-bold text-lg">Request a Tour</h3>
-                    <p className="text-white/80 text-sm">Available as early as today</p>
+                  {/* Price Header */}
+                  <div className="bg-gradient-to-r from-primary to-primary/90 p-5">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-bold text-white" data-testid="price-display">
+                        {formatPrice(property.price)}
+                      </span>
+                      <span className="text-white/80 text-lg">/month</span>
+                    </div>
+                    <p className="text-white/90 text-sm mt-1">Available Now</p>
                   </div>
-                  <div className="p-4 space-y-4">
+
+                  {/* Cost Breakdown */}
+                  <div className="p-4 space-y-3">
+                    <h4 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-primary" />
+                      Pricing Details
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between py-1.5 border-b border-gray-100 dark:border-gray-800">
+                        <span className="text-gray-600 dark:text-gray-400">Monthly Rent</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{formatPrice(property.price)}</span>
+                      </div>
+                      <div className="flex justify-between py-1.5 border-b border-gray-100 dark:border-gray-800">
+                        <span className="text-gray-600 dark:text-gray-400">Security Deposit</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{formatPrice(property.price)} <span className="text-xs text-gray-500">(refundable)</span></span>
+                      </div>
+                      <div className="flex justify-between py-1.5 border-b border-gray-100 dark:border-gray-800">
+                        <span className="text-gray-600 dark:text-gray-400">Move-in Total</span>
+                        <span className="font-bold text-primary">{formatPrice(parseDecimal(property.price) * 2)}</span>
+                      </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-gray-600 dark:text-gray-400">Est. Utilities</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {property.utilities_included && property.utilities_included.length > 0 ? (
+                            <span className="text-green-600">Included</span>
+                          ) : (
+                            '~$150/month'
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* CTA Buttons */}
+                  <div className="p-4 space-y-3">
                     <Button 
                       onClick={() => setShowScheduleTour(true)}
-                      className="w-full flex items-center justify-center gap-2 h-12"
+                      size="lg"
+                      className="w-full flex items-center justify-center gap-2 h-12 text-base font-bold"
                       data-testid="button-schedule-tour"
                     >
-                      <Calendar className="h-4 w-4" />
+                      <Calendar className="h-5 w-5" />
                       Schedule a Tour
                     </Button>
                     
@@ -716,12 +812,21 @@ export default function PropertyDetails() {
                         }}
                         propertyId={property.id}
                         propertyTitle={property.title}
-                        triggerText="Send Message"
+                        triggerText="Contact Agent"
                       />
                     )}
 
+                    <Button 
+                      variant="outline" 
+                      className="w-full flex items-center justify-center gap-2 h-10"
+                      data-testid="button-virtual-tour"
+                    >
+                      <Video className="h-4 w-4" />
+                      Virtual Tour
+                    </Button>
+
                     <Link href={`/apply?propertyId=${property.id}`} className="block">
-                      <Button variant="outline" className="w-full font-bold h-12" data-testid="button-apply-now">
+                      <Button variant="secondary" className="w-full font-semibold h-10" data-testid="button-apply-now">
                         Apply Now
                       </Button>
                     </Link>
@@ -729,29 +834,65 @@ export default function PropertyDetails() {
                 </CardContent>
               </Card>
 
-              {/* Enhanced Trust Badges */}
-              <EnhancedTrustBadges 
-                isVerifiedListing={true}
-                hasVerifiedPhotos={true}
-                isVerifiedOwner={!!owner}
-                responseTime="within 2 hours"
-                responseRate={98}
-                averageRating={averageRating || 4.8}
-                totalReviews={reviews?.length || 0}
-              />
+              {/* Verified & Trusted Card */}
+              <Card className="border-gray-200 dark:border-gray-800" data-testid="card-trust-badges">
+                <CardContent className="p-4">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-green-600" />
+                    Verified & Trusted
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300" data-testid="badge-professional-manager">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span>Professional Manager</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300" data-testid="badge-verified-photos">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span>Verified Photos</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300" data-testid="badge-secure-application">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span>Secure Application</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300" data-testid="badge-maintenance">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span>24/7 Maintenance</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Social Proof Card */}
+              <Card className="border-gray-200 dark:border-gray-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30" data-testid="card-social-proof">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm mb-2">
+                    <Eye className="h-4 w-4 text-orange-600" />
+                    <span className="font-medium text-orange-800 dark:text-orange-300" data-testid="text-viewer-count">Popular listing</span>
+                  </div>
+                  <p className="text-xs text-orange-700 dark:text-orange-400">Schedule your tour today!</p>
+                </CardContent>
+              </Card>
 
               {/* Property Manager Card */}
               {owner && (
                 <Card className="border-gray-200 dark:border-gray-800">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3 mb-4">
-                      <Avatar className="h-12 w-12">
+                      <Avatar className="h-14 w-14 border-2 border-primary/20">
                         <AvatarImage src={owner.profile_image || undefined} alt={owner.full_name || 'Manager'} />
-                        <AvatarFallback>{owner.full_name?.charAt(0) || 'M'}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold">{owner.full_name?.charAt(0) || 'M'}</AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-white">{owner.full_name || 'Property Manager'}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Property Manager</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Professional Property Manager</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <div className="flex gap-0.5">
+                            {[1, 2, 3, 4, 5].map(i => (
+                              <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            ))}
+                          </div>
+                          <span className="text-xs text-gray-500">3+ years experience</span>
+                        </div>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -774,28 +915,17 @@ export default function PropertyDetails() {
                 </Card>
               )}
 
-              {/* Price Breakdown Card */}
-              <Card className="border-gray-200 dark:border-gray-800">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Monthly Cost</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between py-1">
-                      <span className="text-gray-600 dark:text-gray-400">Base Rent</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{formatPrice(property.price)}</span>
+              {/* Value Propositions */}
+              {property.furnished && (
+                <Card className="border-gray-200 dark:border-gray-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Sofa className="h-4 w-4 text-green-600" />
+                      <span className="font-medium text-green-800 dark:text-green-300">Includes all furniture - save $3,000+</span>
                     </div>
-                    {property.utilities_included && property.utilities_included.length > 0 && (
-                      <div className="flex justify-between py-1">
-                        <span className="text-gray-600 dark:text-gray-400">Utilities</span>
-                        <span className="font-medium text-green-600">Included</span>
-                      </div>
-                    )}
-                    <div className="border-t pt-2 mt-2 flex justify-between">
-                      <span className="font-semibold text-gray-900 dark:text-white">Total</span>
-                      <span className="font-bold text-gray-900 dark:text-white">{formatPrice(property.price)}/mo</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Cost Calculator */}
               <CostCalculator
