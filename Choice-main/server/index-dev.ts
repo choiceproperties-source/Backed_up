@@ -10,6 +10,26 @@ import runApp from "./app";
 
 import viteConfig from "../vite.config";
 
+// Environment validation
+function validateEnvironment() {
+  const required = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
+  const missing = required.filter(key => !process.env[key]);
+  
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+  }
+
+  const optional = ["IMAGEKIT_PUBLIC_KEY", "IMAGEKIT_PRIVATE_KEY", "IMAGEKIT_URL_ENDPOINT"];
+  const missingOptional = optional.filter(key => !process.env[key]);
+  
+  if (missingOptional.length > 0) {
+    console.warn(`[WARN] ImageKit configuration incomplete. Missing: ${missingOptional.join(", ")}`);
+    console.warn("[WARN] Image upload and optimization features will be limited.");
+  }
+}
+
+validateEnvironment();
+
 const viteLogger = createLogger();
 
 export async function setupVite(app: Express, server: Server) {

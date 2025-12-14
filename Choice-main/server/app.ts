@@ -25,11 +25,15 @@ declare module 'http' {
 
 // CORS configuration - Tightened for security
 const isDev = process.env.NODE_ENV !== "production";
-const allowedOrigins = isDev 
-  ? ["http://localhost:5000", "http://127.0.0.1:5000"]
-  : process.env.PRODUCTION_DOMAIN 
-    ? [process.env.PRODUCTION_DOMAIN]
-    : ["https://choiceproperties.com"];
+const allowedOrigins = (() => {
+  if (process.env.ALLOWED_ORIGINS) {
+    return process.env.ALLOWED_ORIGINS.split(",").map(origin => origin.trim());
+  }
+  if (isDev) {
+    return ["http://localhost:5000", "http://127.0.0.1:5000"];
+  }
+  return process.env.PRODUCTION_DOMAIN ? [process.env.PRODUCTION_DOMAIN] : [];
+})();
 
 app.use(cors({
   origin: allowedOrigins,
@@ -93,8 +97,9 @@ export default async function runApp(
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
+    if (!res.headersSent) {
+      res.status(status).json({ message });
+    }
   });
 
   // importantly run the final setup after setting up all the other routes so

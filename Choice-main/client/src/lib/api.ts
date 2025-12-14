@@ -1,5 +1,5 @@
 // API Client for Choice Properties Backend
-const API_BASE = typeof window !== "undefined" && window.location.origin ? window.location.origin : "http://localhost:5000";
+const API_BASE = typeof window !== "undefined" && window.location.origin ? window.location.origin : "";
 
 interface ApiResponse<T> {
   data?: T;
