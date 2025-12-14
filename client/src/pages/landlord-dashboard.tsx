@@ -120,9 +120,13 @@ export default function LandlordDashboard() {
               <div className="w-full">
                 <p className="text-sm font-semibold text-muted-foreground">Occupancy Rate</p>
                 <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">
-                  {stats.occupancyRate}%
+                  {stats.properties > 0 ? `${stats.occupancyRate}%` : '--'}
                 </p>
-                <Progress value={stats.occupancyRate} className="h-1.5 mt-2" />
+                {stats.properties > 0 ? (
+                  <Progress value={stats.occupancyRate} className="h-1.5 mt-2" />
+                ) : (
+                  <p className="text-xs text-muted-foreground mt-2">Add properties to track</p>
+                )}
               </div>
               <TrendingUp className="h-8 w-8 text-emerald-500 opacity-20 flex-shrink-0 ml-2" />
             </div>
