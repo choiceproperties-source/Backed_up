@@ -28,10 +28,7 @@ export function useSavedSearches() {
   // Fetch saved searches
   useEffect(() => {
     if (!user) {
-      const localSearches = JSON.parse(
-        localStorage.getItem('choiceProperties_savedSearches') || '[]'
-      );
-      setSearches(localSearches);
+      setSearches([]);
       return;
     }
 
@@ -60,11 +57,7 @@ export function useSavedSearches() {
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Error fetching searches';
         setError(message);
-        // Fallback to localStorage
-        const localSearches = JSON.parse(
-          localStorage.getItem('choiceProperties_savedSearches') || '[]'
-        );
-        setSearches(localSearches);
+        setSearches([]);
       } finally {
         setLoading(false);
       }
@@ -76,24 +69,12 @@ export function useSavedSearches() {
   // Create search
   const createSearch = async (name: string, filters: SavedSearch['filters']) => {
     if (!user) {
-      const localSearches = JSON.parse(
-        localStorage.getItem('choiceProperties_savedSearches') || '[]'
-      );
-      const newSearch: SavedSearch = {
-        id: `search_${Date.now()}`,
-        userId: 'local',
-        name,
-        filters,
-        createdAt: new Date().toISOString(),
-      };
-      const updated = [...localSearches, newSearch];
-      localStorage.setItem('choiceProperties_savedSearches', JSON.stringify(updated));
-      setSearches(updated);
       toast({
-        title: 'Success',
-        description: 'Search saved locally',
+        title: 'Sign in Required',
+        description: 'Please sign in to save searches',
+        variant: 'destructive',
       });
-      return newSearch;
+      return null;
     }
 
     try {
@@ -138,14 +119,12 @@ export function useSavedSearches() {
   // Delete search
   const deleteSearch = async (searchId: string) => {
     if (!user) {
-      const updated = searches.filter((s) => s.id !== searchId);
-      localStorage.setItem('choiceProperties_savedSearches', JSON.stringify(updated));
-      setSearches(updated);
       toast({
-        title: 'Success',
-        description: 'Search deleted',
+        title: 'Sign in Required',
+        description: 'Please sign in to delete searches',
+        variant: 'destructive',
       });
-      return true;
+      return false;
     }
 
     try {

@@ -9,7 +9,7 @@ export function useFavorites() {
 
   useEffect(() => {
     if (!user) {
-      setFavorites(JSON.parse(localStorage.getItem('choiceProperties_favorites') || '[]'));
+      setFavorites([]);
       return;
     }
 
@@ -19,7 +19,7 @@ export function useFavorites() {
         const fav = await getFavorites(user.id);
         setFavorites(fav);
       } catch (err) {
-        setFavorites(JSON.parse(localStorage.getItem('choiceProperties_favorites') || '[]'));
+        setFavorites([]);
       } finally {
         setLoading(false);
       }
@@ -30,16 +30,6 @@ export function useFavorites() {
 
   const toggleFavorite = async (propertyId: string) => {
     if (!user) {
-      const localFavorites = JSON.parse(localStorage.getItem('choiceProperties_favorites') || '[]');
-      if (localFavorites.includes(propertyId)) {
-        const updated = localFavorites.filter((id: string) => id !== propertyId);
-        localStorage.setItem('choiceProperties_favorites', JSON.stringify(updated));
-        setFavorites(updated);
-      } else {
-        const updated = [...localFavorites, propertyId];
-        localStorage.setItem('choiceProperties_favorites', JSON.stringify(updated));
-        setFavorites(updated);
-      }
       return;
     }
 

@@ -38,3 +38,10 @@ externalPort = 80
 deploymentTarget = "autoscale"
 run = ["npm", "run", "start"]
 build = ["npm", "run", "build"]
+
+[userenv]
+
+[userenv.shared]
+IMAGEKIT_PUBLIC_KEY = "public_0nFf9f2g4"
+IMAGEKIT_PRIVATE_KEY = "private_385bnuWrKb6U+EK+j/GT7meJggw="
+IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/fjmnb748e"

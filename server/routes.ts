@@ -6828,7 +6828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Check image count limit for property
-        const limitStatus = await checkPropertyImageLimit(supabase, propertyId as string);
+        const limitStatus = await checkPropertyImageLimit(supabase, String(propertyId));
         if (!limitStatus.allowed) {
           await logSecurityEvent(
             req.user!.id,
@@ -6894,7 +6894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actorRole: req.user!.role,
         action: "image_upload",
         photoId: (data as any)?.[0]?.id,
-        propertyId: (propertyId as string) || undefined,
+        propertyId: propertyId ? String(propertyId) : undefined,
         metadata: { category, url }
       });
 
