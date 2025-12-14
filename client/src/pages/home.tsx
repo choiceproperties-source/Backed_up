@@ -6,6 +6,7 @@ import { Link } from "wouter";
 import { PropertyCard } from "@/components/property-card";
 import { PropertySearch } from "@/components/property-search";
 import { Testimonials } from "@/components/testimonials";
+import { TrustIndicators } from "@/components/trust-indicators";
 import { useProperties } from "@/hooks/use-properties";
 import type { Property } from "@/lib/types";
 import { ArrowRight, CheckCircle2, Home as HomeIcon, MapPin, ShieldCheck, Search as SearchIcon, FileText, CheckSquare, Home as HomeCheckIcon } from "lucide-react";
@@ -101,6 +102,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Trust Indicators Section */}
+      <TrustIndicators />
 
       {/* Our Services Section */}
       <section className="py-24 bg-background">
