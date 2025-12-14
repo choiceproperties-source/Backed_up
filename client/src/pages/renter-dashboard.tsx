@@ -257,6 +257,60 @@ export default function RenterDashboard() {
         </div>
       </div>
 
+      {/* Smart Alerts Banner */}
+      {(() => {
+        const pendingPayments = (applications as ApplicationData[]).filter(a => a.payment_status === 'pending' || a.payment_status === 'failed');
+        const infoRequested = (applications as ApplicationData[]).filter(a => a.status === 'info_requested');
+        const conditionalApprovals = (applications as ApplicationData[]).filter(a => a.status === 'conditional_approval');
+        const hasAlerts = pendingPayments.length > 0 || infoRequested.length > 0 || conditionalApprovals.length > 0;
+        
+        if (!hasAlerts) return null;
+        
+        return (
+          <div className="container mx-auto px-4 -mt-8 relative z-20 mb-4" data-testid="alerts-banner">
+            <Card className="border-l-4 border-l-amber-500 bg-amber-50 dark:bg-amber-900/20">
+              <div className="p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-amber-800 dark:text-amber-200">Action Required</h3>
+                    <div className="mt-2 space-y-1 text-sm text-amber-700 dark:text-amber-300">
+                      {pendingPayments.length > 0 && (
+                        <p className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4" />
+                          {pendingPayments.length} application{pendingPayments.length > 1 ? 's' : ''} need{pendingPayments.length === 1 ? 's' : ''} payment
+                        </p>
+                      )}
+                      {infoRequested.length > 0 && (
+                        <p className="flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4" />
+                          {infoRequested.length} application{infoRequested.length > 1 ? 's' : ''} need{infoRequested.length === 1 ? 's' : ''} additional information
+                        </p>
+                      )}
+                      {conditionalApprovals.length > 0 && (
+                        <p className="flex items-center gap-2">
+                          <Upload className="h-4 w-4" />
+                          {conditionalApprovals.length} conditional approval{conditionalApprovals.length > 1 ? 's' : ''} await{conditionalApprovals.length === 1 ? 's' : ''} documents
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setActiveTab('applications')}
+                    className="border-amber-400 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-800/30"
+                    data-testid="button-view-alerts"
+                  >
+                    View Details
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        );
+      })()}
+
       {/* Stats Cards */}
       <div className="container mx-auto px-4 -mt-10 relative z-10 mb-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

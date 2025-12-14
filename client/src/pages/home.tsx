@@ -103,11 +103,55 @@ export default function Home() {
             <PropertySearch />
           </div>
 
+          {/* Segmented CTAs for different user types */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4" data-aos="fade-up" data-aos-delay="500">
+            <Link href="/properties">
+              <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-primary-foreground font-bold h-14 px-8 text-lg shadow-lg" data-testid="cta-find-rental">
+                <HomeIcon className="mr-2 h-5 w-5" />
+                Find Your Rental
+              </Button>
+            </Link>
+            <Link href="/signup?role=landlord">
+              <Button size="lg" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 font-bold h-14 px-8 text-lg" data-testid="cta-list-property">
+                List Your Property
+              </Button>
+            </Link>
+          </div>
+
         </div>
       </section>
 
       {/* ===== QUICK BROWSE SECTION ===== */}
       <QuickBrowseSection />
+
+      {/* ===== TRENDING NEIGHBORHOODS ===== */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12" data-aos="fade-up">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-primary mb-3">Trending Neighborhoods</h2>
+            <p className="text-muted-foreground text-lg">Discover popular areas with high renter satisfaction</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4" data-aos="fade-up" data-aos-delay="100">
+            {[
+              { name: "Downtown", properties: 45, image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=300&fit=crop" },
+              { name: "Midtown", properties: 38, image: "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=400&h=300&fit=crop" },
+              { name: "Suburbs", properties: 62, image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&fit=crop" },
+              { name: "Waterfront", properties: 28, image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop" },
+            ].map((area, idx) => (
+              <Link key={idx} href={`/properties?location=${area.name}`}>
+                <div className="relative group rounded-xl overflow-hidden aspect-[4/3] cursor-pointer" data-testid={`neighborhood-${area.name.toLowerCase()}`}>
+                  <img src={area.image} alt={area.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <h3 className="font-bold text-lg">{area.name}</h3>
+                    <p className="text-sm text-white/80">{area.properties} properties</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ===== FEATURED PROPERTIES - MASONRY STYLE ===== */}
       <section className="py-24 bg-white dark:bg-slate-900" id="properties">

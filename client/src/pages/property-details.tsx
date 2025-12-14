@@ -16,7 +16,7 @@ import { AddressVerification } from "@/components/address-verification";
 import { 
   Share2, Heart, Mail, Phone, Star, MapPin, Bed, Bath, Maximize, 
   Calendar, Home, PawPrint, Sofa, ChevronDown, ChevronUp, X,
-  ChevronLeft, ChevronRight, Grid3X3, Building2, Settings, ImageIcon
+  ChevronLeft, ChevronRight, Grid3X3, Building2, Settings, ImageIcon, DollarSign
 } from "lucide-react";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useNearbyPlaces } from "@/hooks/use-nearby-places";
@@ -769,6 +769,36 @@ export default function PropertyDetails() {
                       <span className="font-semibold text-gray-900 dark:text-white">Total</span>
                       <span className="font-bold text-gray-900 dark:text-white">{formatPrice(property.price)}/mo</span>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Affordability Calculator Card */}
+              <Card className="border-gray-200 dark:border-gray-800" data-testid="affordability-calculator">
+                <CardContent className="p-4">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                    Affordability Check
+                  </h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    Most landlords require income of 3x monthly rent
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800">
+                      <span className="text-gray-600 dark:text-gray-400">Monthly Rent</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{formatPrice(property.price)}</span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800">
+                      <span className="text-gray-600 dark:text-gray-400">Required Monthly Income</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{formatPrice((property.price || 0) * 3)}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-gray-600 dark:text-gray-400">Required Annual Income</span>
+                      <span className="font-bold text-green-600">{formatPrice((property.price || 0) * 36)}</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs text-blue-700 dark:text-blue-300">
+                    This is a general guideline. Actual requirements may vary by landlord.
                   </div>
                 </CardContent>
               </Card>
