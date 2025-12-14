@@ -2758,7 +2758,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Application not found" });
       }
 
-      const isPropertyOwner = application.properties?.owner_id === req.user!.id;
+      const isPropertyOwner = (application.properties as any)?.[0]?.owner_id === req.user!.id;
       const isAdmin = req.user!.role === "admin";
 
       if (!isPropertyOwner && !isAdmin) {
@@ -2799,7 +2799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Application not found" });
       }
 
-      const isPropertyOwner = application.properties?.owner_id === req.user!.id;
+      const isPropertyOwner = (application.properties as any)?.[0]?.owner_id === req.user!.id;
       const isAdmin = req.user!.role === "admin";
 
       if (!isPropertyOwner && !isAdmin) {
@@ -2895,7 +2895,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const isTenant = application.user_id === req.user!.id;
-      const isPropertyOwner = application.properties?.owner_id === req.user!.id;
+      const isPropertyOwner = (application.properties as any)?.[0]?.owner_id === req.user!.id;
       const isAdmin = req.user!.role === "admin";
 
       if (!isTenant && !isPropertyOwner && !isAdmin) {
@@ -3083,7 +3083,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("id", req.params.applicationId)
         .single();
 
-      if (appData?.properties?.owner_id) {
+      if (appData && (appData.properties as any)?.[0]?.owner_id) {
         const { data: existingLandlordNotif } = await supabase
           .from("application_notifications")
           .select("id")
@@ -3144,7 +3144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Application not found" });
       }
 
-      const isPropertyOwner = application.properties?.owner_id === req.user!.id;
+      const isPropertyOwner = (application.properties as any)?.[0]?.owner_id === req.user!.id;
       const isAdmin = req.user!.role === "admin";
 
       if (!isPropertyOwner && !isAdmin) {
@@ -3232,7 +3232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("id", req.params.applicationId)
         .single();
 
-      if (appData?.properties?.owner_id) {
+      if (appData && (appData.properties as any)?.[0]?.owner_id) {
         const { data: existingSignNotif } = await supabase
           .from("application_notifications")
           .select("id")
@@ -3281,7 +3281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Application not found" });
       }
 
-      const isPropertyOwner = application.properties?.owner_id === req.user!.id;
+      const isPropertyOwner = (application.properties as any)?.[0]?.owner_id === req.user!.id;
       const isAdmin = req.user!.role === "admin";
 
       if (!isPropertyOwner && !isAdmin) {
@@ -3336,7 +3336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const isTenant = application.user_id === req.user!.id;
-      const isPropertyOwner = application.properties?.owner_id === req.user!.id;
+      const isPropertyOwner = (application.properties as any)?.[0]?.owner_id === req.user!.id;
       const isAdmin = req.user!.role === "admin";
 
       if (!isTenant && !isPropertyOwner && !isAdmin) {
@@ -3569,7 +3569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("id", req.params.applicationId)
         .single();
 
-      if (appData?.properties?.owner_id) {
+      if (appData && (appData.properties as any)?.[0]?.owner_id) {
         const { data: existingDeclineNotif } = await supabase
           .from("application_notifications")
           .select("id")
@@ -5620,7 +5620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const isTenant = application.user_id === req.user!.id;
-      const isLandlord = application.properties?.owner_id === req.user!.id;
+      const isLandlord = (application.properties as any)?.[0]?.owner_id === req.user!.id;
       const isAdmin = req.user!.role === "admin";
 
       if (!isTenant && !isLandlord && !isAdmin) {
@@ -6053,7 +6053,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json(success({
         lease: {
           id: lease.id,
-          property: lease.applications?.properties,
+          property: (lease.applications as any)?.[0]?.properties,
           monthlyRent: lease.monthly_rent,
           securityDepositAmount: lease.security_deposit_amount
         },
@@ -6652,7 +6652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate token with 15 minute expiry
       const expirySeconds = 15 * 60; // 15 minutes
       const token = imagekit.getAuthenticationParameters(
-        Math.floor(Date.now() / 1000) + expirySeconds
+        (Math.floor(Date.now() / 1000) + expirySeconds).toString()
       );
 
       return res.json(success({
@@ -6715,7 +6715,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Check image count limit for property
-        const limitStatus = await checkPropertyImageLimit(supabase, propertyId);
+        const limitStatus = await checkPropertyImageLimit(supabase, propertyId as string);
         if (!limitStatus.allowed) {
           await logSecurityEvent(
             req.user!.id,
@@ -6729,14 +6729,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validate file size if metadata contains fileSize
-      if (metadata?.fileSize) {
-        const sizeValidation = validateFileSize((metadata as any)?.[0]?.fileSize);
+      if ((metadata as any)?.fileSize) {
+        const sizeValidation = validateFileSize((metadata as any)?.fileSize);
         if (!sizeValidation.valid) {
           await logSecurityEvent(
             req.user!.id,
             "upload_size_exceeded",
             false,
-            { reason: "File size exceeds limit", fileSize: (metadata as any)?.[0]?.fileSize, propertyId },
+            { reason: "File size exceeds limit", fileSize: (metadata as any)?.fileSize, propertyId },
             req
           );
           return res.status(400).json({ error: sizeValidation.reason });
@@ -6780,8 +6780,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actorId: req.user!.id,
         actorRole: req.user!.role,
         action: "image_upload",
-        photoId: data[0].id,
-        propertyId: propertyId || undefined,
+        photoId: (data as any)?.[0]?.id,
+        propertyId: (propertyId as string) || undefined,
         metadata: { category, url }
       });
 
