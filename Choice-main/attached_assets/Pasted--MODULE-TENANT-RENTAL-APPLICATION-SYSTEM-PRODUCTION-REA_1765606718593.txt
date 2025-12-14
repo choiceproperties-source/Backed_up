@@ -1,0 +1,220 @@
+
+MODULE: TENANT RENTAL APPLICATION SYSTEM (PRODUCTION-READY)
+
+IMPORTANT:
+This is an existing rental-only platform.
+Do NOT break existing functionality.
+Do NOT change core architecture.
+Extend and integrate cleanly.
+
+⸻
+
+🎯 OBJECTIVE
+
+Build a professional tenant rental application system that is:
+	•	Property-specific
+	•	Secure and private
+	•	Role-aware (Tenant, Landlord, Agent)
+	•	Integrated with:
+	•	Property listings
+	•	User profiles
+	•	Messaging system
+	•	Document/image storage
+	•	Notifications
+	•	Dashboards
+
+This system must feel Zillow-quality.
+
+⸻
+
+👤 ROLES & ACCESS RULES
+
+Tenant
+	•	Can apply to a property once
+	•	Can create, edit, and submit applications
+	•	Can upload documents
+	•	Can view application status
+	•	Can message landlord/agent inside the application
+
+Landlord / Agent
+	•	Can view applications for their properties
+	•	Can change application status
+	•	Can request additional information
+	•	Can message tenant
+	•	Cannot edit tenant application data
+
+⸻
+
+🧱 APPLICATION WORKFLOW (MUST FOLLOW EXACTLY)
+
+draft → submitted → under_review → info_requested → approved / rejected / withdrawn
+
+
+⸻
+
+🧩 FEATURES TO BUILD
+
+1️⃣ Application Entry Points
+	•	“Apply Now” button on Property Details Page
+	•	Redirect tenant to application form
+	•	Block duplicate applications for the same property
+
+⸻
+
+2️⃣ Multi-Step Application Form (Auto-Save)
+
+Step 1: Applicant Information
+	•	Full name (pre-fill from profile)
+	•	Email (pre-fill)
+	•	Phone number
+	•	Current address
+
+Step 2: Rental & Employment Info
+	•	Current landlord name & contact
+	•	Employment status
+	•	Employer name
+	•	Monthly income
+
+Step 3: Occupancy Details
+	•	Number of occupants
+	•	Pets (yes/no + details)
+	•	Vehicles (optional)
+
+Step 4: Document Upload
+	•	Government ID
+	•	Proof of income
+	•	Other documents (optional)
+
+Use existing image/file storage system
+Validate file type and size
+Encrypt access (tenant + landlord/agent only)
+
+Step 5: Property-Specific Questions
+	•	Allow landlord/agent to define custom questions
+	•	Tenant must answer before submission
+
+Step 6: Review & Submit
+	•	Show full summary
+	•	Confirmation checkbox
+	•	Submit application
+
+⸻
+
+3️⃣ Draft & Auto-Save Behavior
+	•	Applications start as draft
+	•	Auto-save after each step
+	•	Tenant can resume later
+	•	Drafts are private to tenant
+
+⸻
+
+4️⃣ Application Submission Rules
+	•	Lock application after submission
+	•	Status changes to submitted
+	•	Create private message conversation automatically
+	•	Trigger notifications
+
+⸻
+
+5️⃣ Landlord / Agent Review System
+
+Application List Page
+	•	Filter by status
+	•	Sort by date, income, occupants
+	•	Group by property
+
+Application Detail Page
+	•	Full application data
+	•	Document preview/download
+	•	Message tenant
+	•	Change application status
+	•	Request additional info
+
+⸻
+
+6️⃣ Messaging Integration (MANDATORY)
+	•	One conversation per application
+	•	Participants:
+	•	Tenant
+	•	Landlord
+	•	Assigned Agent (if any)
+	•	Messages stored in existing messaging system
+	•	System messages auto-generated on status change
+
+⸻
+
+7️⃣ Notifications
+
+Trigger notifications for:
+	•	Application submitted
+	•	Status changed
+	•	Info requested
+	•	Documents uploaded
+	•	Approval or rejection
+
+Channels:
+	•	In-app (required)
+	•	Email (optional)
+
+⸻
+
+🗃️ DATA MODEL (DO NOT SIMPLIFY)
+
+Application {
+  id: string,
+  propertyId: string,
+  tenantId: string,
+  landlordId: string,
+  agentId?: string,
+  status: string,
+  formData: object,
+  documents: array,
+  createdAt: datetime,
+  updatedAt: datetime
+}
+
+
+⸻
+
+🔐 SECURITY REQUIREMENTS
+	•	Applications are private
+	•	Only authorized roles can view
+	•	Documents are not publicly accessible
+	•	Strict role-based access enforcement
+	•	Add audit trail for status changes
+
+⸻
+
+🧪 VERIFICATION REQUIREMENTS (MANDATORY)
+
+After implementation, output a Completion Report that confirms:
+	•	✅ Tenant can apply to a property
+	•	✅ Draft applications auto-save
+	•	✅ One application per property enforced
+	•	✅ Landlord/agent can review applications
+	•	✅ Messaging works per application
+	•	✅ Documents upload and preview securely
+	•	✅ Status changes propagate correctly
+	•	✅ Notifications trigger correctly
+	•	✅ No existing features broken
+	•	✅ No console errors
+
+End report with:
+
+“The tenant rental application system has been fully implemented, tested, and verified. All workflows are complete and operational.”
+
+⸻
+
+🚫 DO NOT DO
+	•	Do not introduce buyer/sales logic
+	•	Do not use external messaging platforms
+	•	Do not remove existing code
+	•	Do not hard-code roles
+	•	Do not expose documents publicly
+
+⸻
+
+✅ FINAL NOTE TO AI
+
+Build this system cleanly, modularly, and professionally.
+This is a core feature of a production rental platform.

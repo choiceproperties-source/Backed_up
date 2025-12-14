@@ -1,0 +1,168 @@
+THIS IS AN UPGRADE — NOT A REBUILD.
+YOUR GOAL: Add Rently-style registration, roles, property listings, and rental applications WITHOUT BREAKING EXISTING APP.
+
+==============================
+ABSOLUTE SAFETY RULES
+==============================
+
+- DO NOT delete any existing files
+- DO NOT rename routes, components, or APIs
+- DO NOT change frameworks or libraries
+- DO NOT rewrite existing authentication
+- DO NOT refactor working code
+- DO NOT change existing UI styles globally
+- ONLY add new logic where required
+- IF UNSURE → STOP AND REPORT
+
+==============================
+STEP 1: READ-ONLY ANALYSIS
+==============================
+
+Analyze the repo WITHOUT changing anything:
+- Detect frontend framework
+- Detect backend framework
+- Detect authentication system
+- Detect database system
+- Locate user model
+- Locate dashboards
+- Locate routing structure
+
+Do NOT modify any code yet.
+
+==============================
+STEP 2: USER ROLES (SAFE EXTENSION)
+==============================
+
+Extend the existing user system by adding a `role` field.
+
+Roles:
+- tenant
+- landlord
+- agent
+
+Rules:
+- Existing users MUST continue working
+- Default role = tenant
+- Role field MUST be optional for backward compatibility
+
+Example:
+role?: "tenant" | "landlord" | "agent"
+
+Update signup flow to include role selection, redirect to role-based dashboards, without breaking current users.
+
+==============================
+STEP 3: ROLE-BASED ACCESS (ADD ONLY)
+==============================
+
+- Tenants: browse properties, apply, track applications
+- Landlords: create/manage properties, review applications
+- Agents: manage assigned properties, communicate with tenants
+
+Do NOT block existing routes unless strictly necessary for security.
+
+==============================
+STEP 4: PROPERTY LISTING SYSTEM (ISOLATED)
+==============================
+
+Add a new property module:
+
+Property fields:
+- title
+- address
+- city
+- state
+- zip
+- price
+- bedrooms
+- bathrooms
+- amenities
+- images
+- availabilityDate
+- landlordId
+- agentId (optional)
+- status (draft | published)
+
+Rules:
+- Only landlords & agents manage listings
+- Only published listings are public
+- Must NOT interfere with existing repo data
+
+==============================
+STEP 5: PROPERTY BROWSING (TENANTS)
+==============================
+
+Add new pages:
+- /properties
+- /properties/:id
+
+Navigation:
+Home → Browse Properties → Property Details
+
+Do NOT replace homepage or existing navigation.
+
+==============================
+STEP 6: RENTAL APPLICATION SYSTEM
+==============================
+
+Add a separate application module:
+
+Application fields:
+- tenantId
+- propertyId
+- landlordId
+- agentId (optional)
+- status
+- documents
+- submittedAt
+
+Status flow:
+submitted → under_review → info_requested → approved → rejected
+
+Rules:
+- Tenants see ONLY their applications
+- Landlords/Agents see ONLY relevant applications
+
+==============================
+STEP 7: MESSAGING (SAFE ADD-ON)
+==============================
+
+Add basic in-app messaging:
+- Linked to property or application
+- Stored securely
+- No real-time required unless already supported
+
+==============================
+STEP 8: SECURITY (MINIMUM, NON-BREAKING)
+==============================
+
+Implement:
+- Role checks
+- Ownership checks
+- Route protection
+- Secure uploads
+
+If conflicts arise → STOP and report.
+
+==============================
+STEP 9: FINAL VERIFICATION
+==============================
+
+Confirm:
+- App runs correctly
+- Existing features unchanged
+- No broken routes
+- No console errors
+
+==============================
+FINAL REPORT (MANDATORY)
+==============================
+
+Output:
+1. New files created
+2. Existing files modified
+3. Features added
+4. Confirmation:
+
+"Existing app functionality remains unchanged."
+
+END OF REPO-SPECIFIC INSTRUCTIONS.

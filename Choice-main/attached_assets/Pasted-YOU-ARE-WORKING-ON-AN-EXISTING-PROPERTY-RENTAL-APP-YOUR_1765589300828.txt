@@ -1,0 +1,116 @@
+YOU ARE WORKING ON AN EXISTING PROPERTY RENTAL APP.
+YOUR TASK: Upgrade the Property Details Page to resemble Zillow in style and functionality,
+including the photo gallery, property info layout, and interactive elements.
+DO NOT BREAK EXISTING FEATURES.
+
+==============================
+STEP 1: PAGE LAYOUT & DESIGN
+==============================
+
+1. Create a modern, clean layout with the following sections:
+
+   a) **Photo Gallery** (Top)
+      - Large main image
+      - Thumbnail strip below or on the side
+      - Click thumbnail → main image changes
+      - Optional: Next/Previous buttons
+      - Optional: Lightbox modal for full-screen view
+      - Responsive design for mobile & desktop
+
+   b) **Property Info Section** (Next to or below gallery)
+      - Property Title (e.g., “3 Bed, 2 Bath Apartment”)
+      - Price / Rent
+      - Address (clickable for maps)
+      - Key Features:
+        - Bedrooms
+        - Bathrooms
+        - Square Footage
+        - Amenities (Pool, Gym, Parking, etc.)
+      - Availability Date
+      - Lease Term
+      - Security Deposit
+      - Owner / Agent info with contact button
+
+   c) **Application / Call-to-Action Section**
+      - “Apply Now” button for tenants
+      - Schedule a tour button (optional)
+      - Save / Favorite button
+
+   d) **Additional Sections (Optional)**
+      - Map showing property location
+      - Nearby amenities or neighborhood info
+      - Reviews or ratings
+
+==============================
+STEP 2: PHOTO GALLERY IMPLEMENTATION
+==============================
+
+- Implement a **carousel slider** for property images
+- Features:
+  - Auto-scroll optional
+  - Swipe support on mobile
+  - Thumbnail navigation
+  - Lightbox popup for zoom
+- Ensure images are optimized and responsive
+- Load images dynamically from property’s image array in database
+
+==============================
+STEP 3: RESPONSIVE DESIGN
+==============================
+
+- Desktop: Gallery left / info right or top / info below
+- Mobile: Single-column layout, gallery on top, info below
+- Buttons and text scale properly for all screen sizes
+- Keep a clean and modern Zillow-like UI
+- Use consistent fonts, spacing, and color palette
+
+==============================
+STEP 4: DATA INTEGRATION
+==============================
+
+- Fetch property info from database dynamically
+- Display all fields:
+  - title, price, address, beds, baths, sqft, amenities, availability, owner/agent
+- Populate photo gallery from property.images array
+- Make sure tenant sees “Apply Now” only if logged in
+- Agent/Landlord sees edit/manage buttons (optional)
+
+==============================
+STEP 5: INTERACTIVITY & UX
+==============================
+
+- Hover effects for thumbnails
+- Clickable buttons with visual feedback
+- Modal lightbox closes on background click or escape
+- Smooth transitions for gallery images
+- Save / Favorite button updates user’s saved properties
+- Apply Now → opens application form modal or navigates to application page
+
+==============================
+STEP 6: ACCESSIBILITY & SECURITY
+==============================
+
+- All images have alt text
+- Buttons accessible by keyboard
+- Prevent unauthorized editing of property info
+- Validate all dynamic content before rendering
+
+==============================
+STEP 7: TESTING
+==============================
+
+- Check gallery on desktop & mobile
+- Confirm all property details are displayed correctly
+- Test Apply Now and Save buttons
+- Ensure no console errors
+- Verify page looks similar in layout to Zillow
+
+==============================
+FINAL REPORT
+==============================
+
+Output:
+1. Files created or modified
+2. Components added
+3. Gallery and info sections implemented
+4. Confirmation: “Property Details Page upgraded Zillow-style, responsive, interactive, and dynamic.”

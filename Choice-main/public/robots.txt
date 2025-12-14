@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /properties
+Allow: /about
+Allow: /contact
+Disallow: /apply
+
+Sitemap: https://choiceproperties.com/sitemap.xml

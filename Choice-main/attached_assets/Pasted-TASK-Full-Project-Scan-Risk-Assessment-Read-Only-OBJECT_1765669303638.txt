@@ -1,0 +1,88 @@
+TASK: Full Project Scan & Risk Assessment (Read-Only)
+
+OBJECTIVE
+Review the entire codebase to identify issues, risks, and improvement opportunities WITHOUT modifying existing functionality or architecture.
+
+IMPORTANT RULES
+- DO NOT refactor code
+- DO NOT rename files, folders, or variables
+- DO NOT change business logic
+- DO NOT add new features
+- DO NOT delete anything
+- READ-ONLY analysis only
+
+---
+
+SCAN SCOPE
+
+1. PROJECT STRUCTURE
+- Check directory organization
+- Identify unused or redundant files
+- Flag inconsistent naming or misplaced files
+
+2. FRONTEND REVIEW
+- Identify UI/UX inconsistencies
+- Check for broken routes or unused pages
+- Detect performance issues (unnecessary renders, large assets)
+- Flag accessibility concerns (labels, keyboard traps, contrast)
+
+3. BACKEND REVIEW
+- Check API route consistency
+- Identify missing validation
+- Detect insecure patterns
+- Verify role-based access enforcement
+
+4. AUTHENTICATION & AUTHORIZATION
+- Review signup/signin flows
+- Check session/token handling
+- Confirm role checks exist where required
+
+5. DATA MODELS & DATABASE USAGE
+- Identify unused models or fields
+- Check relational integrity assumptions
+- Flag missing indexes or constraints
+
+6. IMAGE & FILE HANDLING
+- Confirm no secrets exposed
+- Verify ImageKit usage patterns
+- Detect missing upload limits or cleanup paths
+
+7. ERROR HANDLING & MESSAGING
+- Identify silent failures
+- Check user-facing error tone (panic vs calm)
+- Flag unhandled promise rejections
+
+8. SECURITY CHECK
+- Environment variable usage
+- Sensitive data exposure
+- Potential injection risks
+
+9. PERFORMANCE & SCALABILITY (LIGHT)
+- Obvious N+1 issues
+- Heavy synchronous operations
+- Unnecessary API calls
+
+---
+
+OUTPUT FORMAT (IMPORTANT)
+
+Return results ONLY as a structured report with these sections:
+
+1. CRITICAL ISSUES (must fix)
+2. HIGH RISK (should fix)
+3. MEDIUM RISK (consider fixing)
+4. LOW RISK / CLEANUP
+5. SAFE TO IGNORE FOR NOW
+6. OVERALL PROJECT HEALTH SCORE (1–10)
+7. RECOMMENDED NEXT ACTION (one sentence)
+
+Each finding must include:
+- File or area
+- Description
+- Why it matters
+- Risk level
+
+---
+
+FINAL RULE
+Do NOT suggest changes unless they are clearly necessary to prevent bugs or security issues.

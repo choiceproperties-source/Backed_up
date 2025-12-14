@@ -1,0 +1,27 @@
+Issues & Improvement Opportunities
+Critical Issues:
+
+Income Field Mismatch - The frontend form captures income but the scoring function looks for monthlyIncome OR income. The field name inconsistency could cause scoring issues.
+Missing SSN Collection - The scoring system gives credit score points if ssnProvided or ssn is present, but the form doesn't collect this. Users always get flagged with "no_credit_check".
+Employment Length Parsing - The scoring looks for yearsEmployed or duration, but the form collects employmentLength as a string like "2 years". This won't parse correctly.
+Rental History Duration - Same issue - the scoring expects yearsRenting or duration as a number, but the form doesn't collect this in a parseable format.
+UX Improvements Needed:
+
+No Income-to-Rent Validation - The form doesn't check if income is 3x the rent (industry standard). Users could apply when they don't qualify.
+Missing Previous Landlord Phone Format - No validation on phone number format for landlord reference.
+No Document Size Validation UI - Says "Max 5MB" but doesn't show file size after upload.
+Duplicate Estimated Time Display - Header shows estimated time twice (redundant).
+Feature Gaps:
+
+No Application Detail View for Applicants - Users can see their applications list but no detailed view of their own submission.
+No Withdrawal Confirmation - Users can't easily withdraw applications from the "My Applications" page.
+No Lease Document Integration - After "approved_pending_lease" there's no actual lease document flow.
+Application Comparison Not Surfaced - The compareApplications function exists but isn't used in the UI.
+Recommendations Priority
+Priority	Issue	Impact
+High	Fix field name mismatches for scoring	Scoring accuracy
+High	Add income-to-rent ratio check	User experience
+Medium	Add SSN consent checkbox	Credit check integration
+Medium	Parse employment/rental duration properly	Scoring accuracy
+Low	Add application detail view for applicants	User transparency
+Low	Add withdrawal button	User control

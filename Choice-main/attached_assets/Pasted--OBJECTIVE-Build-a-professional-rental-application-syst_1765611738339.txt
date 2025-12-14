@@ -1,0 +1,111 @@
+🎯 OBJECTIVE
+Build a professional rental application system with:
+- Property-specific application fees fetched automatically
+- Tenant multi-step application form
+- Secure cloud-based document uploads
+- Full mock payment system with realistic error handling
+- Messaging and notifications
+- Role-based access (Tenant, Landlord, Agent)
+- Realistic payment UI with Retry, Try New Card, and Contact Support options
+- Dashboard updates for tenants and landlords
+
+---
+
+👤 ROLES & ACCESS
+Tenant:
+- Apply per property
+- Upload documents
+- Enter payment info for property-specific fee
+- Retry payment or enter a new card
+- Contact support
+- View application status and payment attempts in dashboard
+
+Landlord/Agent:
+- View applications for their properties
+- See payment attempt status
+- Message tenant
+- Filter and sort applications
+
+---
+
+🧩 FEATURES
+
+1️⃣ Tenant Application Flow
+- Multi-step form:
+  Step 1: Personal Info (pre-filled from profile)
+  Step 2: Rental History
+  Step 3: Employment & Income
+  Step 4: Occupancy & Pets
+  Step 5: Document Upload
+  Step 6: Property-specific questions
+  Step 7: Review & Submit
+- Fetch property-specific application fee automatically
+- Auto-save drafts between steps
+
+2️⃣ Mock Payment Integration
+- Show payment modal after review
+- Fields: Cardholder Name, Card Number, Expiration, CVV, ZIP
+- Include buttons/options:
+  - Retry Payment
+  - Try a New Card
+  - Contact Support
+- Payment processing simulation:
+  - Realistic spinner and “Processing…” states
+  - Controlled failure for all attempts
+- Display:
+  - Payment reference ID
+  - Timestamp
+  - Status
+  - Amount
+- Update tenant dashboard: payment_attempted
+- Update landlord dashboard: awaiting application fee
+
+3️⃣ Error Handling
+- Display calm and professional error message:
+  “Payment couldn’t be completed right now. No charges were made. Please try again later.”
+- Provide options to Retry, Try New Card, or Contact Support
+- Keep UX consistent with modern payment gateways
+
+4️⃣ Notifications
+- Tenant: submission attempt, status changes
+- Landlord/Agent: new application, payment attempt
+- In-app notifications required; optional email
+
+5️⃣ Messaging
+- Automatic private conversation per application
+- Participants: Tenant + Landlord + Assigned Agent
+- System messages for status updates
+
+6️⃣ Data Models
+- Application:
+  id, propertyId, tenantId, landlordId, agentId?, status, formData, documents, createdAt, updatedAt, payment:{status, amount, referenceId, timestamp}
+- Documents:
+  Secure cloud storage (Cloudinary or similar)
+  Encrypted, role-based access
+
+7️⃣ Dashboards
+- Tenant:
+  View applications, payment attempts, retry options, status
+- Landlord/Agent:
+  View applications, payment attempt status, messaging
+
+---
+
+🔧 INTEGRATION REQUIREMENTS
+- All steps should work modularly
+- Payment fees fetched automatically from property data
+- Mock payment system simulates realistic behavior
+- Retry and support flows fully integrated
+- All dashboards reflect real-time updates
+- Secure, professional design, mobile responsive
+
+---
+
+✅ FINAL NOTE
+Build the system as production-ready, following modern UX and UI standards:
+- Multi-step tenant application form
+- Property-specific fees integrated
+- Fully-featured mock payment with realistic UX
+- Dashboard, messaging, notifications
+- Role-based access and secure document handling
+- Ensure the workflow appears fully legitimate for professional testing

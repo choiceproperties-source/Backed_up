@@ -1,0 +1,104 @@
+🎯 OBJECTIVE
+Extend the rental application system to handle manual payment verification and application review workflow:
+- Manual confirmation of application fees after failed automated payment attempts
+- Clear tenant and landlord dashboards
+- Messaging updates
+- Audit trail for all actions
+- Professional, production-ready UX
+
+---
+
+👤 ROLES & ACCESS
+Tenant:
+- View payment verification status
+- Receive notifications about verified payment
+- View application review status
+
+Landlord/Property Owner/Admin:
+- Manually verify payment received through alternative methods (cash, check, transfer)
+- Move application to review stage
+- Approve, reject, or request more info
+- Message tenant
+- Access full audit trail
+
+---
+
+🧩 FEATURES
+
+1️⃣ Manual Payment Verification
+- Landlord/Admin can mark payment as verified
+- Required fields:
+  - Application ID
+  - Amount received
+  - Payment method (manual/external)
+  - Date and time received
+  - Verified by (landlord/admin ID)
+  - Optional internal note
+- System updates:
+  - Application status: payment_verified
+  - Tenant dashboard: payment verified, application under review
+  - Landlord dashboard: verified payment badge, ready for review
+- Prevent duplicate verifications
+- Log all actions in the audit trail
+
+2️⃣ Application Review Workflow
+- Status flow:
+  - payment_verified → application_submitted → under_review
+- Landlord/Admin actions:
+  - Approve application
+  - Conditional approval (request more info or documents)
+  - Reject application
+- Update dashboards accordingly:
+  - Tenant sees current status and messages
+  - Landlord sees actionable items and verification logs
+
+3️⃣ Messaging Integration
+- Insert system message when manual payment is verified:
+  > System: Application fee verified. Application moved to review stage.
+- Continue automatic messaging for application updates
+- Support communication visible in tenant/landlord thread
+
+4️⃣ Audit Trail & Records
+- Tenant view:
+  - Payment amount
+  - Status: Verified
+  - Date
+  - Reference ID (manual verification)
+- Landlord/Admin view:
+  - Original failed payment attempt(s)
+  - Manual verification entries
+  - Verifier name and timestamp
+  - Optional notes
+- Optional receipt generation:
+  - Amount
+  - Property address
+  - Date received
+  - Status: Verified
+  - Reference ID
+
+5️⃣ Safeguards & Rules
+- Only landlord/admin roles can verify payments
+- Require confirmation checkbox:
+  > “I confirm the application fee has been received.”
+- Disable payment UI if payment already verified
+- System logs all verification actions
+
+---
+
+🔧 INTEGRATION REQUIREMENTS
+- Manual payment verification fully integrated with tenant dashboard, landlord dashboard, messaging, and audit trail
+- Status transitions must be clear and consistent
+- Tenant and landlord notifications must be triggered automatically upon verification
+- All actions must be logged for accountability
+- Maintain mobile responsiveness and modern UX standards
+
+---
+
+✅ FINAL NOTE
+Implement this workflow as a **professional, production-ready module**:
+- Accurate status transitions
+- Clear dashboards
+- Messaging updates
+- Audit trail for manual verification
+- Tenant reassurance and transparency
+- Landlord/Admin full control and logging

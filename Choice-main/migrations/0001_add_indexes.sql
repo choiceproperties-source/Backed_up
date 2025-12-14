@@ -1,0 +1,14 @@
+-- Add indexes for frequently queried columns (HP002)
+CREATE INDEX IF NOT EXISTS "idx_users_id" ON "users"("id");
+CREATE INDEX IF NOT EXISTS "idx_properties_owner_id" ON "properties"("owner_id");
+CREATE INDEX IF NOT EXISTS "idx_properties_city" ON "properties"("city");
+CREATE INDEX IF NOT EXISTS "idx_properties_status" ON "properties"("status");
+CREATE INDEX IF NOT EXISTS "idx_applications_user_id" ON "applications"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_applications_property_id" ON "applications"("property_id");
+CREATE INDEX IF NOT EXISTS "idx_inquiries_agent_id" ON "inquiries"("agent_id");
+CREATE INDEX IF NOT EXISTS "idx_inquiries_property_id" ON "inquiries"("property_id");
+CREATE INDEX IF NOT EXISTS "idx_requirements_user_id" ON "requirements"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_reviews_user_id" ON "reviews"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_reviews_property_id" ON "reviews"("property_id");
+CREATE INDEX IF NOT EXISTS "idx_favorites_user_id" ON "favorites"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_saved_searches_user_id" ON "saved_searches"("user_id");

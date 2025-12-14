@@ -1,0 +1,118 @@
+🎯 OBJECTIVE
+Build a professional rental application review and approval workflow:
+- Handles verified payments (automated or manual)
+- Allows landlord/agent to approve, conditionally approve, or reject applications
+- Updates tenant and landlord dashboards in real time
+- Supports conditional approval document requests
+- Maintains audit trail and messaging integration
+- Professional, production-ready UX
+
+---
+
+👤 ROLES & ACCESS
+Tenant:
+- View application status (under review, approved, conditional, rejected)
+- Receive notifications for status changes
+- Upload additional documents if conditional approval
+- Access messaging thread with landlord/agent
+
+Landlord/Agent:
+- Review full application details
+- Verify payments
+- Approve, conditionally approve, or reject applications
+- Request additional documents or information
+- Message tenant directly
+- Log internal notes
+- Access full audit trail
+
+Admin:
+- Full visibility on all applications
+- Override statuses if necessary
+- Monitor audit logs
+
+---
+
+🧩 FEATURES
+
+1️⃣ Application Status Flow
+- payment_verified → under_review → approved / conditional_approval / rejected → lease_preparation
+- Clear and role-checked transitions
+- Tenant dashboard reflects status in real time
+- Landlord dashboard shows actionable items and payment verification
+
+2️⃣ Tenant Dashboard
+- Displays application status and payment status
+- Conditional approval requests show instructions and required actions
+- Allows document upload for conditional approval
+- Approved applications display next steps (lease prep, move-in)
+- Rejected applications display neutral, professional message with optional contact support
+
+3️⃣ Landlord/Agent Dashboard
+- View all application details and uploaded documents
+- Payment badge and verification status
+- Action buttons:
+  - Approve Application
+  - Conditional Approval (request documents/info)
+  - Reject Application
+- Messaging integration with tenant thread
+- Record internal notes (optional)
+- Audit logs for all actions
+
+4️⃣ Messaging System
+- System messages for all status changes:
+  - "Application is now under review."
+  - "Application approved. Next steps available."
+  - "Additional information required. Please update your application."
+  - "Application rejected. Contact support for details."
+- Tenant and landlord can exchange private messages in the same thread
+- Optional notifications via email for high-priority updates
+
+5️⃣ Conditional Approval Handling
+- Tenant receives instructions for missing information or additional documents
+- Allows incremental uploads and form updates
+- Dashboard clearly indicates pending items
+- Only complete submissions allow transition to `approved`
+
+6️⃣ Document Handling
+- Secure cloud storage (Cloudinary or similar)
+- Access controlled: only tenant, authorized landlord/agent, admin
+- Timestamps and version history logged
+- Support multiple document types (PDF, image, text)
+
+7️⃣ Audit Trail
+- Logs every action:
+  - Actor (tenant, landlord, admin)
+  - Timestamp
+  - Action type (status change, document upload, message sent)
+  - Notes if applicable
+- Ensures compliance and dispute resolution readiness
+
+8️⃣ Post-Approval Workflow
+- Approved applications trigger lease preparation workflow:
+  - Lease document generation (template-based)
+  - Digital signature support if applicable
+  - Move-in scheduling
+- Conditional approvals remain open until requirements are satisfied
+- Rejected applications archived with full history
+
+---
+
+🔧 INTEGRATION REQUIREMENTS
+- Status transitions are role-checked and consistent
+- Tenant and landlord dashboards update in real time
+- Conditional approval instructions clearly displayed
+- Messaging integrated for all status changes
+- Audit trail maintained for all actions
+- Mobile-responsive and professional design
+
+---
+
+✅ FINAL NOTE
+Implement this workflow as a **professional production-ready module**:
+- Clear status transitions
+- Conditional approval handling
+- Real-time dashboard updates
+- Messaging notifications
+- Secure document handling
+- Complete audit logs
+- Ready for integration with existing payment and application modules

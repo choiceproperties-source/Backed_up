@@ -1,0 +1,241 @@
+SYSTEM OBJECTIVE
+Integrate ImageKit as the image storage, optimization, and CDN solution for a rental-only property platform. The integration must support secure uploads, role-based access, strict limits, optimized delivery, and Zillow-style galleries.
+
+This implementation must be production-ready, scalable, and cost-controlled.
+
+---
+
+SECTION 1 — IMAGEKIT PROJECT SETUP
+
+TASK
+Set up ImageKit credentials and backend configuration.
+
+IMPLEMENTATION
+- Create ImageKit account and project
+- Obtain:
+  - Public Key
+  - Private Key
+  - URL Endpoint
+- Store credentials securely in environment variables:
+  - IMAGEKIT_PUBLIC_KEY
+  - IMAGEKIT_PRIVATE_KEY
+  - IMAGEKIT_URL_ENDPOINT
+- Do NOT expose private key to frontend
+
+ACCEPTANCE CRITERIA
+- Credentials stored securely
+- Backend can initialize ImageKit SDK successfully
+
+---
+
+SECTION 2 — BACKEND IMAGEKIT CLIENT
+
+TASK
+Initialize ImageKit client on the backend.
+
+IMPLEMENTATION
+- Install ImageKit SDK
+- Create ImageKit service wrapper
+- Initialize client using environment variables
+- Centralize all ImageKit logic in a single service/module
+
+ACCEPTANCE CRITERIA
+- ImageKit client loads without errors
+- Service reusable across app modules
+
+---
+
+SECTION 3 — SIGNED UPLOAD TOKEN GENERATION
+
+TASK
+Enable secure direct uploads from client to ImageKit.
+
+IMPLEMENTATION
+- Create backend endpoint to generate upload authentication parameters
+- Validate before generating token:
+  - User is authenticated
+  - User role is allowed for upload category
+  - Upload limits not exceeded
+- Generate and return:
+  - token
+  - expire timestamp
+  - signature
+
+SECURITY
+- Tokens must be short-lived
+- One token per upload request
+
+ACCEPTANCE CRITERIA
+- Upload token generated only for authorized users
+- Unauthorized requests rejected
+
+---
+
+SECTION 4 — UPLOAD FLOW (CLIENT → IMAGEKIT)
+
+TASK
+Implement client-side direct uploads to ImageKit.
+
+IMPLEMENTATION
+- Client requests signed upload parameters from backend
+- Client uploads image directly to ImageKit
+- On success, receive:
+  - fileId
+  - url
+  - thumbnailUrl
+  - filePath
+- Send returned metadata to backend for persistence
+
+RULES
+- Never upload images through backend servers
+- Never store raw image data in database
+
+ACCEPTANCE CRITERIA
+- Images upload successfully
+- Backend receives and stores metadata only
+
+---
+
+SECTION 5 — IMAGE METADATA STORAGE
+
+TASK
+Persist uploaded image metadata.
+
+IMPLEMENTATION
+- Create Photo record with:
+  - imageKitFileId
+  - url
+  - thumbnailUrl
+  - category
+  - propertyId / maintenanceRequestId
+  - uploaderId
+  - uploaderRole
+  - orderIndex
+  - isArchived
+- Validate associations before saving
+- Reject invalid references
+
+ACCEPTANCE CRITERIA
+- Metadata saved correctly
+- Images linked to correct entities
+
+---
+
+SECTION 6 — IMAGE OPTIMIZATION & DELIVERY
+
+TASK
+Ensure fast and optimized image delivery.
+
+IMPLEMENTATION
+- Use ImageKit URL parameters for:
+  - Automatic format selection (WebP/AVIF)
+  - Compression
+  - Resizing
+- Generate:
+  - Thumbnail URLs for listings
+  - Medium images for galleries
+  - Full-size images for fullscreen view
+- Enable lazy loading on frontend
+
+RULES
+- Never serve original unoptimized images
+- Always use ImageKit CDN URLs
+
+ACCEPTANCE CRITERIA
+- Images load fast
+- Mobile performance optimized
+
+---
+
+SECTION 7 — PRIVATE VS PUBLIC IMAGES
+
+TASK
+Enforce access control for images.
+
+IMPLEMENTATION
+- Public images:
+  - Approved property photos
+- Private images:
+  - Maintenance photos
+  - Profile photos
+- Use signed URLs for private images
+- Validate user access before generating signed URLs
+
+ACCEPTANCE CRITERIA
+- Private images inaccessible without authorization
+- Public images load without authentication
+
+---
+
+SECTION 8 — IMAGE MANAGEMENT (REORDER, DELETE, REPLACE)
+
+TASK
+Allow image management without breaking data integrity.
+
+IMPLEMENTATION
+- Reordering updates orderIndex only
+- Deleting image:
+  - Archive Photo record
+  - Delete file from ImageKit using fileId
+- Replacing image:
+  - Upload new image
+  - Archive old image
+- Prevent deletion if image is referenced by locked records
+
+ACCEPTANCE CRITERIA
+- No orphaned images
+- Order preserved correctly
+
+---
+
+SECTION 9 — LIMIT ENFORCEMENT & SAFEGUARDS
+
+TASK
+Prevent abuse and unexpected storage usage.
+
+IMPLEMENTATION
+- Enforce upload limits server-side:
+  - Max images per property
+  - Max images per maintenance request
+  - Max file size
+- Reject uploads exceeding limits with calm messaging
+- Track image counts per entity
+
+ACCEPTANCE CRITERIA
+- Limits enforced reliably
+- No silent failures
+
+---
+
+SECTION 10 — AUDIT LOGGING
+
+TASK
+Track image-related actions.
+
+IMPLEMENTATION
+- Log:
+  - Upload
+  - Delete
+  - Replace
+  - Reorder
+  - Upload rejection
+- Log fields:
+  - actorId
+  - actorRole
+  - action
+  - targetId
+  - timestamp
+- Restrict audit visibility to admin
+
+ACCEPTANCE CRITERIA
+- Complete audit history available
+- Logs accurate and immutable
+
+---
+
+FINAL REQUIREMENTS
+- Backend is source of truth
+- Frontend never handles secrets
+- Integration must be modular
+- Code must be extensible for future media providers
+- System must remain within free-tier limits under defined policies
