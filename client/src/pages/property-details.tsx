@@ -16,12 +16,14 @@ import { AddressVerification } from "@/components/address-verification";
 import { 
   Share2, Heart, Mail, Phone, Star, MapPin, Bed, Bath, Maximize, 
   Calendar, Home, PawPrint, Sofa, ChevronDown, ChevronUp, X,
-  ChevronLeft, ChevronRight, Grid3X3, Building2, Settings, ImageIcon, DollarSign
+  ChevronLeft, ChevronRight, Grid3X3, Building2, Settings, ImageIcon, DollarSign,
+  PhoneCall, MessageCircle
 } from "lucide-react";
+import { CredibilityBar } from "@/components/trust-badges";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useNearbyPlaces } from "@/hooks/use-nearby-places";
 import { AmenitiesGrid } from "@/components/amenities-grid";
-import { MapSection } from "@/components/map-section";
+import { InteractiveMap } from "@/components/interactive-map";
 import { NearbyPlaces } from "@/components/nearby-places";
 import NotFound from "@/pages/not-found";
 import { AgentContactDialog } from "@/components/agent-contact-dialog";
@@ -617,7 +619,13 @@ export default function PropertyDetails() {
               {expandedSections.location && (
                 <div className="mt-4 space-y-6">
                   <div className="rounded-lg overflow-hidden">
-                    <MapSection center={position} title={property.title} address={property.address} />
+                    <InteractiveMap 
+                      center={position} 
+                      title={property.title} 
+                      address={property.address}
+                      nearbyPlaces={nearbyPlaces}
+                      showControls={true}
+                    />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Nearby Places</h3>
@@ -790,11 +798,11 @@ export default function PropertyDetails() {
                     </div>
                     <div className="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800">
                       <span className="text-gray-600 dark:text-gray-400">Required Monthly Income</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{formatPrice((property.price || 0) * 3)}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{formatPrice(parseDecimal(property.price) * 3)}</span>
                     </div>
                     <div className="flex justify-between py-1">
                       <span className="text-gray-600 dark:text-gray-400">Required Annual Income</span>
-                      <span className="font-bold text-green-600">{formatPrice((property.price || 0) * 36)}</span>
+                      <span className="font-bold text-green-600">{formatPrice(parseDecimal(property.price) * 36)}</span>
                     </div>
                   </div>
                   <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs text-blue-700 dark:text-blue-300">
@@ -807,33 +815,68 @@ export default function PropertyDetails() {
         </div>
       </div>
 
-      {/* Mobile Bottom Action Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 shadow-xl z-40 safe-area-inset-bottom">
-        <div className="flex items-center justify-between p-3 gap-2">
-          <div>
+      {/* Mobile Bottom Action Bar - Enhanced */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 shadow-xl z-40">
+        <div className="flex items-center p-3 gap-3">
+          <div className="flex-1 min-w-0">
             <span className="text-xl font-bold text-gray-900 dark:text-white">{formatPrice(property.price)}</span>
             <span className="text-sm text-gray-500">/mo</span>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-shrink-0">
             <Button
               onClick={() => toggleFavorite(property.id)}
               variant="outline"
               size="icon"
               className="h-10 w-10"
               data-testid="button-mobile-save"
+              aria-label={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
             >
               <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-red-500 text-red-500' : ''}`} />
             </Button>
+            {owner?.phone && (
+              <a href={`tel:${owner.phone}`}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 text-green-600 border-green-600"
+                  data-testid="button-mobile-call"
+                  aria-label="Call property manager"
+                >
+                  <PhoneCall className="h-5 w-5" />
+                </Button>
+              </a>
+            )}
+            {owner && (
+              <AgentContactDialog 
+                agent={{
+                  id: owner.id,
+                  name: owner.full_name || 'Property Manager',
+                  email: owner.email,
+                  phone: owner.phone || ''
+                }}
+                propertyId={property.id}
+                propertyTitle={property.title}
+                triggerText=""
+                triggerClassName="h-10 w-10"
+                triggerIcon={<MessageCircle className="h-5 w-5" />}
+              />
+            )}
             <Link href={`/apply?propertyId=${property.id}`}>
-              <Button className="bg-primary text-white font-bold h-10 px-6" data-testid="button-mobile-apply">
-                Apply Now
+              <Button className="bg-primary text-white font-bold h-10 px-4" data-testid="button-mobile-apply">
+                Apply
               </Button>
             </Link>
           </div>
         </div>
+        <div className="h-safe-area-inset-bottom bg-white dark:bg-gray-950" />
       </div>
 
-      <div className="mt-12 pb-20 md:pb-0">
+      {/* Credibility Bar */}
+      <div className="mt-12">
+        <CredibilityBar />
+      </div>
+
+      <div className="pb-20 md:pb-0">
         <Footer />
       </div>
     </div>

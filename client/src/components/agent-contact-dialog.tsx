@@ -25,13 +25,19 @@ interface AgentContactDialogProps {
   propertyId?: string;
   propertyTitle?: string;
   triggerText?: string;
+  triggerClassName?: string;
+  triggerIcon?: React.ReactNode;
+  triggerVariant?: 'default' | 'outline' | 'ghost';
 }
 
 export function AgentContactDialog({
   agent,
   propertyId,
   propertyTitle,
-  triggerText = 'Contact Agent'
+  triggerText,
+  triggerClassName,
+  triggerIcon,
+  triggerVariant = 'default'
 }: AgentContactDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -79,12 +85,24 @@ export function AgentContactDialog({
     }, 500);
   };
 
+  const isIconOnly = triggerIcon && !triggerText;
+  const displayText = triggerText ?? 'Contact Agent';
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full bg-primary hover:bg-primary/90 font-semibold">
-          <Mail className="h-4 w-4 mr-2" />
-          {triggerText}
+        <Button 
+          variant={triggerVariant}
+          size={isIconOnly ? "icon" : "default"}
+          className={triggerClassName || (isIconOnly ? "" : "w-full font-semibold")}
+          aria-label={isIconOnly ? "Contact agent" : undefined}
+        >
+          {isIconOnly ? triggerIcon : (
+            <>
+              {triggerIcon || <Mail className="h-4 w-4 mr-2" />}
+              {displayText}
+            </>
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
