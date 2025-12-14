@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import { EnhancedPropertyCard } from "@/components/property-card-enhanced";
+import { PropertyCard } from "@/components/property-card";
 import { PropertyComparison } from "@/components/property-comparison";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { NoResults } from "@/components/no-results";
@@ -510,12 +510,9 @@ export default function Properties() {
             viewMode === "grid" ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {filteredProperties.map((property) => (
-                  <EnhancedPropertyCard 
+                  <PropertyCard 
                     key={property.id} 
-                    property={property as PropertyWithOwner} 
-                    onQuickView={handleQuickView}
-                    onCompare={handleCompare}
-                    isInComparison={comparisonList.some(p => p.id === property.id)}
+                    property={property}
                   />
                 ))}
               </div>
@@ -533,12 +530,9 @@ export default function Properties() {
                 {/* Property List */}
                 <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
                   {filteredProperties.slice(0, 20).map((property) => (
-                    <EnhancedPropertyCard 
+                    <PropertyCard 
                       key={property.id} 
-                      property={property as PropertyWithOwner} 
-                      onQuickView={handleQuickView}
-                      onCompare={handleCompare}
-                      isInComparison={comparisonList.some(p => p.id === property.id)}
+                      property={property}
                     />
                   ))}
                 </div>
