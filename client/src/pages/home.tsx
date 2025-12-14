@@ -142,13 +142,13 @@ export default function Home() {
             role="img"
             aria-label="Modern luxury home exterior with blue sky background"
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary/90" />
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/30 via-transparent to-primary/30" />
+            <div className="absolute inset-0 bg-gradient-to-b from-primary/60 via-primary/45 to-primary/70" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-primary/20" />
           </div>
 
           <FloatingShapes />
 
-          <div className="container relative z-10 px-4 text-white max-w-6xl py-16 md:py-24">
+          <div className="container relative z-10 px-4 text-white max-w-6xl py-16 md:py-24" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
             <div className="text-center space-y-8">
               <LiveActivityTicker className="justify-center mb-8" />
               
