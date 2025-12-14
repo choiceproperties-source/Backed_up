@@ -117,7 +117,11 @@ export default function PropertyDetails() {
     return () => { removeStructuredData('property'); };
   }, [property, bedrooms, bathrooms, sqft]);
 
-  if (!match) return <NotFound />;
+  // All hooks must be called before any conditional returns
+  // Move the not-found check to render logic below
+  if (!match) {
+    return <NotFound />;
+  }
 
   if (isLoading || !property) {
     return (
@@ -626,7 +630,7 @@ export default function PropertyDetails() {
             </div>
 
             {/* Property Management Section - Only visible to owners/agents */}
-            {user && (user.id === property.owner_id || user.id === property.listing_agent_id || user.role === 'admin') && (
+            {user && (user.id === (property as any).owner_id || user.id === (property as any).listing_agent_id || user.role === 'admin') && (
               <>
                 <div className="border-t pt-6">
                   <AddressVerification
@@ -635,7 +639,7 @@ export default function PropertyDetails() {
                     city={property.city || ""}
                     state={property.state || ""}
                     zipCode={property.zip_code || undefined}
-                    isVerified={property.addressVerified || false}
+                    isVerified={(property as any).address_verified || false}
                     onVerified={(coords) => {
                       // Address verified, coordinates updated
                     }}
