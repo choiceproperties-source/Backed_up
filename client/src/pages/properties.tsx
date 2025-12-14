@@ -1,25 +1,29 @@
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import { PropertyCard } from "@/components/property-card";
+import { EnhancedPropertyCard } from "@/components/property-card-enhanced";
+import { PropertyComparison } from "@/components/property-comparison";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { NoResults } from "@/components/no-results";
 import { PropertyQuickView } from "@/components/property-quick-view";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import MapView from "@/components/map-view";
 import { useProperties } from "@/hooks/use-properties";
-import type { Property } from "@/lib/types";
-import { Search, Bookmark, Filter } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import type { Property, PropertyWithOwner } from "@/lib/types";
+import { Search, Bookmark, Filter, Map, LayoutGrid, Scale, X } from "lucide-react";
+import { toast } from "sonner";
 import { updateMetaTags } from "@/lib/seo";
 
 export default function Properties() {
   const { properties: allProperties, loading } = useProperties();
   const [filteredProperties, setFilteredProperties] = useState<Property[]>(allProperties);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const [comparisonList, setComparisonList] = useState<PropertyWithOwner[]>([]);
+  const [isComparisonOpen, setIsComparisonOpen] = useState(false);
 
   useEffect(() => {
     updateMetaTags({
@@ -36,7 +40,6 @@ export default function Properties() {
     setFilteredProperties(allProperties);
   }, [allProperties]);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
-  const { toast } = useToast();
   
   // Filters
   const [search, setSearch] = useState("");
@@ -105,17 +108,28 @@ export default function Properties() {
       const updated = [...savedSearches, newSearch];
       setSavedSearches(updated);
       localStorage.setItem("choiceProperties_savedSearches", JSON.stringify(updated));
-      toast({
-        title: "Search Saved",
-        description: "You can find this search in your saved searches."
-      });
+      toast.success("Search saved! You can find it in your saved searches.");
     } else {
-      toast({
-        title: "Already Saved",
-        description: "This search is already in your saved searches.",
-        variant: "default"
-      });
+      toast.info("This search is already saved.");
     }
+  };
+
+  const handleCompare = (property: Property) => {
+    const isAlreadyInList = comparisonList.some(p => p.id === property.id);
+    
+    if (isAlreadyInList) {
+      setComparisonList(prev => prev.filter(p => p.id !== property.id));
+    } else {
+      if (comparisonList.length >= 4) {
+        toast.warning("You can compare up to 4 properties at a time");
+        return;
+      }
+      setComparisonList(prev => [...prev, property as PropertyWithOwner]);
+    }
+  };
+
+  const removeFromComparison = (id: string) => {
+    setComparisonList(prev => prev.filter(p => p.id !== id));
   };
 
   const loadSearch = (s: typeof savedSearches[0]) => {
@@ -286,6 +300,26 @@ export default function Properties() {
                 >
                   Clear
                 </Button>
+
+                {/* View Toggle */}
+                <div className="flex border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`p-2.5 transition-colors ${viewMode === "grid" ? "bg-primary text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
+                    title="Grid View"
+                    data-testid="button-grid-view"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("map")}
+                    className={`p-2.5 transition-colors ${viewMode === "map" ? "bg-primary text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
+                    title="Map View"
+                    data-testid="button-map-view"
+                  >
+                    <Map className="h-4 w-4" />
+                  </button>
+                </div>
             </div>
         </div>
       </div>
@@ -473,11 +507,43 @@ export default function Properties() {
 
           {/* Results */}
           {filteredProperties.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {filteredProperties.map((property) => (
-                <PropertyCard key={property.id} property={property} onQuickView={handleQuickView} />
-              ))}
-            </div>
+            viewMode === "grid" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {filteredProperties.map((property) => (
+                  <EnhancedPropertyCard 
+                    key={property.id} 
+                    property={property as PropertyWithOwner} 
+                    onQuickView={handleQuickView}
+                    onCompare={handleCompare}
+                    isInComparison={comparisonList.some(p => p.id === property.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Map View */}
+                <div className="lg:sticky lg:top-20 h-[500px] lg:h-[calc(100vh-200px)]">
+                  <MapView 
+                    center={mapMarkers.length > 0 ? mapMarkers[0].position : [42.6064, -83.1498]}
+                    zoom={12}
+                    markers={mapMarkers}
+                    className="h-full w-full rounded-xl"
+                  />
+                </div>
+                {/* Property List */}
+                <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
+                  {filteredProperties.slice(0, 20).map((property) => (
+                    <EnhancedPropertyCard 
+                      key={property.id} 
+                      property={property as PropertyWithOwner} 
+                      onQuickView={handleQuickView}
+                      onCompare={handleCompare}
+                      isInComparison={comparisonList.some(p => p.id === property.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )
           ) : (
             <NoResults onReset={resetFilters} />
           )}
@@ -494,6 +560,61 @@ export default function Properties() {
         isOpen={isQuickViewOpen} 
         onClose={() => setIsQuickViewOpen(false)} 
       />
+
+      {/* Property Comparison Modal */}
+      <PropertyComparison
+        properties={comparisonList}
+        isOpen={isComparisonOpen}
+        onClose={() => setIsComparisonOpen(false)}
+        onRemove={removeFromComparison}
+      />
+
+      {/* Floating Comparison Bar */}
+      {comparisonList.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-2xl z-50 p-4 animate-in slide-in-from-bottom duration-300">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-primary">
+                <Scale className="h-5 w-5" />
+                <span className="font-semibold">{comparisonList.length} properties selected</span>
+              </div>
+              <div className="hidden md:flex items-center gap-2">
+                {comparisonList.map(p => (
+                  <div 
+                    key={p.id} 
+                    className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm"
+                  >
+                    <span className="truncate max-w-[100px]">{p.title}</span>
+                    <button 
+                      onClick={() => removeFromComparison(p.id)}
+                      className="text-gray-400 hover:text-red-500"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setComparisonList([])}
+              >
+                Clear All
+              </Button>
+              <Button 
+                size="sm"
+                onClick={() => setIsComparisonOpen(true)}
+                disabled={comparisonList.length < 2}
+              >
+                Compare Now
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
