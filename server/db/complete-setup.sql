@@ -129,6 +129,28 @@ CREATE TABLE IF NOT EXISTS public.favorites (
   UNIQUE(user_id, property_id)
 );
 
+-- Photos Table (for ImageKit integration)
+CREATE TABLE IF NOT EXISTS public.photos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  imagekit_file_id TEXT NOT NULL,
+  url TEXT NOT NULL,
+  thumbnail_url TEXT,
+  category TEXT NOT NULL,
+  uploader_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+  property_id UUID REFERENCES public.properties(id) ON DELETE CASCADE,
+  maintenance_request_id UUID,
+  is_private BOOLEAN DEFAULT FALSE,
+  order_index INTEGER DEFAULT 0,
+  archived BOOLEAN DEFAULT FALSE,
+  archived_at TIMESTAMP WITH TIME ZONE,
+  replaced_with_id UUID REFERENCES public.photos(id) ON DELETE SET NULL,
+  metadata JSONB,
+  file_size_bytes INTEGER DEFAULT 0,
+  view_count INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ===================================================
 -- PART 2: CREATE INDEXES
 -- ===================================================
@@ -143,6 +165,9 @@ CREATE INDEX IF NOT EXISTS idx_inquiries_agent ON public.inquiries(agent_id);
 CREATE INDEX IF NOT EXISTS idx_inquiries_property ON public.inquiries(property_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_property ON public.reviews(property_id);
 CREATE INDEX IF NOT EXISTS idx_favorites_user ON public.favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_photos_property ON public.photos(property_id);
+CREATE INDEX IF NOT EXISTS idx_photos_uploader ON public.photos(uploader_id);
+CREATE INDEX IF NOT EXISTS idx_photos_category ON public.photos(category);
 
 -- ===================================================
 -- PART 3: USER SYNC TRIGGER
@@ -209,6 +234,7 @@ ALTER TABLE public.inquiries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.requirements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.photos ENABLE ROW LEVEL SECURITY;
 
 -- ===================================================
 -- PART 5: RLS POLICIES
