@@ -20,60 +20,56 @@ export function PropertySearch() {
 
   return (
     <div 
-      className="w-full bg-white/95 dark:bg-slate-900/95 rounded-2xl shadow-2xl p-6 md:p-8 backdrop-blur-sm"
+      className="w-full bg-white/95 dark:bg-slate-900/95 rounded-2xl shadow-2xl p-4 md:p-6 backdrop-blur-sm"
       data-aos="fade-up"
       data-aos-delay="300"
     >
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
         {/* Location */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-foreground">Location</label>
+        <div>
           <input
             type="text"
-            placeholder="City or neighborhood"
+            placeholder="Location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             data-testid="input-search-location"
           />
         </div>
 
         {/* Min Price */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-foreground">Min Price</label>
+        <div>
           <input
             type="number"
-            placeholder="$500"
+            placeholder="Min Price"
             value={minPrice}
             onChange={(e) => setMinPrice(e.target.value)}
-            className="px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             data-testid="input-search-min-price"
           />
         </div>
 
         {/* Max Price */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-foreground">Max Price</label>
+        <div>
           <input
             type="number"
-            placeholder="$5000"
+            placeholder="Max Price"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
-            className="px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             data-testid="input-search-max-price"
           />
         </div>
 
         {/* Bedrooms */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-foreground">Bedrooms</label>
+        <div>
           <select
             value={bedrooms}
             onChange={(e) => setBedrooms(e.target.value)}
-            className="px-4 py-3 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+            className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
             data-testid="select-search-bedrooms"
           >
-            <option value="">Any</option>
+            <option value="">Bedrooms</option>
             <option value="1">1 Bedroom</option>
             <option value="2">2 Bedrooms</option>
             <option value="3">3 Bedrooms</option>
