@@ -93,7 +93,7 @@ export function EnhancedPropertySearch() {
   return (
     <div className="w-full max-w-4xl mx-auto">
       <div 
-        className="relative bg-white rounded-2xl md:rounded-full shadow-2xl p-2 md:p-3 overflow-visible"
+        className="relative bg-white rounded-2xl md:rounded-full shadow-2xl p-2 md:p-3 overflow-visible ring-4 ring-white/30"
         role="search"
         aria-label="Property search"
       >

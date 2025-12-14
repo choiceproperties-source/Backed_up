@@ -7,7 +7,7 @@ import { PropertyCard } from "@/components/property-card";
 import { EnhancedPropertySearch } from "@/components/enhanced-property-search";
 import { useProperties } from "@/hooks/use-properties";
 import type { Property } from "@/lib/types";
-import { ArrowRight, CheckCircle2, Home as HomeIcon, MapPin, ShieldCheck, Zap, Globe, Play, Star, Users, Award } from "lucide-react";
+import { ArrowRight, CheckCircle2, Home as HomeIcon, MapPin, ShieldCheck, Zap, Globe, Play, Star, Users, Award, Search } from "lucide-react";
 import { AnimatedCounter } from "@/components/animated-counter";
 import { TestimonialCarousel } from "@/components/testimonial-carousel";
 import { HowItWorksTimeline } from "@/components/how-it-works-timeline";
@@ -192,11 +192,11 @@ export default function Home() {
                   <Link href="/properties">
                     <Button 
                       size="lg" 
-                      className="bg-secondary hover:bg-secondary/90 text-primary-foreground font-bold h-14 px-8 text-lg shadow-xl hover:shadow-2xl transition-all group" 
-                      data-testid="cta-find-rental"
+                      className="bg-secondary hover:bg-secondary/90 text-primary-foreground font-bold h-14 px-10 text-lg shadow-xl hover:shadow-2xl transition-all group" 
+                      data-testid="cta-search-rentals"
                     >
-                      <HomeIcon className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
-                      Find Your Rental
+                      <Search className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
+                      Search Rentals
                     </Button>
                   </Link>
                   <Link href="/signup?role=landlord">
@@ -310,8 +310,8 @@ export default function Home() {
 
             <div className="text-center md:hidden">
               <Link href="/properties">
-                <Button className="w-full bg-secondary text-primary-foreground h-12 font-bold text-lg" data-testid="button-view-all-mobile">
-                  View All Properties
+                <Button className="w-full bg-secondary text-primary-foreground h-12 font-bold text-lg" data-testid="button-browse-listings-mobile">
+                  Browse Listings
                 </Button>
               </Link>
             </div>
