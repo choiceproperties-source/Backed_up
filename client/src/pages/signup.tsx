@@ -7,8 +7,8 @@ import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Link, useLocation } from 'wouter';
-import { Mail, Lock, User, Phone, Eye, EyeOff, Home, Building2, Users, Briefcase } from 'lucide-react';
-import { SiGoogle } from 'react-icons/si';
+import { Mail, Lock, User, Phone, Eye, EyeOff, Home, Building2, Users, Briefcase, Check, X, UserPlus } from 'lucide-react';
+import { SiGoogle, SiGithub } from 'react-icons/si';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signupSchema } from '@shared/schema';
@@ -17,6 +17,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { updateMetaTags } from "@/lib/seo";
 import { z } from 'zod';
 import type { UserRole } from '@/lib/types';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const SIGNUP_ROLES: { value: UserRole; label: string; description: string; icon: typeof Home }[] = [
   { value: 'renter', label: 'Renter', description: 'Looking to rent a property', icon: Home },
@@ -40,6 +41,18 @@ const extendedSignupSchema = signupSchema.extend({
 
 type ExtendedSignupInput = z.infer<typeof extendedSignupSchema>;
 
+interface PasswordRequirement {
+  label: string;
+  test: (password: string) => boolean;
+}
+
+const PASSWORD_REQUIREMENTS: PasswordRequirement[] = [
+  { label: 'At least 8 characters', test: (p) => p.length >= 8 },
+  { label: 'One uppercase letter', test: (p) => /[A-Z]/.test(p) },
+  { label: 'One number', test: (p) => /[0-9]/.test(p) },
+  { label: 'One special character', test: (p) => /[^A-Za-z0-9]/.test(p) },
+];
+
 const getPasswordStrength = (password: string) => {
   let strength = 0;
   if (password.length >= 8) strength++;
@@ -48,6 +61,15 @@ const getPasswordStrength = (password: string) => {
   if (/[0-9]/.test(password)) strength++;
   if (/[^A-Za-z0-9]/.test(password)) strength++;
   return strength;
+};
+
+const getStrengthLabel = (strength: number) => {
+  if (strength === 0) return { label: 'Very weak', color: 'bg-red-500' };
+  if (strength === 1) return { label: 'Weak', color: 'bg-red-500' };
+  if (strength === 2) return { label: 'Fair', color: 'bg-yellow-500' };
+  if (strength === 3) return { label: 'Good', color: 'bg-yellow-500' };
+  if (strength === 4) return { label: 'Strong', color: 'bg-green-500' };
+  return { label: 'Very strong', color: 'bg-green-500' };
 };
 
 export default function Signup() {
@@ -60,12 +82,14 @@ export default function Signup() {
     });
   }, []);
 
-  const { signup, loginWithGoogle } = useAuth();
+  const { signup, loginWithGoogle, loginWithGithub } = useAuth();
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [githubLoading, setGithubLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
 
   const form = useForm<ExtendedSignupInput>({
     resolver: zodResolver(extendedSignupSchema),
@@ -81,13 +105,15 @@ export default function Signup() {
   });
 
   const password = form.watch('password');
+  const confirmPassword = form.watch('confirmPassword');
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
+  const strengthInfo = getStrengthLabel(passwordStrength);
+  const passwordsMatch = password && confirmPassword && password === confirmPassword;
 
   const onSubmit = async (data: ExtendedSignupInput) => {
     setLoading(true);
     try {
       await signup(data.email, data.fullName, data.password, data.phone, data.role);
-      // Redirect to email verification page instead of showing success screen
       setLocation('/verify-email');
     } catch (err: any) {
       form.setError('root', { message: err.message || 'Signup failed' });
@@ -106,295 +132,435 @@ export default function Signup() {
     }
   };
 
+  const handleGithubSignup = async () => {
+    setGithubLoading(true);
+    try {
+      await loginWithGithub();
+    } catch (err: any) {
+      form.setError('root', { message: err.message || 'GitHub signup failed' });
+      setGithubLoading(false);
+    }
+  };
+
+  const isAnyLoading = loading || googleLoading || githubLoading;
+
+  const goToStep2 = async () => {
+    const isValid = await form.trigger(['fullName', 'email', 'phone', 'role']);
+    if (isValid) {
+      setStep(2);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 to-secondary/5">
-        <Card className="max-w-md w-full p-8 shadow-xl border-t-4 border-t-primary">
-          <h2 className="text-3xl font-bold text-primary mb-2">Create Account</h2>
-          <p className="text-sm text-muted-foreground mb-6">Join Choice Properties today and start exploring</p>
-
-          <Button 
-            type="button"
-            variant="outline" 
-            className="w-full mb-4 flex items-center justify-center gap-2"
-            onClick={handleGoogleSignup}
-            disabled={loading || googleLoading}
-            data-testid="button-google-signup"
-          >
-            <SiGoogle className="h-4 w-4" />
-            {googleLoading ? 'Connecting...' : 'Continue with Google'}
-          </Button>
-
-          <div className="flex items-center gap-4 my-4">
-            <Separator className="flex-1" />
-            <span className="text-xs text-muted-foreground">OR</span>
-            <Separator className="flex-1" />
-          </div>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm flex items-center gap-2">
-                      <User className="h-4 w-4" /> Full Name
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="John Doe"
-                        disabled={loading || googleLoading}
-                        data-testid="input-fullname"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm flex items-center gap-2">
-                      <Mail className="h-4 w-4" /> Email
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="you@example.com"
-                        disabled={loading || googleLoading}
-                        data-testid="input-email"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm flex items-center gap-2">
-                      <Phone className="h-4 w-4" /> Phone Number <span className="text-muted-foreground font-normal">(optional)</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="tel"
-                        placeholder="+1 (555) 123-4567"
-                        disabled={loading || googleLoading}
-                        data-testid="input-phone"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm">I am a...</FormLabel>
-                    <FormControl>
-                      <div className="grid grid-cols-2 gap-2">
-                        {SIGNUP_ROLES.map((roleOption) => {
-                          const Icon = roleOption.icon;
-                          const isSelected = field.value === roleOption.value;
-                          return (
-                            <button
-                              key={roleOption.value}
-                              type="button"
-                              onClick={() => field.onChange(roleOption.value)}
-                              disabled={loading || googleLoading}
-                              data-testid={`button-role-${roleOption.value}`}
-                              className={`p-3 rounded-md border text-left transition-all ${
-                                isSelected 
-                                  ? 'border-primary bg-primary/10 ring-1 ring-primary' 
-                                  : 'border-border hover:border-primary/50'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <Icon className={`h-4 w-4 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
-                                <span className={`text-sm font-medium ${isSelected ? 'text-primary' : ''}`}>
-                                  {roleOption.label}
-                                </span>
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-1">{roleOption.description}</p>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm flex items-center gap-2">
-                      <Lock className="h-4 w-4" /> Password
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="Min 8 chars, uppercase, number"
-                          disabled={loading || googleLoading}
-                          autoComplete="new-password"
-                          data-testid="input-password"
-                          {...field}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          disabled={loading || googleLoading}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          data-testid="button-toggle-password"
-                          aria-label={showPassword ? 'Hide password' : 'Show password'}
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </FormControl>
-                    {password && (
-                      <div className="mt-2 space-y-2">
-                        <div className="flex gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <div 
-                              key={i} 
-                              className={`h-1 flex-1 rounded-full transition-colors ${
-                                i < passwordStrength 
-                                  ? passwordStrength <= 2 
-                                    ? 'bg-red-500' 
-                                    : passwordStrength <= 3 
-                                      ? 'bg-yellow-500' 
-                                      : 'bg-green-500'
-                                  : 'bg-muted'
-                              }`} 
-                            />
-                          ))}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {passwordStrength === 0 ? 'Very weak' : 
-                           passwordStrength === 1 ? 'Weak' : 
-                           passwordStrength === 2 ? 'Fair' : 
-                           passwordStrength === 3 ? 'Good' : 
-                           passwordStrength === 4 ? 'Strong' : 
-                           'Very strong'}
-                        </p>
-                      </div>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm flex items-center gap-2">
-                      <Lock className="h-4 w-4" /> Confirm Password
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          placeholder="Confirm your password"
-                          disabled={loading || googleLoading}
-                          autoComplete="new-password"
-                          data-testid="input-confirm-password"
-                          {...field}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          disabled={loading || googleLoading}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          data-testid="button-toggle-confirm-password"
-                          aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                        >
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="agreeToTerms"
-                render={({ field }) => (
-                  <FormItem className="flex items-start gap-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={loading || googleLoading}
-                        data-testid="checkbox-terms"
-                        className="mt-1"
-                      />
-                    </FormControl>
-                    <div className="flex-1">
-                      <FormLabel className="text-sm font-normal text-muted-foreground cursor-pointer">
-                        I agree to the{' '}
-                        <Link href="/terms">
-                          <span className="text-primary font-semibold hover:underline">Terms of Service</span>
-                        </Link>
-                        {' '}and{' '}
-                        <Link href="/privacy">
-                          <span className="text-primary font-semibold hover:underline">Privacy Policy</span>
-                        </Link>
-                      </FormLabel>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              {form.formState.errors.root && (
-                <div className="text-red-600 text-sm bg-red-50 dark:bg-red-950/50 p-3 rounded" data-testid="text-error">
-                  {form.formState.errors.root.message}
-                </div>
-              )}
-
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={loading || googleLoading}
-                data-testid="button-submit"
+      <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-md"
+        >
+          <Card className="w-full p-8 shadow-xl border-t-4 border-t-primary">
+            <div className="text-center mb-6">
+              <motion.div
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
               >
-                {loading ? 'Creating Account...' : 'Create Account'}
-              </Button>
-            </form>
-          </Form>
+                <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <UserPlus className="h-7 w-7 text-primary" />
+                </div>
+                <h2 className="text-3xl font-bold text-foreground mb-1">Create Account</h2>
+                <p className="text-muted-foreground text-sm">Join Choice Properties and find your perfect home</p>
+              </motion.div>
+            </div>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            Already have an account?{' '}
-            <Link href="/login">
-              <span className="text-primary font-semibold cursor-pointer hover:underline" data-testid="link-login">Sign in</span>
-            </Link>
-          </p>
-        </Card>
+            <div className="flex gap-3 mb-6">
+              <Button 
+                type="button"
+                variant="outline" 
+                className="flex-1 flex items-center justify-center gap-2"
+                onClick={handleGoogleSignup}
+                disabled={isAnyLoading}
+                data-testid="button-google-signup"
+              >
+                <SiGoogle className="h-4 w-4" />
+                <span className="hidden sm:inline">{googleLoading ? 'Connecting...' : 'Google'}</span>
+              </Button>
+              <Button 
+                type="button"
+                variant="outline" 
+                className="flex-1 flex items-center justify-center gap-2"
+                onClick={handleGithubSignup}
+                disabled={isAnyLoading}
+                data-testid="button-github-signup"
+              >
+                <SiGithub className="h-4 w-4" />
+                <span className="hidden sm:inline">{githubLoading ? 'Connecting...' : 'GitHub'}</span>
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-4 my-6">
+              <Separator className="flex-1" />
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">or with email</span>
+              <Separator className="flex-1" />
+            </div>
+
+            <div className="flex items-center gap-2 mb-6">
+              <div className={`flex-1 h-1 rounded-full transition-colors ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
+              <div className={`flex-1 h-1 rounded-full transition-colors ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
+            </div>
+
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <AnimatePresence mode="wait">
+                  {step === 1 && (
+                    <motion.div
+                      key="step1"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-4"
+                    >
+                      <FormField
+                        control={form.control}
+                        name="fullName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-medium text-sm flex items-center gap-2">
+                              <User className="h-4 w-4 text-muted-foreground" /> Full Name
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="text"
+                                placeholder="John Doe"
+                                disabled={isAnyLoading}
+                                autoComplete="name"
+                                data-testid="input-fullname"
+                                className="h-11"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-medium text-sm flex items-center gap-2">
+                              <Mail className="h-4 w-4 text-muted-foreground" /> Email
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder="you@example.com"
+                                disabled={isAnyLoading}
+                                autoComplete="email"
+                                data-testid="input-email"
+                                className="h-11"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-medium text-sm flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-muted-foreground" /> Phone 
+                              <span className="text-muted-foreground font-normal">(optional)</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="tel"
+                                placeholder="+1 (555) 123-4567"
+                                disabled={isAnyLoading}
+                                autoComplete="tel"
+                                data-testid="input-phone"
+                                className="h-11"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="role"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-medium text-sm">I am a...</FormLabel>
+                            <FormControl>
+                              <div className="grid grid-cols-2 gap-2">
+                                {SIGNUP_ROLES.map((roleOption) => {
+                                  const Icon = roleOption.icon;
+                                  const isSelected = field.value === roleOption.value;
+                                  return (
+                                    <button
+                                      key={roleOption.value}
+                                      type="button"
+                                      onClick={() => field.onChange(roleOption.value)}
+                                      disabled={isAnyLoading}
+                                      data-testid={`button-role-${roleOption.value}`}
+                                      className={`p-3 rounded-md border text-left transition-all ${
+                                        isSelected 
+                                          ? 'border-primary bg-primary/10 ring-1 ring-primary' 
+                                          : 'border-border hover:border-primary/50'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <Icon className={`h-4 w-4 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                                        <span className={`text-sm font-medium ${isSelected ? 'text-primary' : ''}`}>
+                                          {roleOption.label}
+                                        </span>
+                                      </div>
+                                      <p className="text-xs text-muted-foreground mt-1">{roleOption.description}</p>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button 
+                        type="button"
+                        onClick={goToStep2}
+                        className="w-full h-11" 
+                        disabled={isAnyLoading}
+                        data-testid="button-continue"
+                      >
+                        Continue
+                      </Button>
+                    </motion.div>
+                  )}
+
+                  {step === 2 && (
+                    <motion.div
+                      key="step2"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-4"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setStep(1)}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-2 flex items-center gap-1"
+                        data-testid="button-back"
+                      >
+                        <span>Back to details</span>
+                      </button>
+
+                      <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-medium text-sm flex items-center gap-2">
+                              <Lock className="h-4 w-4 text-muted-foreground" /> Password
+                            </FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input
+                                  type={showPassword ? 'text' : 'password'}
+                                  placeholder="Create a strong password"
+                                  disabled={isAnyLoading}
+                                  autoComplete="new-password"
+                                  data-testid="input-password"
+                                  className="h-11 pr-10"
+                                  {...field}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  disabled={isAnyLoading}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                  data-testid="button-toggle-password"
+                                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                >
+                                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                              </div>
+                            </FormControl>
+                            
+                            {password && (
+                              <div className="mt-3 space-y-3">
+                                <div className="flex gap-1">
+                                  {[...Array(5)].map((_, i) => (
+                                    <div 
+                                      key={i} 
+                                      className={`h-1.5 flex-1 rounded-full transition-colors ${
+                                        i < passwordStrength ? strengthInfo.color : 'bg-muted'
+                                      }`} 
+                                    />
+                                  ))}
+                                </div>
+                                <p className={`text-xs font-medium ${
+                                  passwordStrength <= 1 ? 'text-red-500' : 
+                                  passwordStrength <= 3 ? 'text-yellow-600' : 
+                                  'text-green-600'
+                                }`}>
+                                  {strengthInfo.label}
+                                </p>
+                                
+                                <div className="grid grid-cols-2 gap-2">
+                                  {PASSWORD_REQUIREMENTS.map((req, i) => {
+                                    const passed = req.test(password);
+                                    return (
+                                      <div key={i} className="flex items-center gap-2">
+                                        {passed ? (
+                                          <Check className="h-3.5 w-3.5 text-green-500" />
+                                        ) : (
+                                          <X className="h-3.5 w-3.5 text-muted-foreground" />
+                                        )}
+                                        <span className={`text-xs ${passed ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                          {req.label}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-medium text-sm flex items-center gap-2">
+                              <Lock className="h-4 w-4 text-muted-foreground" /> Confirm Password
+                            </FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input
+                                  type={showConfirmPassword ? 'text' : 'password'}
+                                  placeholder="Confirm your password"
+                                  disabled={isAnyLoading}
+                                  autoComplete="new-password"
+                                  data-testid="input-confirm-password"
+                                  className="h-11 pr-10"
+                                  {...field}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                  disabled={isAnyLoading}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                  data-testid="button-toggle-confirm-password"
+                                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                >
+                                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                              </div>
+                            </FormControl>
+                            {confirmPassword && (
+                              <div className="flex items-center gap-2 mt-2">
+                                {passwordsMatch ? (
+                                  <>
+                                    <Check className="h-3.5 w-3.5 text-green-500" />
+                                    <span className="text-xs text-green-600">Passwords match</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <X className="h-3.5 w-3.5 text-red-500" />
+                                    <span className="text-xs text-red-500">Passwords don't match</span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="agreeToTerms"
+                        render={({ field }) => (
+                          <FormItem className="flex items-start gap-3 space-y-0 pt-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                disabled={isAnyLoading}
+                                data-testid="checkbox-terms"
+                                className="mt-0.5"
+                              />
+                            </FormControl>
+                            <div className="flex-1">
+                              <FormLabel className="text-sm font-normal text-muted-foreground cursor-pointer leading-relaxed">
+                                I agree to the{' '}
+                                <Link href="/terms">
+                                  <span className="text-primary font-medium hover:underline">Terms of Service</span>
+                                </Link>
+                                {' '}and{' '}
+                                <Link href="/privacy">
+                                  <span className="text-primary font-medium hover:underline">Privacy Policy</span>
+                                </Link>
+                              </FormLabel>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      {form.formState.errors.root && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-red-600 text-sm bg-red-50 dark:bg-red-950/50 p-3 rounded-md"
+                          data-testid="text-error"
+                        >
+                          {form.formState.errors.root.message}
+                        </motion.div>
+                      )}
+
+                      <Button 
+                        type="submit" 
+                        className="w-full h-11" 
+                        disabled={isAnyLoading}
+                        data-testid="button-submit"
+                      >
+                        {loading ? 'Creating Account...' : 'Create Account'}
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </form>
+            </Form>
+
+            <p className="text-center text-sm text-muted-foreground mt-6">
+              Already have an account?{' '}
+              <Link href="/login">
+                <span className="text-primary font-semibold cursor-pointer hover:underline" data-testid="link-login">
+                  Sign in
+                </span>
+              </Link>
+            </p>
+          </Card>
+        </motion.div>
       </div>
       <Footer />
     </div>

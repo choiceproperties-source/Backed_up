@@ -93,6 +93,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initAuth();
 
+    // Handle "don't remember me" - clear session on browser/tab close
+    const handleBeforeUnload = () => {
+      if (sessionStorage.getItem('clearSessionOnClose') === 'true' && supabase) {
+        // Clear the auth session from localStorage when user didn't want to be remembered
+        localStorage.removeItem('sb-' + import.meta.env.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     if (supabase) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_OUT') {
@@ -110,11 +120,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return () => {
         subscription?.unsubscribe();
+        window.removeEventListener('beforeunload', handleBeforeUnload);
       };
     }
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
-  const login = async (email: string, password: string): Promise<UserRole> => {
+  const login = async (email: string, password: string, rememberMe: boolean = true): Promise<UserRole> => {
     if (!email || !password) throw new Error('Please enter both email and password');
     if (!supabase) throw new Error('Authentication service unavailable. Please try again later.');
     
@@ -124,6 +139,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Invalid email or password. Please check your credentials and try again.');
       }
       throw error;
+    }
+    
+    // Handle session persistence based on rememberMe preference
+    // If rememberMe is false, we'll clear session on tab/browser close
+    if (!rememberMe && data.session) {
+      // Store a flag to clear session on page unload
+      sessionStorage.setItem('clearSessionOnClose', 'true');
+    } else {
+      sessionStorage.removeItem('clearSessionOnClose');
     }
     
     if (data.user) {
@@ -185,6 +209,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+    
+    if (error) throw error;
+  };
+
+  const loginWithGithub = async (): Promise<void> => {
+    if (!supabase) throw new Error('Authentication service unavailable. Please try again later.');
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+    
+    if (error) throw error;
+  };
+
+  const sendMagicLink = async (email: string): Promise<void> => {
+    if (!email) throw new Error('Please enter your email address');
+    if (!supabase) throw new Error('Authentication service unavailable. Please try again later.');
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`
       }
     });
     
@@ -261,6 +312,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login, 
       signup, 
       loginWithGoogle,
+      loginWithGithub,
+      sendMagicLink,
       logout, 
       resetPassword,
       resendVerificationEmail,
