@@ -11,6 +11,7 @@ import { ArrowRight, CheckCircle2, Home as HomeIcon, MapPin, ShieldCheck, Zap, G
 import { AnimatedCounter } from "@/components/animated-counter";
 import { TestimonialCarousel } from "@/components/testimonial-carousel";
 import { HowItWorksTimeline } from "@/components/how-it-works-timeline";
+import { QuickBrowseSection } from "@/components/quick-browse-section";
 import heroBg from "@assets/generated_images/modern_luxury_home_exterior_with_blue_sky.png";
 import { updateMetaTags, getOrganizationStructuredData, addStructuredData, setCanonicalUrl, getBreadcrumbStructuredData } from "@/lib/seo";
 
@@ -73,7 +74,7 @@ export default function Home() {
       <Navbar />
 
       {/* ===== HERO SECTION - ENHANCED ===== */}
-      <section className="relative h-[750px] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${heroBg})` }}
@@ -84,7 +85,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-60" />
         </div>
 
-        <div className="container relative z-10 px-4 text-white space-y-8 max-w-5xl py-12">
+        <div className="container relative z-10 px-4 text-white space-y-6 max-w-5xl py-12">
           <div data-aos="fade-down" className="text-center space-y-4">
             <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-tight">
               Find the home that <span className="text-secondary block md:inline">fits your life</span>
@@ -102,9 +103,48 @@ export default function Home() {
             <PropertySearch />
           </div>
 
-          {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <div className="text-white/60 text-sm">Scroll to explore</div>
+        </div>
+      </section>
+
+      {/* ===== QUICK BROWSE SECTION ===== */}
+      <QuickBrowseSection />
+
+      {/* ===== FEATURED PROPERTIES - MASONRY STYLE ===== */}
+      <section className="py-24 bg-white dark:bg-slate-900" id="properties">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-16" data-aos="fade-up">
+            <div>
+              <h2 className="font-heading text-4xl md:text-5xl font-bold text-primary mb-3">Featured Properties</h2>
+              <p className="text-muted-foreground text-lg">Browse verified rental listings from across the country</p>
+            </div>
+            <Link href="/properties">
+              <Button variant="link" className="text-secondary font-bold text-lg hidden md:flex group gap-2">
+                View All Listings <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </div>
+
+          {featuredProperties.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              {featuredProperties.map((property, idx) => (
+                <div
+                  key={property.id}
+                  className="group"
+                  data-aos="fade-up"
+                  data-aos-delay={idx * 100}
+                >
+                  <div className="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform group-hover:scale-105">
+                    <PropertyCard property={property} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="text-center md:hidden">
+            <Link href="/properties">
+              <Button className="w-full bg-secondary text-primary-foreground h-12 font-bold text-lg">View All Properties</Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -154,7 +194,7 @@ export default function Home() {
       </section>
 
       {/* ===== HOW IT WORKS - ENHANCED TIMELINE ===== */}
-      <section className="py-24 bg-white dark:bg-slate-900">
+      <section className="py-24 bg-white dark:bg-slate-900" id="how-it-works">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-20" data-aos="fade-up">
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-primary mb-6">How It Works</h2>
@@ -168,7 +208,7 @@ export default function Home() {
       </section>
 
       {/* ===== WHY CHOOSE US - ENHANCED FEATURES ===== */}
-      <section className="py-24 bg-gradient-to-b from-muted/30 to-background">
+      <section className="py-24 bg-gradient-to-b from-muted/30 to-background" id="why-us">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16" data-aos="fade-up">
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-primary mb-6">Why Choose Choice Properties</h2>
@@ -286,48 +326,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== FEATURED PROPERTIES - MASONRY STYLE ===== */}
-      <section className="py-24 bg-white dark:bg-slate-900">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-16" data-aos="fade-up">
-            <div>
-              <h2 className="font-heading text-4xl md:text-5xl font-bold text-primary mb-3">Featured Properties</h2>
-              <p className="text-muted-foreground text-lg">Browse verified rental listings from across the country</p>
-            </div>
-            <Link href="/properties">
-              <Button variant="link" className="text-secondary font-bold text-lg hidden md:flex group gap-2">
-                View All Listings <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-          </div>
-
-          {featuredProperties.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {featuredProperties.map((property, idx) => (
-                <div
-                  key={property.id}
-                  className="group"
-                  data-aos="fade-up"
-                  data-aos-delay={idx * 100}
-                >
-                  <div className="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform group-hover:scale-105">
-                    <PropertyCard property={property} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="text-center md:hidden">
-            <Link href="/properties">
-              <Button className="w-full bg-secondary text-primary-foreground h-12 font-bold text-lg">View All Properties</Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* ===== TESTIMONIALS - CAROUSEL ===== */}
-      <section className="py-24 bg-gradient-to-b from-muted/30 to-background dark:from-slate-800/30">
+      <section className="py-24 bg-gradient-to-b from-muted/30 to-background dark:from-slate-800/30" id="reviews">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16" data-aos="fade-up">
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-primary mb-6">What Our Tenants Say</h2>

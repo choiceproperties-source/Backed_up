@@ -15,6 +15,8 @@ import { AuthProvider } from "@/lib/auth-context";
 import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { StickyNav } from "@/components/sticky-nav";
+import { FloatingCTAButton } from "@/components/floating-cta-button";
 
 // Lazy load pages that aren't immediately needed
 const Apply = lazy(() => import("@/pages/apply"));
@@ -316,6 +318,8 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <SonnerToaster position="top-right" richColors closeButton />
+            <StickyNav />
+            <FloatingCTAButton />
             <Router />
           </TooltipProvider>
         </QueryClientProvider>
