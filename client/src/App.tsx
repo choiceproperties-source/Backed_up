@@ -12,6 +12,7 @@ import Home from "@/pages/home";
 import Properties from "@/pages/properties";
 import PropertyDetails from "@/pages/property-details";
 import { AuthProvider } from "@/lib/auth-context";
+import { FavoritesProvider } from "@/hooks/use-favorites";
 import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -316,11 +317,13 @@ function App() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-            <Toaster />
-            <SonnerToaster position="top-right" richColors closeButton />
-            <StickyNav />
-            <FloatingCTAButton />
-            <Router />
+            <FavoritesProvider>
+              <Toaster />
+              <SonnerToaster position="top-right" richColors closeButton />
+              <StickyNav />
+              <FloatingCTAButton />
+              <Router />
+            </FavoritesProvider>
           </TooltipProvider>
         </QueryClientProvider>
       </ErrorBoundary>

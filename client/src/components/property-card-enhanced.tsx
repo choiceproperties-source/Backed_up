@@ -7,6 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Bed, Bath, Maximize, Heart, Share2, Image as ImageIcon, Star, Calendar, CheckCircle, Plus, Minus, Scale, PawPrint, Zap, Home, ArrowRight, Wifi, Coffee } from "lucide-react";
 import type { Property, PropertyWithOwner } from "@/lib/types";
+import { useFavorites } from "@/hooks/use-favorites";
 import placeholderExterior from "@assets/generated_images/modern_luxury_home_exterior_with_blue_sky.png";
 import placeholderLiving from "@assets/generated_images/bright_modern_living_room_interior.png";
 import placeholderKitchen from "@assets/generated_images/modern_kitchen_with_marble_island.png";
@@ -51,7 +52,7 @@ export function EnhancedPropertyCard({
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(true);
   const fallbackImage = property.images?.[0] ? (imageMap[property.images[0]] || placeholderExterior) : placeholderExterior;
   const mainImage = primaryPhoto?.imageUrls.thumbnail || fallbackImage;
-  const [isFavorited, setIsFavorited] = useState(false);
+  const { toggleFavorite: toggleFav, isFavorited } = useFavorites();
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
@@ -78,28 +79,10 @@ export function EnhancedPropertyCard({
     fetchPhotos();
   }, [property.id]);
 
-  useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem("choiceProperties_favorites") || "[]") as string[];
-    setIsFavorited(favorites.includes(property.id));
-  }, [property.id]);
-
-  const toggleFavorite = (e: React.MouseEvent) => {
+  const handleToggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const favorites = JSON.parse(localStorage.getItem("choiceProperties_favorites") || "[]") as string[];
-    
-    if (isFavorited) {
-      const updated = favorites.filter(id => id !== property.id);
-      localStorage.setItem("choiceProperties_favorites", JSON.stringify(updated));
-      toast.success("Removed from favorites");
-    } else {
-      favorites.push(property.id);
-      localStorage.setItem("choiceProperties_favorites", JSON.stringify(favorites));
-      toast.success("Added to favorites");
-    }
-    
-    setIsFavorited(!isFavorited);
+    toggleFav(property.id);
   };
 
   const handleShare = (e: React.MouseEvent) => {
@@ -236,12 +219,12 @@ export function EnhancedPropertyCard({
             <Share2 className="h-4 w-4" />
           </button>
           <button 
-            onClick={toggleFavorite}
+            onClick={handleToggleFavorite}
             className="p-2 rounded-full bg-black/40 hover:bg-black/60 active:scale-95 transition-all text-white shadow-lg"
-            title={isFavorited ? "Remove from favorites" : "Add to favorites"}
-            data-testid={isFavorited ? "button-unsave-card" : "button-save-card"}
+            title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
+            data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
           >
-            {isFavorited ? (
+            {isFavorited(property.id) ? (
               <Heart className="h-4 w-4 fill-red-500 text-red-500" />
             ) : (
               <Heart className="h-4 w-4" />

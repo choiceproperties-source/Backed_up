@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Bed, Bath, Maximize, Heart, CheckCircle2, Share2, Image as ImageIcon } from "lucide-react";
 import type { Property } from "@/lib/types";
+import { useFavorites } from "@/hooks/use-favorites";
 import placeholderExterior from "@assets/generated_images/modern_luxury_home_exterior_with_blue_sky.png";
 import placeholderLiving from "@assets/generated_images/bright_modern_living_room_interior.png";
 import placeholderKitchen from "@assets/generated_images/modern_kitchen_with_marble_island.png";
@@ -39,12 +40,11 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(true);
   const fallbackImage = property.images?.[0] ? (imageMap[property.images[0]] || placeholderExterior) : placeholderExterior;
   const mainImage = primaryPhoto?.imageUrls.thumbnail || fallbackImage;
-  const [isFavorited, setIsFavorited] = useState(false);
+  const { toggleFavorite: toggleFav, isFavorited } = useFavorites();
   const [copied, setCopied] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    // Fetch primary photo from property
     const fetchPhotos = async () => {
       try {
         const response = await fetch(`/api/images/property/${property.id}`);
@@ -53,19 +53,14 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
           const photos = result.data || [];
           setPhotoCount(photos.length);
           
-          // Find primary photo (orderIndex = 0, or first photo)
           const primary = photos[0] || null;
           if (primary) {
             setPrimaryPhoto(primary);
           }
         } else {
-          // API not available or photos table doesn't exist yet
-          // Gracefully fallback to placeholder
           setPhotoCount(0);
         }
       } catch (err) {
-        // Network error or API failure - use fallback
-        console.log("Photos API not available, using placeholder image");
         setPhotoCount(0);
       } finally {
         setIsLoadingPhotos(false);
@@ -75,26 +70,10 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
     fetchPhotos();
   }, [property.id]);
 
-  useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem("choiceProperties_favorites") || "[]") as string[];
-    setIsFavorited(favorites.includes(property.id));
-  }, [property.id]);
-
-  const toggleFavorite = (e: React.MouseEvent) => {
+  const handleToggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const favorites = JSON.parse(localStorage.getItem("choiceProperties_favorites") || "[]") as string[];
-    
-    if (isFavorited) {
-      const updated = favorites.filter(id => id !== property.id);
-      localStorage.setItem("choiceProperties_favorites", JSON.stringify(updated));
-    } else {
-      favorites.push(property.id);
-      localStorage.setItem("choiceProperties_favorites", JSON.stringify(favorites));
-    }
-    
-    setIsFavorited(!isFavorited);
+    toggleFav(property.id);
   };
 
   const handleShare = (e: React.MouseEvent) => {
@@ -161,12 +140,12 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
             <Share2 className="h-5 w-5" />
           </button>
           <button 
-            onClick={toggleFavorite}
+            onClick={handleToggleFavorite}
             className="p-2 rounded-full bg-black/40 hover:bg-black/60 active:scale-95 transition-all text-white shadow-lg hover-elevate"
-            title={isFavorited ? "Remove from favorites" : "Add to favorites"}
-            data-testid={isFavorited ? "button-unsave-card" : "button-save-card"}
+            title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
+            data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
           >
-            {isFavorited ? (
+            {isFavorited(property.id) ? (
               <Heart className="h-5 w-5 fill-red-500 text-red-500 transition-all duration-200" />
             ) : (
               <Heart className="h-5 w-5 transition-all duration-200" />
