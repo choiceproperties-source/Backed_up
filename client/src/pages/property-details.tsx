@@ -117,8 +117,69 @@ export default function PropertyDetails() {
     return () => { removeStructuredData('property'); };
   }, [property, bedrooms, bathrooms, sqft]);
 
-  // All hooks must be called before any conditional returns
-  // Move the not-found check to render logic below
+  // Calculate images early so we can use them in the keyboard navigation hook
+  const allImages = property && photosData && photosData.length > 0
+    ? photosData.map(photo => photo.imageUrls.gallery)
+    : property && (property.images || []).length > 0 
+      ? property.images!.map(img => imageMap[img] || placeholderExterior)
+      : [placeholderExterior, placeholderLiving, placeholderKitchen, placeholderBedroom];
+
+  // Keyboard navigation and touch swipe support - must be before conditional returns
+  useEffect(() => {
+    if (!showFullGallery) return;
+
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const imageCount = allImages.length;
+
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowFullGallery(false);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setCurrentImageIndex((prev) => (prev + 1) % imageCount);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setCurrentImageIndex((prev) => (prev - 1 + imageCount) % imageCount);
+      }
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.changedTouches[0].screenX;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    };
+
+    const handleSwipe = () => {
+      const swipeThreshold = 50;
+      const diff = touchStartX - touchEndX;
+
+      if (Math.abs(diff) > swipeThreshold) {
+        if (diff > 0) {
+          setCurrentImageIndex((prev) => (prev + 1) % imageCount);
+        } else {
+          setCurrentImageIndex((prev) => (prev - 1 + imageCount) % imageCount);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeydown);
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchend', handleTouchEnd);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleKeydown);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showFullGallery, allImages.length]);
+
+  // All hooks called above - now safe to have conditional returns
   if (!match) {
     return <NotFound />;
   }
@@ -133,13 +194,6 @@ export default function PropertyDetails() {
     );
   }
 
-  // Use real photos from API if available, fallback to placeholder images
-  const allImages = photosData && photosData.length > 0
-    ? photosData.map(photo => photo.imageUrls.gallery)
-    : ((property.images || []).length > 0 
-      ? property.images!.map(img => imageMap[img] || placeholderExterior)
-      : [placeholderExterior, placeholderLiving, placeholderKitchen, placeholderBedroom]);
-  
   // Use low-resolution thumbnails for the thumbnail strip
   const allThumbnails = photosData && photosData.length > 0
     ? photosData.map(photo => photo.imageUrls.thumbnail)
@@ -161,62 +215,6 @@ export default function PropertyDetails() {
   // Preload adjacent images when modal is open
   const getPrevImageIndex = () => (currentImageIndex - 1 + allImages.length) % allImages.length;
   const getNextImageIndex = () => (currentImageIndex + 1) % allImages.length;
-
-  // Keyboard navigation and touch swipe support
-  useEffect(() => {
-    if (!showFullGallery) return;
-
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-    const handleKeydown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setShowFullGallery(false);
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
-      }
-    };
-
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartX = e.changedTouches[0].screenX;
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    };
-
-    const handleSwipe = () => {
-      const swipeThreshold = 50;
-      const diff = touchStartX - touchEndX;
-
-      if (Math.abs(diff) > swipeThreshold) {
-        if (diff > 0) {
-          // Swiped left, show next image
-          setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
-        } else {
-          // Swiped right, show previous image
-          setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeydown);
-    document.addEventListener('touchstart', handleTouchStart);
-    document.addEventListener('touchend', handleTouchEnd);
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.removeEventListener('keydown', handleKeydown);
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchend', handleTouchEnd);
-      document.body.style.overflow = 'unset';
-    };
-  }, [showFullGallery, allImages.length]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
