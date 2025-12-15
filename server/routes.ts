@@ -60,6 +60,7 @@ import { logAuditEvent, logPropertyChange, logApplicationChange, logSecurityEven
 import { checkPropertyImageLimit, validateFileSize, MAX_IMAGES_PER_PROPERTY, MAX_FILE_SIZE_MB } from "./upload-limits";
 import { registerPropertyRoutes } from "./modules/properties";
 import { registerApplicationRoutes } from "./modules/applications";
+import { registerPaymentModuleRoutes } from "./modules/payments";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -71,6 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // These coexist with legacy routes during migration
   registerPropertyRoutes(app);
   registerApplicationRoutes(app);
+  registerPaymentModuleRoutes(app);
 
   // ===== AUTHENTICATION =====
   app.post("/api/auth/signup", signupLimiter, async (req, res) => {
