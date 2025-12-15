@@ -79,7 +79,7 @@ export default function Sell() {
           : leaseInfo.join('\n');
       }
 
-      const response = await apiRequest("POST", "/api/properties", {
+      const response = await apiRequest("POST", "/api/v2/properties", {
         title: `${formData.propertyType} at ${formData.address}`,
         description: enhancedDescription,
         address: formData.address,
@@ -101,7 +101,7 @@ export default function Sell() {
       return response.json();
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['/api/properties'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/v2/properties'] });
       setIsSubmitted(true);
       toast({
         title: "Success",

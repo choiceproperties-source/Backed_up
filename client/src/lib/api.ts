@@ -32,7 +32,7 @@ async function apiCall<T>(
   }
 }
 
-// Properties API
+// Properties API - Using v2 endpoints
 export const propertiesApi = {
   getAll: (filters?: { propertyType?: string; city?: string; minPrice?: number; maxPrice?: number }) => {
     const params = new URLSearchParams();
@@ -41,17 +41,17 @@ export const propertiesApi = {
     if (filters?.minPrice) params.append("minPrice", filters.minPrice.toString());
     if (filters?.maxPrice) params.append("maxPrice", filters.maxPrice.toString());
     
-    return apiCall(`/api/properties?${params.toString()}`);
+    return apiCall(`/api/v2/properties?${params.toString()}`);
   },
-  getById: (id: string) => apiCall(`/api/properties/${id}`),
-  create: (data: any) => apiCall("/api/properties", { method: "POST", body: JSON.stringify(data) }),
+  getById: (id: string) => apiCall(`/api/v2/properties/${id}`),
+  create: (data: any) => apiCall("/api/v2/properties", { method: "POST", body: JSON.stringify(data) }),
 };
 
-// Applications API
+// Applications API - Using v2 endpoints
 export const applicationsApi = {
-  create: (data: any) => apiCall("/api/applications", { method: "POST", body: JSON.stringify(data) }),
-  getByUser: (userId: string) => apiCall(`/api/applications/user/${userId}`),
-  update: (id: string, data: any) => apiCall(`/api/applications/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  create: (data: any) => apiCall("/api/v2/applications", { method: "POST", body: JSON.stringify(data) }),
+  getByUser: (userId: string) => apiCall(`/api/v2/applications/user/${userId}`),
+  update: (id: string, data: any) => apiCall(`/api/v2/applications/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
 };
 
 // Inquiries API
@@ -79,12 +79,12 @@ export const reviewsApi = {
   create: (data: any) => apiCall("/api/reviews", { method: "POST", body: JSON.stringify(data) }),
 };
 
-// Auth API
+// Auth API - Using v2 endpoints (Note: Primary auth handled by Supabase client)
 export const authApi = {
   signup: (email: string, password: string, fullName: string) =>
-    apiCall("/api/auth/signup", { method: "POST", body: JSON.stringify({ email, password, fullName }) }),
+    apiCall("/api/v2/auth/signup", { method: "POST", body: JSON.stringify({ email, password, fullName }) }),
   login: (email: string, password: string) =>
-    apiCall("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+    apiCall("/api/v2/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
 };
 
 // Health check

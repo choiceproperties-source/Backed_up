@@ -64,10 +64,10 @@ export default function PropertyDetails() {
   const [showScheduleTour, setShowScheduleTour] = useState(false);
 
   const { data: propertyData, isLoading } = useQuery<{ property: Property; owner: Owner | null }>({
-    queryKey: ['/api/properties', id, 'full'],
+    queryKey: ['/api/v2/properties', id, 'full'],
     enabled: !!id && !!match,
     queryFn: async () => {
-      const res = await fetch(`/api/properties/${id}/full`);
+      const res = await fetch(`/api/v2/properties/${id}/full`);
       const data = await res.json();
       return {
         property: data?.data,

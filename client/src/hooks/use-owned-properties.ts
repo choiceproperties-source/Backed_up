@@ -47,7 +47,7 @@ export function useOwnedProperties() {
       try {
         const token = await getAuthToken();
         const response = await fetch(
-          `/api/properties?ownerId=${user.id}`,
+          `/api/v2/properties?ownerId=${user.id}`,
           {
             headers: {
               'Authorization': token ? `Bearer ${token}` : '',
@@ -103,7 +103,7 @@ export function useOwnedProperties() {
 
     try {
       const token = await getAuthToken();
-      const response = await fetch('/api/properties', {
+      const response = await fetch('/api/v2/properties', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,7 +159,7 @@ export function useOwnedProperties() {
 
     try {
       const token = await getAuthToken();
-      const response = await fetch(`/api/properties/${propertyId}`, {
+      const response = await fetch(`/api/v2/properties/${propertyId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ export function useOwnedProperties() {
 
     try {
       const token = await getAuthToken();
-      const response = await fetch(`/api/properties/${propertyId}`, {
+      const response = await fetch(`/api/v2/properties/${propertyId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
