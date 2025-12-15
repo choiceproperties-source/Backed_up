@@ -3,6 +3,7 @@ import { supabase } from "../supabase";
 import { authenticateToken, type AuthenticatedRequest } from "../auth-middleware";
 import { success, error as errorResponse } from "../response";
 import { logApplicationChange, logLeaseAction, logSecurityEvent } from "../security/audit-logger";
+import { sendEmail, getApprovalConfirmationEmailTemplate } from "../email";
 
 export function registerManagerRoutes(app: Express): void {
   app.get("/api/manager/applications", authenticateToken, async (req: AuthenticatedRequest, res) => {
@@ -134,7 +135,7 @@ export function registerManagerRoutes(app: Express): void {
 
       const { data: application } = await supabase
         .from("applications")
-        .select("property_id, status")
+        .select("id, property_id, status, personal_info, properties(id, title, address, city, state, price, application_fee, owner_id), users(id, full_name, email)")
         .eq("id", req.params.id)
         .single();
 
@@ -177,8 +178,49 @@ export function registerManagerRoutes(app: Express): void {
         req
       );
 
+      // Send enhanced approval confirmation email
+      const property = application.properties as any;
+      const applicant = application.users as any;
+      const applicantEmail = applicant?.email || application.personal_info?.email;
+      const applicantName = applicant?.full_name || 
+        `${application.personal_info?.firstName || ''} ${application.personal_info?.lastName || ''}`.trim() || 
+        'Applicant';
+
+      if (applicantEmail && property) {
+        // Fetch property owner details for contact info
+        let ownerInfo: any = null;
+        if (property.owner_id) {
+          const { data: owner } = await supabase
+            .from("users")
+            .select("full_name, email, phone")
+            .eq("id", property.owner_id)
+            .single();
+          ownerInfo = owner;
+        }
+
+        const emailHtml = getApprovalConfirmationEmailTemplate({
+          applicantName,
+          propertyTitle: property.title,
+          propertyAddress: `${property.address}, ${property.city}, ${property.state}`,
+          applicationId: req.params.id,
+          applicationFee: property.application_fee || 50,
+          paymentDate: new Date().toLocaleDateString(),
+          monthlyRent: property.price,
+          landlordName: ownerInfo?.full_name,
+          landlordEmail: ownerInfo?.email,
+          landlordPhone: ownerInfo?.phone
+        });
+
+        await sendEmail({
+          to: applicantEmail,
+          subject: `Congratulations! Your Application for ${property.title} Has Been Approved`,
+          html: emailHtml
+        });
+      }
+
       return res.json(success(data, "Application approved"));
     } catch (err: any) {
+      console.error("[MANAGER] Failed to approve application:", err);
       return res.status(500).json(errorResponse("Failed to approve application"));
     }
   });

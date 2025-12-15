@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { PaymentForm } from "@/components/payment-form";
 import { CoApplicantForm } from "@/components/co-applicant-form";
+import { PrivacyNotice, SecurityBadges } from "@/components/privacy-notice";
 
 const applySchema = z.object({
   firstName: z.string().min(2, "First name is required"),
@@ -1420,6 +1421,9 @@ export default function Apply() {
                         </div>
                       </div>
                     )}
+
+                    <PrivacyNotice variant="full" className="mt-4" />
+                    <SecurityBadges className="mt-4" />
                   </CardContent>
                   <CardFooter className="justify-between pt-6 border-t bg-muted/5">
                     <Button type="button" variant="outline" onClick={prevStep} disabled={isProcessing}>
