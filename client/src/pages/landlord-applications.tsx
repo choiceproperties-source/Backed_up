@@ -7,6 +7,7 @@ import { useOwnerApplications } from '@/hooks/use-property-applications';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { TableRowSkeletonList } from '@/components/skeleton-loaders';
 import {
   FileText,
   Loader2,
@@ -244,11 +245,7 @@ export default function LandlordApplications() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12 flex-1">
         {isLoading ? (
-          <Card className="p-12 text-center">
-            <Loader2 className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
-            <p className="text-foreground font-semibold">Loading tenant applications...</p>
-            <p className="text-muted-foreground text-sm mt-2">Please wait while we fetch your applications</p>
-          </Card>
+          <TableRowSkeletonList />
         ) : applications.length === 0 ? (
           <Card className="p-12 text-center">
             <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

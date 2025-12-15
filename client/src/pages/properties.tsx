@@ -16,6 +16,7 @@ import type { Property, PropertyWithOwner } from "@/lib/types";
 import { Search, Bookmark, Filter, Map, LayoutGrid, Scale, X } from "lucide-react";
 import { toast } from "sonner";
 import { updateMetaTags } from "@/lib/seo";
+import { PropertyCardSkeletonGrid } from "@/components/skeleton-loaders";
 
 export default function Properties() {
   const { properties: allProperties, loading } = useProperties();

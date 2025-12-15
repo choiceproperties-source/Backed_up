@@ -302,9 +302,13 @@ export default function LandlordProperties() {
                       placeholder="Property Title"
                       {...register('title')}
                       data-testid="input-property-title"
+                      className={errors.title ? 'border-destructive' : ''}
                     />
                     {errors.title && (
-                      <p className="text-sm text-destructive mt-1">{errors.title.message}</p>
+                      <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                        <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                        {errors.title.message}
+                      </div>
                     )}
                   </div>
 

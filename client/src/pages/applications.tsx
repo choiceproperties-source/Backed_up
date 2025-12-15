@@ -13,6 +13,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/auth-context";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ApplicationCardSkeletonList } from "@/components/skeleton-loaders";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -206,10 +207,11 @@ export default function Applications() {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-            <p className="text-muted-foreground">Loading your applications...</p>
+        <div className="py-12 px-4">
+          <div className="max-w-4xl mx-auto">
+            <Breadcrumb items={[{ label: "My Applications" }]} />
+            <h1 className="text-2xl font-bold my-6">My Applications</h1>
+            <ApplicationCardSkeletonList />
           </div>
         </div>
         <Footer />
