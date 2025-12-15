@@ -1,0 +1,60 @@
+You are working on an existing full-stack real estate web application that has already completed a backend architecture migration.
+Your task is frontend polish and verification only.
+
+STRICT RULES (must follow):
+- ❌ Do NOT modify backend logic, APIs, database schema, or auth rules
+- ❌ Do NOT add new features or pages
+- ❌ Do NOT refactor existing architecture
+- ❌ Do NOT change business logic
+- ✅ Frontend-only changes are allowed
+- ✅ Small UX improvements are allowed
+- ✅ Verification and bug fixing are allowed
+
+Goals:
+1. Verify frontend is correctly wired to existing APIs
+2. Polish UX lightly without redesign
+3. Ensure correct handling of loading, empty, and error states
+
+Task 1: Verification (Do First)
+Verify that all frontend pages correctly:
+- Call existing /api/v2/* endpoints
+- Handle responses properly:
+  - 200 → render data
+  - 401 → show "Please log in to continue"
+  - 404 → show "Not found"
+  - 500 → show generic error message
+- Do not crash or render blank screens
+
+Pages to verify:
+- Properties list & details
+- Applications pages
+- Payments pages
+- Leases pages
+- Admin pages
+- Auth pages (login/logout)
+
+Task 2: UX Polish (Light Only)
+Apply small, high-impact UI improvements only:
+- Ensure loading indicators or skeletons appear while data is fetching
+- Add clear empty-state messages when lists have no data
+- Ensure consistent spacing and page titles
+- Disable submit buttons while forms are loading
+- Ensure protected pages show a friendly auth message instead of blank content
+
+🚫 Do NOT redesign layouts
+🚫 Do NOT change component structure
+🚫 Do NOT add animations or new UI libraries
+
+Task 3: Final Verification
+After polishing:
+- Re-verify all frontend pages still load correctly
+- Confirm no new console errors
+- Confirm no API behavior changes
+- Confirm auth behavior remains intact
+
+Output Requirements:
+- Short summary of what was verified
+- List of frontend files touched
+- Confirmation that no backend code was modified
+
+If at any point a change would exceed these rules, STOP and ask for clarification before proceeding.

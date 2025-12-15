@@ -17,7 +17,7 @@ import {
   Share2, Heart, Mail, Phone, Star, MapPin, Bed, Bath, Maximize, 
   Calendar, Home, PawPrint, Sofa, ChevronDown, ChevronUp, X,
   ChevronLeft, ChevronRight, Grid3X3, Building2, Settings, ImageIcon, DollarSign,
-  PhoneCall, MessageCircle, Shield, CheckCircle2, Clock, Eye, Video, Users
+  PhoneCall, MessageCircle, Shield, CheckCircle2, Clock, Eye, Video, Users, AlertCircle
 } from "lucide-react";
 import { CredibilityBar } from "@/components/trust-badges";
 import { useFavorites } from "@/hooks/use-favorites";
@@ -193,13 +193,14 @@ export default function PropertyDetails() {
 
   if (isLoading || !property) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <PropertyDetailsSkeleton />
         <Footer />
       </div>
     );
   }
+
 
   // Use low-resolution thumbnails for the thumbnail strip
   const allThumbnails = photosData && photosData.length > 0

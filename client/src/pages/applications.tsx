@@ -207,7 +207,10 @@ export default function Applications() {
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+            <p className="text-muted-foreground">Loading your applications...</p>
+          </div>
         </div>
         <Footer />
       </div>
@@ -249,9 +252,13 @@ export default function Applications() {
           <p className="text-gray-600 dark:text-gray-400 mb-8">Track all your rental applications in one place.</p>
 
           {error && (
-            <Card className="mb-6 border-red-200 dark:border-red-800">
-              <CardContent className="py-4">
-                <p className="text-red-600 dark:text-red-400 text-center">Failed to load applications. Please try again.</p>
+            <Card className="mb-6 border-l-4 border-l-red-500 bg-red-50 dark:bg-red-950">
+              <CardContent className="py-4 flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-red-800 dark:text-red-200 font-medium">Failed to load applications</p>
+                  <p className="text-red-700 dark:text-red-300 text-sm mt-1">There was an error loading your applications. Please refresh the page or try again later.</p>
+                </div>
               </CardContent>
             </Card>
           )}
