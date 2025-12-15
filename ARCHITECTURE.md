@@ -1,365 +1,170 @@
-# Choice Properties - System Architecture
+# Architecture Migration Tracker
 
-## High-Level Architecture
+This document is the single source of truth for the backend architecture migration. All migration work, whether done by a human or any AI tool, must strictly follow this document. If there is any conflict between the existing code and this document, this document takes precedence.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        BROWSER/CLIENT                        │
-├─────────────────────────────────────────────────────────────┤
-│ React 19 + Vite (Port 5000)                                │
-│ ├─ Pages (Routing with Wouter)                             │
-│ ├─ Components (Shadcn UI + Custom)                         │
-│ ├─ Hooks (Custom + React Query)                            │
-│ └─ Services (API calls via queryClient)                    │
-├─────────────────────────────────────────────────────────────┤
-│                   API GATEWAY (Express.js)                   │
-│                     (Same Port 5000)                         │
-├─────────────────────────────────────────────────────────────┤
-│                    BACKEND LOGIC LAYER                       │
-│ ├─ Authentication Middleware                               │
-│ ├─ Rate Limiting                                           │
-│ ├─ Image Management                                        │
-│ ├─ Email Service                                           │
-│ ├─ Notification Service                                    │
-│ ├─ Security & Audit Logging                               │
-│ ├─ Caching Layer                                           │
-│ └─ Input Validation (Zod Schemas)                         │
-├─────────────────────────────────────────────────────────────┤
-│           SUPABASE (PostgreSQL + Auth + Storage)            │
-│ ├─ 30+ Relational Tables with RLS Policies                │
-│ ├─ JWT-Based Authentication                                │
-│ ├─ Image & Document Storage Buckets                        │
-│ └─ Audit Logging Tables                                    │
-└─────────────────────────────────────────────────────────────┘
-```
+## Migration Goal
 
-## System Components
+The goal of this migration is to move the backend from a monolithic routing structure to a domain-based modular architecture while preserving application behavior 100% exactly as it is today. No feature changes, logic changes, or behavioral changes are allowed during migration.
 
-### 1. Frontend (React/Vite)
-**Location:** `client/src/`
-- **Pages:** Multi-page SPA with role-based routing
-  - Public: Home, property search, property details
-  - Tenant: Applications, lease dashboard, profile
-  - Landlord: Property management, lease dashboard, applications
-  - Admin: Platform administration
-- **Components:** Reusable UI components from Shadcn UI + custom components
-- **State Management:** React Query for server state, Context API for client state
-- **API Communication:** Custom queryClient with baseURL pointing to backend
+## Target Principles
 
-### 2. Backend (Express.js)
-**Location:** `server/`
-- **Entry Points:** `index-dev.ts` (development), `index-prod.ts` (production)
-- **Router:** `routes.ts` - 100+ endpoints organized by domain
-- **Middleware:**
-  - `auth-middleware.ts` - JWT verification, role-based access
-  - `rate-limit.ts` - Request throttling
-- **Services:**
-  - `image-management.ts` - Photo upload/delete/reorder
-  - `email.ts` - SendGrid integration
-  - `notification-service.ts` - Multi-channel notifications
-  - `cache.ts` - In-memory caching with TTL
-- **Security:**
-  - `security/routes.ts` - 2FA, password reset, account security
-  - `security/audit-logger.ts` - Comprehensive audit trail
-  - `image-audit.ts` - Track all image operations
-- **External Services:**
-  - `supabase.ts` - Supabase client initialization
-  - `imagekit.ts` - Image optimization and CDN
+Each business domain must live in its own module. HTTP route handlers must be thin and only handle request parsing, authentication, and response formatting. All business logic must live in service files. All database access must live in repository files. Cross-domain logic is not allowed except through explicitly exposed service functions. Behavior must remain identical during the entire migration.
 
-### 3. Database Layer (Supabase PostgreSQL)
-**Location:** `shared/schema.ts`
-- **Entities:** 30+ tables covering all business domains
-- **Auth:** Supabase Auth with JWT tokens
-- **Storage:** Buckets for property images, documents, profiles
-- **Security:** Row Level Security (RLS) on all tables with 22+ policies
+## Migration Rules (Mandatory)
 
-### 4. Shared Layer
-**Location:** `shared/schema.ts`
-- **Type Definitions:** Drizzle ORM table schemas
-- **Zod Schemas:** Validation schemas for all inputs
-- **Type Exports:** Insert, Select, and custom types for type safety
-- **Constants:** Business logic constants (statuses, transitions, etc.)
+Only one domain may be migrated at a time. Legacy routes must not be deleted until their replacements are fully implemented, verified, and working. Unrelated domains must not be refactored. API endpoint paths must not be renamed. Database schemas must not be modified. Request and response shapes must not change. Each completed route must be explicitly marked in this document. If anything is unclear, migration work must stop immediately and clarification must be requested.
 
-## Data Flow Patterns
+## Legacy vs Target Architecture
 
-### Pattern 1: Read Operations
-```
-React Component → useQuery() → Express GET → Supabase SELECT → Cache/Response
-```
-- Uses React Query caching for optimal performance
-- Server-side cache layer reduces database hits
-- ETag support for conditional requests
+The legacy backend architecture consists of a large `server/routes.ts` file containing mixed business logic, inline database queries inside route handlers, and cross-domain logic in single files. This structure is being phased out.
 
-### Pattern 2: Write Operations
-```
-React Form → useMutation() → Express POST/PATCH → Zod Validation → Supabase INSERT/UPDATE → Cache Invalidation → Revalidate
-```
-- Validation happens server-side (not client)
-- Atomic operations with proper error handling
-- Cache invalidation ensures consistency
+The target backend architecture uses a domain-based modular structure as shown below.
 
-### Pattern 3: Authentication Flow
-```
-Signup/Login → Supabase Auth → JWT Token → localStorage → includeCredentials → API Requests → authenticateToken Middleware → req.user
-```
-- JWTs stored in localStorage (frontend)
-- Verified on every protected route
-- User context extracted into req.user for authorization
+server/
+  modules/
+    auth/
+      auth.routes.ts
+      auth.service.ts
+      auth.repository.ts
+    properties/
+      property.routes.ts
+      property.service.ts
+      property.repository.ts
+    applications/
+      application.routes.ts
+      application.service.ts
+      application.repository.ts
+    payments/
+      payment.routes.ts
+      payment.service.ts
+      payment.repository.ts
+    admin/
+      admin.routes.ts
+      admin.service.ts
 
-### Pattern 4: Real-Time Notifications
-```
-Database Event → notification-service.ts → SendGrid/In-App → React Query Refetch
-```
-- Server-side events trigger notifications
-- Multiple channels: email, in-app
-- Preference-based filtering per user
+## Migration Order (Do Not Change)
 
-## Authentication & Authorization
+Domains must be migrated strictly in the following order: Properties, Applications, Payments, Admin, and Auth. The Auth domain must always be migrated last because all other domains depend on it.
 
-### JWT-Based Auth
-- **Provider:** Supabase Auth (OpenID standard)
-- **Token Storage:** localStorage (frontend)
-- **Verification:** `authenticateToken` middleware extracts user from JWT
-- **Scoping:** User ID embedded in token for ownership verification
+## Domain Migration Status
 
-### Role-Based Access Control (RBAC)
-- **Roles:** user, agent, landlord, admin, property_manager
-- **Enforcement Points:**
-  - Frontend: Conditional rendering, route protection
-  - Backend: `requireRole()` middleware on sensitive routes
-  - Database: RLS policies check user role and ownership
+Each domain must be fully completed and verified before moving to the next domain. Partial migrations are not allowed.
 
-### Ownership Verification
-- `requireOwnership(resource)` middleware ensures users can only modify their own resources
-- Checks: User ID matches owner ID in database
-- Used on: property updates, application management, lease operations
+### Properties Domain
 
-## Caching Strategy
+Status: NOT STARTED  
+Target Folder: server/modules/properties/
 
-### Frontend (React Query)
-- **Query Caching:** Automatic with configurable TTL per query type
-- **Invalidation:** Triggered after mutations
-- **Persistence:** Optional localStorage syncing for offline support
+Routes to Migrate:
+- GET /api/properties
+- GET /api/properties/:id
+- POST /api/properties
+- PATCH /api/properties/:id
+- DELETE /api/properties/:id
+- POST /api/properties/:id/view
+- GET /api/properties/search
+- GET /api/properties/featured
 
-### Backend (In-Memory Cache)
-- **Location:** `server/cache.ts`
-- **TTL Configuration:** Different TTLs for different data types
-- **Invalidation:** Manual invalidation on write operations
-- **Cache Keys:** Hierarchical keys for fine-grained invalidation
+Verification Checklist:
+- Responses match legacy routes exactly
+- Permissions and access control unchanged
+- Database queries equivalent to legacy behavior
+- Logging behavior matches legacy routes
+- Legacy routes remain intact and are not deleted
 
-```typescript
-CACHE_TTL = {
-  PROPERTIES_LIST: 5 * 60 * 1000,      // 5 minutes
-  PROPERTY_DETAIL: 10 * 60 * 1000,     // 10 minutes
-  USER_PROFILE: 30 * 60 * 1000,        // 30 minutes
-}
-```
+Notes:
 
-## Error Handling
+### Applications Domain
 
-### Frontend
-- React Query error states with retry logic
-- Toast notifications for user feedback
-- Graceful fallbacks for failed requests
+Status: NOT STARTED  
+Target Folder: server/modules/applications/
 
-### Backend
-- Zod schema validation with detailed error messages
-- Try-catch blocks with specific error handling
-- Consistent error response format: `{ error: "message" }`
-- HTTP status codes follow REST conventions
+Routes to Migrate:
+- POST /api/applications
+- GET /api/applications/:id
+- PATCH /api/applications/:id/status
+- GET /api/applications/property/:propertyId
+- GET /api/applications/user/:userId
 
-### Database
-- RLS policy violations return 403 Forbidden
-- Constraint violations return 400 Bad Request
-- Connection errors return 503 Service Unavailable
+Verification Checklist:
+- Atomic operations preserved
+- Status transition rules unchanged
+- Duplicate submissions prevented
+- Permissions and ownership checks unchanged
+- Legacy routes remain intact and are not deleted
 
-## Security Mechanisms
+Notes:
 
-### Input Validation
-- **Schema Validation:** Zod schemas validate all inputs before processing
-- **File Upload Limits:** MAX_FILE_SIZE_MB = 10, MAX_IMAGES_PER_PROPERTY = 20
-- **Rate Limiting:** Endpoints throttled to prevent abuse
-- **SQL Injection:** Impossible with Supabase parameterized queries
+### Payments Domain
 
-### Data Protection
-- **Row Level Security:** Database-level access control
-- **Encryption:** All connections use HTTPS/TLS
-- **Secrets Management:** Environment variables stored securely
-- **Audit Logging:** All sensitive operations logged with user context
+Status: NOT STARTED  
+Target Folder: server/modules/payments/
 
-### API Security
-- **CORS:** Configured for same-origin requests
-- **CSRF:** Express session tokens prevent cross-site attacks
-- **XSS:** React escapes content by default
-- **Rate Limiting:** Prevents brute force and DOS attacks
+Routes to Migrate:
+- POST /api/payments/initiate
+- POST /api/payments/verify
+- PATCH /api/payments/:id/status
+- GET /api/payments/application/:applicationId
 
-### 2FA & Account Security
-- **Two-Factor Auth:** TOTP-based with backup codes
-- **Password Reset:** Secure token-based reset flow
-- **Session Management:** Automatic logout after inactivity
-- **Login Attempts:** Account lockout after failed attempts
+Verification Checklist:
+- Idempotency behavior preserved
+- Ownership and role checks enforced
+- Financial audit logs created correctly
+- Duplicate payment processing prevented
+- Legacy routes remain intact and are not deleted
 
-## Image Management System
+Notes:
 
-### Upload Pipeline
-```
-1. Client selects image
-2. Frontend validation (size, format)
-3. Express receives image
-4. ImageKit optimization
-5. Store signed URL in database
-6. Audit log created
-7. Cache invalidated
-```
+### Admin Domain
 
-### Image Features
-- **Optimization:** ImageKit handles resizing, compression
-- **CDN:** ImageKit provides global CDN for fast delivery
-- **Signed URLs:** Time-limited access to prevent direct storage access
-- **Privacy:** Private images only accessible by authorized users
-- **Audit Trail:** Every upload, delete, replace operation logged
+Status: NOT STARTED  
+Target Folder: server/modules/admin/
 
-## Payment Flow Architecture
+Routes to Migrate:
+- GET /api/admin/users
+- PATCH /api/admin/users/:id/role
+- GET /api/admin/properties
+- GET /api/admin/applications
+- GET /api/admin/payments
+- PATCH /api/admin/settings
 
-### Application Fee Collection
-```
-1. Application Created (fee calculated)
-2. Payment Pending → Awaiting Payment
-3. User Pays → Payment Verified
-4. Application Proceeds → Status Changes
-```
+Verification Checklist:
+- Admin role enforcement unchanged
+- Sensitive actions logged correctly
+- Rate limiting preserved
+- Legacy routes remain intact and are not deleted
 
-### Payment Verification Methods
-- **Automatic:** Stripe/PayPal processing
-- **Manual:** Landlord verifies offline payments (check, cash, transfer)
-- **Audit:** All verification actions logged with timestamp and actor
+Notes:
 
-## Lease Management Workflow
+### Auth Domain (Last)
 
-### Multi-Step Process
-```
-1. Draft → Landlord creates lease
-2. Send → Landlord sends to tenant
-3. Accept/Decline → Tenant reviews and responds
-4. Signature → Both parties sign digitally
-5. Move-In → Set access details and checklist
-6. Complete → Move-in finished
-```
+Status: NOT STARTED  
+Target Folder: server/modules/auth/
 
-### State Transitions
-- **Directed Graph:** Only valid transitions allowed
-- **Validation:** Database constraints prevent invalid states
-- **Audit:** Every state change recorded with reason and actor
-- **Notifications:** Both parties notified at each step
+Routes to Migrate:
+- POST /api/auth/signup
+- POST /api/auth/login
+- POST /api/auth/logout
+- POST /api/auth/refresh
+- POST /api/auth/2fa/verify
+- POST /api/auth/password/reset
 
-## Database Schema Organization
+Verification Checklist:
+- Token issuance behavior unchanged
+- Role resolution behavior unchanged
+- Optional authentication behavior preserved
+- Frontend authentication flows remain functional
 
-### Core Entity Groups
+Notes:
 
-**User Management**
-- `users` - User accounts and profiles
-- `agencies` - Real estate agencies
-- `user_notification_preferences` - Communication preferences
+## Completion Criteria
 
-**Property Management**
-- `properties` - Listings with full details
-- `property_questions` - Custom application questions
-- `property_notes` - Internal notes and observations
-- `property_notifications` - Property-level events
+The migration is considered complete only when all domains are marked as COMPLETE, the legacy server/routes.ts file is no longer used, all API endpoints are served exclusively from domain modules, application behavior matches pre-migration behavior, and all legacy code has been safely removed.
 
-**Application Workflow**
-- `applications` - Full rental applications
-- `co_applicants` - Additional applicants
-- `application_comments` - Internal notes and decisions
-- `application_notifications` - Status change notifications
+## Rollback Strategy
 
-**Lease Management**
-- `lease_templates` - Pre-defined lease templates
-- `lease_drafts` - Draft leases with versioning
-- `lease_signatures` - Digital signature records
-- `lease_documents` - Signed document storage
+Each domain migration must be committed separately. If any issues arise, the domain-specific commit must be reverted immediately. Legacy routes must always remain functional until the migration is fully completed. No data corruption or partial migrations are acceptable.
 
-**Payment & Finance**
-- `payments` - Rent payments and tracking
-- `payment_audit_logs` - Financial audit trail
-- `transactions` - Financial transactions
+## Final Notes
 
-**Content & Engagement**
-- `reviews` - Property and agent reviews
-- `favorites` - User saved properties
-- `saved_searches` - Bookmarked searches
-- `newsletter_subscribers` - Email list
-- `contact_messages` - Contact form submissions
-
-**System**
-- `admin_settings` - Platform configuration
-- `audit_logs` - System-wide action tracking
-- `image_audit_logs` - Image operation tracking
-
-## Performance Optimizations
-
-### Query Optimization
-- **Indexes:** Created on frequently queried columns (user_id, property_id, status)
-- **Pagination:** All list endpoints support pagination
-- **Selective Columns:** Only request needed columns
-- **Connection Pooling:** Supabase handles connection management
-
-### Caching Strategy
-- **Frontend Cache:** React Query caches all queries
-- **Server Cache:** In-memory cache for expensive operations
-- **Browser Cache:** Static assets cached with versioning
-- **CDN Cache:** Images served through ImageKit CDN
-
-### Code Splitting
-- **Frontend:** Vite automatically splits routes into chunks
-- **Backend:** Single Express server, no code splitting needed
-- **Bundle:** esbuild produces optimized production bundle
-
-## Deployment Architecture
-
-### Development Environment
-- **Backend:** `npm run dev` starts Express with hot reload
-- **Frontend:** Vite dev server with HMR
-- **Database:** Local Supabase instance or dev project
-- **Tools:** TypeScript, tsx for running TS directly
-
-### Production Environment
-- **Build:** `npm run build` produces:
-  - `dist/` - Compiled backend
-  - `dist/client` - Bundled frontend
-- **Run:** `npm run start` starts single Node.js process
-- **Port:** 5000 (frontend and backend on same server)
-- **Node Version:** 20+
-
-## Future Architecture Considerations
-
-### Scalability
-- **Horizontal:** Stateless backend allows multiple instances behind load balancer
-- **Database:** Supabase handles scaling automatically
-- **CDN:** ImageKit provides global distribution
-- **Cache:** Consider Redis for multi-instance deployments
-
-### Monitoring
-- **Logs:** Implement centralized logging (e.g., ELK stack)
-- **Metrics:** Track API response times, error rates
-- **Alerts:** Set up alerts for critical errors
-- **APM:** Consider APM tool like New Relic or DataDog
-
-### Security Evolution
-- **API Keys:** Rotate regularly
-- **2FA:** Consider mandatory 2FA for admins
-- **Encryption:** At-rest encryption for sensitive data
-- **DDoS Protection:** Consider WAF for public APIs
-
-## Dependency Management
-
-### Critical Dependencies
-- **supabase-js** - Database and auth client (security updates important)
-- **express** - Web framework (security patches)
-- **react** - UI framework (compatibility important)
-- **zod** - Validation (data integrity)
-
-### Monitoring for Updates
-- `npm outdated` - Check for available updates
-- `npm audit` - Security vulnerability scanning
-- Regular dependency reviews quarterly
+This migration prioritizes safety over speed, behavior preservation over refactor quality, and strict control over convenience. If anything is unclear at any point, migration work must stop and clarification must be requested before proceeding.
