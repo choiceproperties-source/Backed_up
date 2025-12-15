@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, XCircle, Clock, AlertCircle, FileText, MessageSquare, History, ThumbsUp, ThumbsDown, HelpCircle, AlertTriangle, Plus, Trash2 } from "lucide-react";
+import { CheckCircle, XCircle, Clock, AlertCircle, FileText, MessageSquare, History, ThumbsUp, ThumbsDown, HelpCircle, AlertTriangle, Plus, Trash2, User, Briefcase, Home, CreditCard, ShieldCheck, Fingerprint, FileCheck, Search, BadgeCheck, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 
