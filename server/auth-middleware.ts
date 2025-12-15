@@ -166,6 +166,54 @@ export function requireRole(...roles: string[]) {
   };
 }
 
+export function invalidateOwnershipCache(resourceType: string, resourceId: string): void {
+  cache.invalidate(`ownership:${resourceType}:${resourceId}`);
+}
+
+async function getResourceOwner(resourceType: string, resourceId: string): Promise<{ ownerId: string | null; found: boolean }> {
+  const cacheKey = `ownership:${resourceType}:${resourceId}`;
+  const cached = cache.get<{ ownerId: string | null; found: boolean }>(cacheKey);
+  if (cached) return cached;
+
+  let ownerId: string | null = null;
+  let found = false;
+
+  if (resourceType === "property") {
+    const { data } = await supabase.from("properties").select("owner_id").eq("id", resourceId).single();
+    ownerId = data?.owner_id || null;
+    found = !!data;
+  } else if (resourceType === "application") {
+    const { data } = await supabase.from("applications").select("user_id").eq("id", resourceId).single();
+    ownerId = data?.user_id || null;
+    found = !!data;
+  } else if (resourceType === "review") {
+    const { data } = await supabase.from("reviews").select("user_id").eq("id", resourceId).single();
+    ownerId = data?.user_id || null;
+    found = !!data;
+  } else if (resourceType === "inquiry") {
+    const { data } = await supabase.from("inquiries").select("agent_id").eq("id", resourceId).single();
+    ownerId = data?.agent_id || null;
+    found = !!data;
+  } else if (resourceType === "saved_search") {
+    const { data } = await supabase.from("saved_searches").select("user_id").eq("id", resourceId).single();
+    ownerId = data?.user_id || null;
+    found = !!data;
+  } else if (resourceType === "favorite") {
+    const { data } = await supabase.from("favorites").select("user_id").eq("id", resourceId).single();
+    ownerId = data?.user_id || null;
+    found = !!data;
+  } else if (resourceType === "user") {
+    ownerId = resourceId;
+    found = true;
+  }
+
+  const result = { ownerId, found };
+  if (found) {
+    cache.set(cacheKey, result, CACHE_TTL.OWNERSHIP_CHECK);
+  }
+  return result;
+}
+
 export function requireOwnership(resourceType: "property" | "application" | "review" | "inquiry" | "saved_search" | "user" | "favorite") {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
@@ -177,8 +225,6 @@ export function requireOwnership(resourceType: "property" | "application" | "rev
     }
 
     const resourceId = req.params.id;
-    let data: any = null;
-    let isOwner = false;
     const resourceNames: Record<string, string> = {
       property: "Property",
       application: "Application",
@@ -190,64 +236,13 @@ export function requireOwnership(resourceType: "property" | "application" | "rev
     };
 
     try {
-      if (resourceType === "property") {
-        const result = await supabase
-          .from("properties")
-          .select("owner_id")
-          .eq("id", resourceId)
-          .single();
-        data = result.data;
-        isOwner = data?.owner_id === req.user.id;
-      } else if (resourceType === "application") {
-        const result = await supabase
-          .from("applications")
-          .select("user_id")
-          .eq("id", resourceId)
-          .single();
-        data = result.data;
-        isOwner = data?.user_id === req.user.id;
-      } else if (resourceType === "review") {
-        const result = await supabase
-          .from("reviews")
-          .select("user_id")
-          .eq("id", resourceId)
-          .single();
-        data = result.data;
-        isOwner = data?.user_id === req.user.id;
-      } else if (resourceType === "inquiry") {
-        const result = await supabase
-          .from("inquiries")
-          .select("agent_id")
-          .eq("id", resourceId)
-          .single();
-        data = result.data;
-        isOwner = data?.agent_id === req.user.id;
-      } else if (resourceType === "saved_search") {
-        const result = await supabase
-          .from("saved_searches")
-          .select("user_id")
-          .eq("id", resourceId)
-          .single();
-        data = result.data;
-        isOwner = data?.user_id === req.user.id;
-      } else if (resourceType === "user") {
-        isOwner = resourceId === req.user.id;
-        data = isOwner ? { id: resourceId } : null;
-      } else if (resourceType === "favorite") {
-        const result = await supabase
-          .from("favorites")
-          .select("user_id")
-          .eq("id", resourceId)
-          .single();
-        data = result.data;
-        isOwner = data?.user_id === req.user.id;
-      }
+      const { ownerId, found } = await getResourceOwner(resourceType, resourceId);
 
-      if (!data) {
+      if (!found) {
         return res.status(404).json({ error: `${resourceNames[resourceType]} not found` });
       }
 
-      if (!isOwner) {
+      if (ownerId !== req.user.id) {
         return res.status(403).json({ error: "You do not own this resource" });
       }
 

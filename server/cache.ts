@@ -6,6 +6,42 @@ interface CacheEntry<T> {
 class LRUCache {
   private cache: Map<string, CacheEntry<unknown>> = new Map();
   private maxSize: number = 100;
+  private cleanupIntervalId: NodeJS.Timeout | null = null;
+  private cleanupIntervalMs: number = 60 * 1000; // Run cleanup every minute
+
+  constructor() {
+    this.startPeriodicCleanup();
+  }
+
+  private startPeriodicCleanup(): void {
+    if (this.cleanupIntervalId) return;
+    
+    this.cleanupIntervalId = setInterval(() => {
+      this.cleanup();
+    }, this.cleanupIntervalMs);
+
+    // Allow Node to exit even if interval is running
+    if (this.cleanupIntervalId.unref) {
+      this.cleanupIntervalId.unref();
+    }
+  }
+
+  private cleanup(): void {
+    const now = Date.now();
+    let cleaned = 0;
+    
+    const entries = Array.from(this.cache.entries());
+    for (const [key, entry] of entries) {
+      if (now > entry.expiry) {
+        this.cache.delete(key);
+        cleaned++;
+      }
+    }
+    
+    if (cleaned > 0) {
+      console.log(`[CACHE] Cleaned up ${cleaned} expired entries, ${this.cache.size} remaining`);
+    }
+  }
 
   set<T>(key: string, data: T, ttlMs: number): void {
     if (this.cache.has(key)) {
@@ -60,6 +96,13 @@ class LRUCache {
   size(): number {
     return this.cache.size;
   }
+
+  stopCleanup(): void {
+    if (this.cleanupIntervalId) {
+      clearInterval(this.cleanupIntervalId);
+      this.cleanupIntervalId = null;
+    }
+  }
 }
 
 export const cache = new LRUCache();
@@ -69,4 +112,5 @@ export const CACHE_TTL = {
   PROPERTY_DETAIL: 2 * 60 * 1000,
   STATIC_CONTENT: 10 * 60 * 1000,
   USER_ROLE: 15 * 60 * 1000,
+  OWNERSHIP_CHECK: 30 * 1000,
 } as const;

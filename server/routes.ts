@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { supabase } from "./supabase";
 import imagekit from "./imagekit";
-import { authenticateToken, optionalAuth, requireRole, requireOwnership, preventTenantPropertyEdit, type AuthenticatedRequest } from "./auth-middleware";
+import { authenticateToken, optionalAuth, requireRole, requireOwnership, preventTenantPropertyEdit, invalidateOwnershipCache, type AuthenticatedRequest } from "./auth-middleware";
 import { success, error as errorResponse } from "./response";
 import {
   sendEmail,
@@ -53,7 +53,7 @@ import {
   insertPhotoSchema,
   PHOTO_CATEGORIES,
 } from "@shared/schema";
-import { authLimiter, signupLimiter, inquiryLimiter, newsletterLimiter } from "./rate-limit";
+import { authLimiter, signupLimiter, inquiryLimiter, newsletterLimiter, viewLimiter } from "./rate-limit";
 import { cache, CACHE_TTL } from "./cache";
 import { registerSecurityRoutes } from "./security/routes";
 import { logAuditEvent, logPropertyChange, logApplicationChange, logSecurityEvent, logLeaseAction, logPaymentAction, getAuditLogs, getPaymentAuditLogs } from "./security/audit-logger";
@@ -419,6 +419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       cache.invalidate(`property:${req.params.id}`);
       cache.invalidate("properties:");
+      invalidateOwnershipCache("property", req.params.id);
       
       return res.json(success(data[0], "Property updated successfully"));
     } catch (err: any) {
@@ -437,6 +438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       cache.invalidate(`property:${req.params.id}`);
       cache.invalidate("properties:");
+      invalidateOwnershipCache("property", req.params.id);
       
       return res.json(success(null, "Property deleted successfully"));
     } catch (err: any) {
@@ -617,7 +619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Increment property view count
-  app.post("/api/properties/:id/view", async (req, res) => {
+  app.post("/api/properties/:id/view", viewLimiter, async (req, res) => {
     try {
       const { error } = await supabase.rpc('increment_property_views', { property_id: req.params.id });
       
@@ -4173,6 +4175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("id", req.params.id);
 
       if (error) throw error;
+      invalidateOwnershipCache("favorite", req.params.id);
       return res.json(success(null, "Favorite deleted successfully"));
     } catch (err: any) {
       return res.status(500).json(errorResponse("Failed to delete favorite"));
@@ -4246,6 +4249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select();
 
       if (error) throw error;
+      invalidateOwnershipCache("review", req.params.id);
       return res.json(success(data[0], "Review updated successfully"));
     } catch (err: any) {
       return res.status(500).json(errorResponse("Failed to update review"));
@@ -4260,6 +4264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("id", req.params.id);
 
       if (error) throw error;
+      invalidateOwnershipCache("review", req.params.id);
       return res.json(success(null, "Review deleted successfully"));
     } catch (err: any) {
       return res.status(500).json(errorResponse("Failed to delete review"));

@@ -14,4 +14,17 @@ if (process.env.IMAGEKIT_PUBLIC_KEY && process.env.IMAGEKIT_PRIVATE_KEY && proce
   console.warn("[IMAGEKIT] Required environment variables: IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, IMAGEKIT_URL_ENDPOINT");
 }
 
+export function isImageKitConfigured(): boolean {
+  return imagekit !== null;
+}
+
+export function getImageKit(): ImageKit {
+  if (!imagekit) {
+    throw new Error(
+      "ImageKit is not configured. Please set IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, and IMAGEKIT_URL_ENDPOINT environment variables."
+    );
+  }
+  return imagekit;
+}
+
 export default imagekit;

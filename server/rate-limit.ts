@@ -54,3 +54,16 @@ export const newsletterLimiter = rateLimit({
   legacyHeaders: false,
   skip: () => !RATE_LIMITING_ENABLED,
 });
+
+export const viewLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: isDev ? 1000 : 30,
+  message: {
+    success: false,
+    message: "Too many view requests. Please wait a minute.",
+    data: null,
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => !RATE_LIMITING_ENABLED,
+});
