@@ -61,16 +61,23 @@ export async function findAllProperties(filters: PropertyFilters) {
 }
 
 export async function findPropertyById(id: string) {
-  const { data, error } = await supabase
-    .from("properties")
-    .select("*")
-    .eq("id", id)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from("properties")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-  // Handle "no rows" as null instead of throwing error
-  if (error && error.code !== 'PGRST116') throw error;
+    // If no rows found or any error, return null (will be handled as 404 by route)
+    if (error || !data) {
+      return null;
+    }
 
-  return data || null;
+    return data;
+  } catch (err) {
+    // Catch any unexpected errors and return null
+    return null;
+  }
 }
 
 export async function createProperty(propertyData: PropertyCreateData) {
