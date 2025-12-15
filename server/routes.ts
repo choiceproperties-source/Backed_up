@@ -59,6 +59,7 @@ import { registerSecurityRoutes } from "./security/routes";
 import { logAuditEvent, logPropertyChange, logApplicationChange, logSecurityEvent, logLeaseAction, logPaymentAction, getAuditLogs, getPaymentAuditLogs } from "./security/audit-logger";
 import { checkPropertyImageLimit, validateFileSize, MAX_IMAGES_PER_PROPERTY, MAX_FILE_SIZE_MB } from "./upload-limits";
 import { registerPropertyRoutes } from "./modules/properties";
+import { registerApplicationRoutes } from "./modules/applications";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -69,6 +70,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register domain-based module routes (new architecture)
   // These coexist with legacy routes during migration
   registerPropertyRoutes(app);
+  registerApplicationRoutes(app);
 
   // ===== AUTHENTICATION =====
   app.post("/api/auth/signup", signupLimiter, async (req, res) => {
