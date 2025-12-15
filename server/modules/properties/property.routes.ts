@@ -29,6 +29,9 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const data = await propertyService.getPropertyById(req.params.id);
+    if (!data) {
+      return res.status(404).json(errorResponse("Property not found"));
+    }
     return res.json(success(data, "Property fetched successfully"));
   } catch (err: any) {
     return res.status(500).json(errorResponse("Failed to fetch property"));

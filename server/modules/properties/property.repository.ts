@@ -67,9 +67,10 @@ export async function findPropertyById(id: string) {
     .eq("id", id)
     .single();
 
-  if (error) throw error;
+  // Handle "no rows" as null instead of throwing error
+  if (error && error.code !== 'PGRST116') throw error;
 
-  return data;
+  return data || null;
 }
 
 export async function createProperty(propertyData: PropertyCreateData) {
