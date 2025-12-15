@@ -330,23 +330,43 @@ export default function LandlordProperties() {
                       placeholder="Street Address"
                       {...register('address')}
                       data-testid="input-property-address"
+                      className={errors.address ? 'border-destructive' : ''}
                     />
                     {errors.address && (
-                      <p className="text-sm text-destructive mt-1">{errors.address.message}</p>
+                      <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                        <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                        {errors.address.message}
+                      </div>
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Input placeholder="City" {...register('city')} data-testid="input-property-city" />
+                      <Input 
+                        placeholder="City" 
+                        {...register('city')} 
+                        data-testid="input-property-city"
+                        className={errors.city ? 'border-destructive' : ''}
+                      />
                       {errors.city && (
-                        <p className="text-sm text-destructive mt-1">{errors.city.message}</p>
+                        <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          {errors.city.message}
+                        </div>
                       )}
                     </div>
                     <div>
-                      <Input placeholder="State" {...register('state')} data-testid="input-property-state" />
+                      <Input 
+                        placeholder="State" 
+                        {...register('state')} 
+                        data-testid="input-property-state"
+                        className={errors.state ? 'border-destructive' : ''}
+                      />
                       {errors.state && (
-                        <p className="text-sm text-destructive mt-1">{errors.state.message}</p>
+                        <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          {errors.state.message}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -403,9 +423,13 @@ export default function LandlordProperties() {
                         placeholder="0"
                         {...register('bedrooms', { valueAsNumber: true })}
                         data-testid="input-property-bedrooms"
+                        className={errors.bedrooms ? 'border-destructive' : ''}
                       />
                       {errors.bedrooms && (
-                        <p className="text-sm text-destructive mt-1">{errors.bedrooms.message}</p>
+                        <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          {errors.bedrooms.message}
+                        </div>
                       )}
                     </div>
 
@@ -417,9 +441,13 @@ export default function LandlordProperties() {
                         step="0.5"
                         {...register('bathrooms', { valueAsNumber: true })}
                         data-testid="input-property-bathrooms"
+                        className={errors.bathrooms ? 'border-destructive' : ''}
                       />
                       {errors.bathrooms && (
-                        <p className="text-sm text-destructive mt-1">{errors.bathrooms.message}</p>
+                        <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          {errors.bathrooms.message}
+                        </div>
                       )}
                     </div>
 
@@ -440,9 +468,13 @@ export default function LandlordProperties() {
                         placeholder="0"
                         {...register('price', { valueAsNumber: true })}
                         data-testid="input-property-price"
+                        className={errors.price ? 'border-destructive' : ''}
                       />
                       {errors.price && (
-                        <p className="text-sm text-destructive mt-1">{errors.price.message}</p>
+                        <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          {errors.price.message}
+                        </div>
                       )}
                     </div>
                   </div>
