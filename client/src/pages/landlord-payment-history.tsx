@@ -66,12 +66,12 @@ export default function LandlordPaymentHistory() {
   }
 
   const { data: historyData, isLoading } = useQuery<PaymentHistoryData>({
-    queryKey: [`/api/leases/${leaseId}/payment-history`],
+    queryKey: [`/api/v2/leases/${leaseId}/payment-history`],
   });
 
   const downloadReceipt = async (paymentId: string) => {
     try {
-      const response = await fetch(`/api/payments/${paymentId}/receipt`);
+      const response = await fetch(`/api/v2/payments/${paymentId}/receipt`);
       if (!response.ok) throw new Error('Failed to download receipt');
       
       const data = await response.json();

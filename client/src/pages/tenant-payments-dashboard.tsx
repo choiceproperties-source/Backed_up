@@ -105,7 +105,7 @@ export default function TenantPaymentsDashboard() {
   const markPaidMutation = useMutation({
     mutationFn: async (paymentId: string) => {
       const response = await apiRequest(
-        `/api/payments/${paymentId}/mark-paid`,
+        `/api/v2/payments/${paymentId}/mark-paid`,
         'POST'
       );
       return response;

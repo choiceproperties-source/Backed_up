@@ -39,7 +39,7 @@ export function SecurityDepositStatus({ applicationId, userRole }: SecurityDepos
 
   const verifyMutation = useMutation({
     mutationFn: async (paymentId: string) => {
-      return apiRequest("POST", `/api/payments/${paymentId}/verify`);
+      return apiRequest("POST", `/api/v2/payments/${paymentId}/verify`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/applications", applicationId, "security-deposit"] });
@@ -59,7 +59,7 @@ export function SecurityDepositStatus({ applicationId, userRole }: SecurityDepos
 
   const markPaidMutation = useMutation({
     mutationFn: async (paymentId: string) => {
-      return apiRequest("POST", `/api/payments/${paymentId}/mark-paid`, {});
+      return apiRequest("POST", `/api/v2/payments/${paymentId}/mark-paid`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/applications", applicationId, "security-deposit"] });

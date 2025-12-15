@@ -118,7 +118,7 @@ export default function LandlordPaymentsVerification() {
       dateReceived: string;
     }) => {
       return await apiRequest(
-        `/api/payments/${paymentId}/verify`,
+        `/api/v2/payments/${paymentId}/verify`,
         'POST',
         { amount, method, dateReceived }
       );
