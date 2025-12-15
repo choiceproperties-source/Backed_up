@@ -126,7 +126,7 @@ export default function ApplicationReview() {
   const [conditionalDueDate, setConditionalDueDate] = useState('');
 
   const { data: application, isLoading, error } = useQuery<ApplicationData>({
-    queryKey: ['/api/applications', applicationId],
+    queryKey: ['/api/v2/applications', applicationId],
     enabled: !!applicationId && isLoggedIn,
   });
 
@@ -138,7 +138,7 @@ export default function ApplicationReview() {
       });
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/applications', applicationId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/v2/applications', applicationId] });
       queryClient.invalidateQueries({ queryKey: ['/api/owner/applications'] });
       toast({
         title: 'Success',

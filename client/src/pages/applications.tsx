@@ -108,14 +108,14 @@ export default function Applications() {
 
   const withdrawMutation = useMutation({
     mutationFn: async (applicationId: string) => {
-      return apiRequest('PATCH', `/api/applications/${applicationId}/status`, { 
+      return apiRequest('PATCH', `/api/v2/applications/${applicationId}/status`, { 
         status: 'withdrawn',
         reason: 'Applicant withdrew application'
       });
     },
     onSuccess: () => {
       toast({ title: 'Application withdrawn successfully' });
-      queryClient.invalidateQueries({ queryKey: ['/api/applications/user', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/v2/applications/user', user?.id] });
       setWithdrawingId(null);
     },
     onError: (error: any) => {
@@ -133,10 +133,10 @@ export default function Applications() {
   };
 
   const { data: applicationsData, isLoading, error } = useQuery<ApiResponse>({
-    queryKey: ['/api/applications/user', user?.id],
+    queryKey: ['/api/v2/applications/user', user?.id],
     queryFn: async () => {
       const token = await getAuthToken();
-      const res = await fetch(`/api/applications/user/${user!.id}`, {
+      const res = await fetch(`/api/v2/applications/user/${user!.id}`, {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         credentials: 'include',
       });

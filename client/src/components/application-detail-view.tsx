@@ -192,11 +192,11 @@ export function ApplicationDetailView({
       status: string;
       options?: any;
     }) => {
-      return apiRequest('PATCH', `/api/applications/${application.id}/status`, { status, ...options });
+      return apiRequest('PATCH', `/api/v2/applications/${application.id}/status`, { status, ...options });
     },
     onSuccess: () => {
       toast({ title: 'Status updated successfully' });
-      queryClient.invalidateQueries({ queryKey: ['/api/applications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/v2/applications'] });
       onStatusChange?.();
     },
     onError: (error: any) => {
@@ -220,7 +220,7 @@ export function ApplicationDetailView({
       toast({ title: 'Comment added' });
       setNewComment('');
       queryClient.invalidateQueries({
-        queryKey: ['/api/applications', application.id],
+        queryKey: ['/api/v2/applications', application.id],
       });
     },
     onError: () => {
@@ -236,7 +236,7 @@ export function ApplicationDetailView({
     onSuccess: () => {
       toast({ title: 'Score recalculated' });
       queryClient.invalidateQueries({
-        queryKey: ['/api/applications', application.id],
+        queryKey: ['/api/v2/applications', application.id],
       });
       onStatusChange?.();
     },

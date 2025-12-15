@@ -67,7 +67,7 @@ export function usePropertyApplications(propertyId?: string) {
   const queryClient = useQueryClient();
 
   const queryKey = propertyId 
-    ? ['/api/applications/property', propertyId]
+    ? ['/api/v2/applications/property', propertyId]
     : ['/api/applications/owner'];
 
   const { data: response, isLoading, error, refetch } = useQuery<ApplicationsResponse>({
@@ -75,7 +75,7 @@ export function usePropertyApplications(propertyId?: string) {
     queryFn: async () => {
       const token = await getAuthToken();
       const url = propertyId 
-        ? `/api/applications/property/${propertyId}`
+        ? `/api/v2/applications/property/${propertyId}`
         : `/api/applications/owner`;
       
       const res = await fetch(url, {
@@ -108,14 +108,14 @@ export function usePropertyApplications(propertyId?: string) {
         reason?: string;
       };
     }) => {
-      return apiRequest('PATCH', `/api/applications/${applicationId}/status`, {
+      return apiRequest('PATCH', `/api/v2/applications/${applicationId}/status`, {
         status,
         ...options,
       });
     },
     onSuccess: () => {
       toast({ title: 'Application status updated' });
-      queryClient.invalidateQueries({ queryKey: ['/api/applications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/v2/applications'] });
       refetch();
     },
     onError: (err: any) => {
@@ -195,7 +195,7 @@ export function useOwnerApplications() {
         reason?: string;
       };
     }) => {
-      return apiRequest('PATCH', `/api/applications/${applicationId}/status`, {
+      return apiRequest('PATCH', `/api/v2/applications/${applicationId}/status`, {
         status,
         ...options,
       });

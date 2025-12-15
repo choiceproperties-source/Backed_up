@@ -640,7 +640,7 @@ export async function deleteSavedSearch(searchId: string): Promise<boolean> {
 // ===================== ADMIN PERSONA MANAGEMENT =====================
 export async function getManagedPersonas() {
   try {
-    const response = await fetch('/api/admin/personas', {
+    const response = await fetch('/api/v2/admin/personas', {
       headers: {
         'Authorization': `Bearer ${(await supabase?.auth.getSession())?.data.session?.access_token}`,
       },
@@ -667,7 +667,7 @@ export async function createManagedPersona(personaData: {
   yearsExperience?: number;
 }) {
   try {
-    const response = await fetch('/api/admin/personas', {
+    const response = await fetch('/api/v2/admin/personas', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -696,7 +696,7 @@ export async function updateManagedPersona(personaId: string, updates: {
   yearsExperience?: number;
 }) {
   try {
-    const response = await fetch(`/api/admin/personas/${personaId}`, {
+    const response = await fetch(`/api/v2/admin/personas/${personaId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -715,7 +715,7 @@ export async function updateManagedPersona(personaId: string, updates: {
 
 export async function deleteManagedPersona(personaId: string): Promise<boolean> {
   try {
-    const response = await fetch(`/api/admin/personas/${personaId}`, {
+    const response = await fetch(`/api/v2/admin/personas/${personaId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${(await supabase?.auth.getSession())?.data.session?.access_token}`,
@@ -732,7 +732,7 @@ export async function deleteManagedPersona(personaId: string): Promise<boolean> 
 
 export async function getAdminSettings() {
   try {
-    const response = await fetch('/api/admin/settings', {
+    const response = await fetch('/api/v2/admin/settings', {
       headers: {
         'Authorization': `Bearer ${(await supabase?.auth.getSession())?.data.session?.access_token}`,
       },
@@ -748,7 +748,7 @@ export async function getAdminSettings() {
 
 export async function saveAdminSetting(key: string, value: string) {
   try {
-    const response = await fetch('/api/admin/settings', {
+    const response = await fetch('/api/v2/admin/settings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
