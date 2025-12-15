@@ -62,6 +62,7 @@ import { registerPropertyRoutes } from "./modules/properties";
 import { registerApplicationRoutes } from "./modules/applications";
 import { registerPaymentModuleRoutes } from "./modules/payments";
 import { registerLeaseModuleRoutes } from "./modules/leases";
+import { registerAdminModuleRoutes } from "./modules/admin";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -75,6 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerApplicationRoutes(app);
   registerPaymentModuleRoutes(app);
   registerLeaseModuleRoutes(app);
+  registerAdminModuleRoutes(app);
 
   // ===== AUTHENTICATION =====
   app.post("/api/auth/signup", signupLimiter, async (req, res) => {
