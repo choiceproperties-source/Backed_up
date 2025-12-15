@@ -343,3 +343,189 @@ export function getVerificationCompleteEmailTemplate(data: {
     `;
   }
 }
+
+// Enhanced approval confirmation with detailed receipt
+export function getApprovalConfirmationEmailTemplate(data: {
+  applicantName: string;
+  propertyTitle: string;
+  propertyAddress: string;
+  applicationId: string;
+  applicationFee?: number;
+  paymentDate?: string;
+  transactionId?: string;
+  moveInDate?: string;
+  monthlyRent?: number;
+  securityDeposit?: number;
+  landlordName?: string;
+  landlordEmail?: string;
+  landlordPhone?: string;
+}) {
+  const receiptSection = data.applicationFee ? `
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+      <h3 style="margin: 0 0 15px 0; color: #1e293b; font-size: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Payment Receipt</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #64748b;">Transaction ID:</td>
+          <td style="padding: 8px 0; text-align: right; font-family: monospace; color: #1e293b;">${escapeHtml(data.transactionId || 'N/A')}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #64748b;">Payment Date:</td>
+          <td style="padding: 8px 0; text-align: right; color: #1e293b;">${escapeHtml(data.paymentDate || new Date().toLocaleDateString())}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #64748b;">Application Fee:</td>
+          <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #1e293b;">$${data.applicationFee.toFixed(2)}</td>
+        </tr>
+        <tr style="border-top: 2px solid #e2e8f0;">
+          <td style="padding: 12px 0 0; font-weight: bold; color: #1e293b;">Total Paid:</td>
+          <td style="padding: 12px 0 0; text-align: right; font-weight: bold; font-size: 18px; color: #16a34a;">$${data.applicationFee.toFixed(2)}</td>
+        </tr>
+      </table>
+    </div>
+  ` : '';
+
+  const nextStepsSection = `
+    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+      <h3 style="margin: 0 0 15px 0; color: #166534; font-size: 16px;">Next Steps</h3>
+      <ol style="margin: 0; padding-left: 20px; color: #166534;">
+        <li style="margin-bottom: 10px;">Review and sign your lease agreement (you'll receive this separately)</li>
+        ${data.securityDeposit ? `<li style="margin-bottom: 10px;">Pay security deposit: <strong>$${data.securityDeposit.toFixed(2)}</strong></li>` : ''}
+        ${data.moveInDate ? `<li style="margin-bottom: 10px;">Prepare for your move-in date: <strong>${escapeHtml(data.moveInDate)}</strong></li>` : ''}
+        <li style="margin-bottom: 10px;">Schedule your move-in inspection with the property owner</li>
+        <li>Set up utilities in your name before moving in</li>
+      </ol>
+    </div>
+  `;
+
+  const contactSection = data.landlordName ? `
+    <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px; margin: 20px 0;">
+      <h3 style="margin: 0 0 15px 0; color: #1e40af; font-size: 16px;">Property Owner Contact</h3>
+      <p style="margin: 5px 0; color: #1e3a8a;"><strong>${escapeHtml(data.landlordName)}</strong></p>
+      ${data.landlordEmail ? `<p style="margin: 5px 0; color: #3b82f6;">${escapeHtml(data.landlordEmail)}</p>` : ''}
+      ${data.landlordPhone ? `<p style="margin: 5px 0; color: #3b82f6;">${escapeHtml(data.landlordPhone)}</p>` : ''}
+    </div>
+  ` : '';
+
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">Congratulations!</h1>
+        <p style="color: #bbf7d0; margin: 10px 0 0;">Your Application Has Been Approved</p>
+      </div>
+      
+      <div style="padding: 30px; background: white; border: 1px solid #e2e8f0; border-top: none;">
+        <p style="color: #374151; font-size: 16px; line-height: 1.6;">Dear ${escapeHtml(data.applicantName)},</p>
+        
+        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+          We are thrilled to inform you that your rental application for <strong>${escapeHtml(data.propertyTitle)}</strong> has been approved!
+        </p>
+        
+        <div style="background-color: #f8fafc; border-radius: 8px; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0; color: #64748b; font-size: 14px;">Property Address</p>
+          <p style="margin: 5px 0 0; color: #1e293b; font-size: 16px; font-weight: 600;">${escapeHtml(data.propertyAddress)}</p>
+          ${data.monthlyRent ? `<p style="margin: 10px 0 0; color: #64748b; font-size: 14px;">Monthly Rent: <strong style="color: #1e293b;">$${data.monthlyRent.toFixed(2)}</strong></p>` : ''}
+        </div>
+
+        ${receiptSection}
+        ${nextStepsSection}
+        ${contactSection}
+        
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px;">
+          <p style="color: #374151; font-size: 14px; line-height: 1.6;">
+            Thank you for choosing Choice Properties. We're excited to help you find your perfect home!
+          </p>
+          <p style="color: #374151; font-size: 14px;">
+            Best regards,<br>
+            <strong>The Choice Properties Team</strong>
+          </p>
+        </div>
+        
+        <div style="background-color: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 15px; margin-top: 20px;">
+          <p style="margin: 0; color: #92400e; font-size: 12px;">
+            <strong>Important:</strong> Please keep this email for your records. Your application reference number is: <strong>${escapeHtml(data.applicationId)}</strong>
+          </p>
+        </div>
+      </div>
+      
+      <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
+        <p style="margin: 0; color: #64748b; font-size: 12px;">
+          This email and any attachments are confidential. If you received this in error, please delete it.
+        </p>
+        <p style="margin: 10px 0 0; color: #94a3b8; font-size: 11px;">
+          Choice Properties | Your Trusted Rental Housing Partner
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+// Payment confirmation receipt email
+export function getPaymentReceiptEmailTemplate(data: {
+  applicantName: string;
+  propertyTitle: string;
+  amount: number;
+  paymentType: string;
+  transactionId: string;
+  paymentMethod?: string;
+  paymentDate?: string;
+}) {
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">Payment Confirmed</h1>
+      </div>
+      
+      <div style="padding: 30px; background: white; border: 1px solid #e2e8f0; border-top: none;">
+        <p style="color: #374151; font-size: 16px; line-height: 1.6;">Dear ${escapeHtml(data.applicantName)},</p>
+        
+        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+          Your payment has been successfully processed. Here are your transaction details:
+        </p>
+        
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 10px 0; color: #64748b; border-bottom: 1px solid #e2e8f0;">Property:</td>
+              <td style="padding: 10px 0; text-align: right; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.propertyTitle)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; color: #64748b; border-bottom: 1px solid #e2e8f0;">Payment Type:</td>
+              <td style="padding: 10px 0; text-align: right; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.paymentType)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; color: #64748b; border-bottom: 1px solid #e2e8f0;">Transaction ID:</td>
+              <td style="padding: 10px 0; text-align: right; font-family: monospace; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.transactionId)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; color: #64748b; border-bottom: 1px solid #e2e8f0;">Payment Date:</td>
+              <td style="padding: 10px 0; text-align: right; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.paymentDate || new Date().toLocaleDateString())}</td>
+            </tr>
+            ${data.paymentMethod ? `
+            <tr>
+              <td style="padding: 10px 0; color: #64748b; border-bottom: 1px solid #e2e8f0;">Payment Method:</td>
+              <td style="padding: 10px 0; text-align: right; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.paymentMethod)}</td>
+            </tr>
+            ` : ''}
+            <tr>
+              <td style="padding: 15px 0 0; font-weight: bold; color: #1e293b; font-size: 16px;">Amount Paid:</td>
+              <td style="padding: 15px 0 0; text-align: right; font-weight: bold; font-size: 20px; color: #16a34a;">$${data.amount.toFixed(2)}</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px;">
+          <p style="color: #374151; font-size: 14px;">
+            Best regards,<br>
+            <strong>The Choice Properties Team</strong>
+          </p>
+        </div>
+      </div>
+      
+      <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
+        <p style="margin: 0; color: #64748b; font-size: 12px;">
+          Please save this receipt for your records. Questions? Contact support@choiceproperties.com
+        </p>
+      </div>
+    </div>
+  `;
+}
