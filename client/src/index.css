@@ -371,6 +371,50 @@
   @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
 }
 
+/* Card hover effect utility */
+.card-hover {
+  @apply transition-all duration-300 ease-out;
+}
+
+.card-hover:hover {
+  @apply shadow-lg -translate-y-1;
+}
+
+.dark .card-hover:hover {
+  @apply shadow-xl shadow-black/30;
+}
+
+/* Smooth image hover zoom */
+.img-zoom {
+  @apply transition-transform duration-500 ease-out;
+}
+
+.group:hover .img-zoom, .img-zoom:hover {
+  @apply scale-105;
+}
+
+/* Button icon animation */
+.btn-icon-animate svg {
+  @apply transition-transform duration-200;
+}
+
+.btn-icon-animate:hover svg {
+  @apply scale-110;
+}
+
+/* Consistent section spacing */
+.section-padding {
+  @apply py-16 md:py-24 px-4;
+}
+
+.section-heading {
+  @apply text-3xl md:text-4xl font-bold mb-4 tracking-tight;
+}
+
+.section-subheading {
+  @apply text-lg text-muted-foreground mb-8 max-w-2xl mx-auto;
+}
+
 /* Skip to main content link for accessibility */
 .skip-link {
   @apply absolute -top-10 left-0 bg-primary text-primary-foreground p-2 z-50 transition-all;
