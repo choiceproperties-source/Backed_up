@@ -59,7 +59,7 @@ export default function BuyerDashboard() {
   const { searches, loading: searchesLoading, deleteSearch } = useSavedSearches();
   const { marketTrends, insights, recommendations } = useMarketInsights();
 
-  // Fetch property details for wishlist when favorites load
+  // Fetch property details for wishlist when favorites load using v2 API
   const [wishlistFetched, setWishlistFetched] = useState(false);
   if (favorites.length > 0 && !wishlistFetched && !favoritesLoading) {
     setWishlistFetched(true);
@@ -68,7 +68,7 @@ export default function BuyerDashboard() {
       try {
         const properties: PropertyData[] = [];
         for (const favId of favorites) {
-          const res = await fetch(`/api/properties/${favId}`);
+          const res = await fetch(`/api/v2/properties/${favId}`);
           if (res.ok) {
             const data = await res.json();
             properties.push(data.data || data);
@@ -76,6 +76,7 @@ export default function BuyerDashboard() {
         }
         setWishlistProperties(properties);
       } catch (err) {
+        console.error('Failed to fetch wishlist details:', err);
       } finally {
         setLoadingWishlistDetails(false);
       }

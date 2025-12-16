@@ -24,6 +24,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { updateMetaTags } from '@/lib/seo';
+import { LandlordDashboardSkeleton } from '@/components/dashboard-skeleton';
 
 export default function LandlordDashboard() {
   const { user, logout, isLoggedIn } = useAuth();
@@ -45,6 +46,23 @@ export default function LandlordDashboard() {
   if (!isLoggedIn || !user || (user.role !== 'landlord' && user.role !== 'admin')) {
     navigate('/login');
     return null;
+  }
+
+  // Show skeleton while loading
+  if (propsLoading || appsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-12">
+          <div className="container mx-auto px-4">
+            <h1 className="text-4xl font-bold">Landlord Dashboard</h1>
+            <p className="text-blue-100 mt-2">Manage your properties and applications</p>
+          </div>
+        </div>
+        <LandlordDashboardSkeleton />
+        <Footer />
+      </div>
+    );
   }
 
   // Calculate stats

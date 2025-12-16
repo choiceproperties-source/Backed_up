@@ -101,7 +101,7 @@ export default function Apply() {
     const id = searchParams.get("propertyId");
     setPropertyId(id);
     if (id) {
-      fetch(`/api/properties/${id}`)
+      fetch(`/api/v2/properties/${id}`)
         .then(res => res.json())
         .then(data => setProperty(data.data))
         .catch(err => console.error("Failed to load property:", err));

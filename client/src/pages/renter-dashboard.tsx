@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { PaymentForm } from '@/components/payment-form';
+import { RenterDashboardSkeleton } from '@/components/dashboard-skeleton';
 
 interface PropertyData {
   id: string;
@@ -106,7 +107,7 @@ export default function RenterDashboard() {
   const { favorites, toggleFavorite, loading: favoritesLoading } = useFavorites();
   const { searches, loading: searchesLoading, deleteSearch } = useSavedSearches();
 
-  // Fetch property details for favorites
+  // Fetch property details for favorites using v2 API
   useEffect(() => {
     if (favorites.length === 0) {
       setFavoriteProperties([]);
@@ -118,7 +119,7 @@ export default function RenterDashboard() {
       try {
         const properties: PropertyData[] = [];
         for (const favId of favorites) {
-          const res = await fetch(`/api/properties/${favId}`);
+          const res = await fetch(`/api/v2/properties/${favId}`);
           if (res.ok) {
             const data = await res.json();
             properties.push(data.data || data);
@@ -126,6 +127,7 @@ export default function RenterDashboard() {
         }
         setFavoriteProperties(properties);
       } catch (err) {
+        console.error('Failed to fetch favorite details:', err);
       } finally {
         setLoadingFavoritesDetails(false);
       }
@@ -138,6 +140,23 @@ export default function RenterDashboard() {
   if (!isLoggedIn || !user) {
     navigate('/login');
     return null;
+  }
+
+  // Show skeleton while loading
+  if (appsLoading || favoritesLoading || searchesLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <div className="bg-gradient-to-r from-primary to-secondary text-white py-12">
+          <div className="container mx-auto px-4">
+            <h1 className="text-4xl font-bold">Renter Dashboard</h1>
+            <p className="text-primary-foreground/80 mt-2">Manage your applications and favorites</p>
+          </div>
+        </div>
+        <RenterDashboardSkeleton />
+        <Footer />
+      </div>
+    );
   }
 
   // Handle delete search

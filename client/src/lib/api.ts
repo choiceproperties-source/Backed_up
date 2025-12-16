@@ -1,4 +1,6 @@
-// API Client for Choice Properties Backend
+// API Client for Choice Properties Backend - Using v2 endpoints
+import { getAuthToken } from "./auth-context";
+
 const API_BASE = typeof window !== "undefined" && window.location.origin ? window.location.origin : "";
 
 interface ApiResponse<T> {
@@ -12,23 +14,31 @@ async function apiCall<T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
+    const token = await getAuthToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string>),
+    };
+    
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE}${endpoint}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+      headers,
+      credentials: "include",
       ...options,
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      return { error: error.error || "API request failed" };
+      const errorData = await response.json().catch(() => ({ error: "Request failed" }));
+      return { error: errorData.error || errorData.message || "API request failed", success: false };
     }
 
     const data = await response.json();
-    return { data };
+    return { data: data.data || data, success: true };
   } catch (error: any) {
-    return { error: error.message || "Unknown error" };
+    return { error: error.message || "Network error", success: false };
   }
 }
 
@@ -45,19 +55,26 @@ export const propertiesApi = {
   },
   getById: (id: string) => apiCall(`/api/v2/properties/${id}`),
   create: (data: any) => apiCall("/api/v2/properties", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: any) => apiCall(`/api/v2/properties/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  delete: (id: string) => apiCall(`/api/v2/properties/${id}`, { method: "DELETE" }),
 };
 
 // Applications API - Using v2 endpoints
 export const applicationsApi = {
   create: (data: any) => apiCall("/api/v2/applications", { method: "POST", body: JSON.stringify(data) }),
+  getById: (id: string) => apiCall(`/api/v2/applications/${id}`),
   getByUser: (userId: string) => apiCall(`/api/v2/applications/user/${userId}`),
+  getByProperty: (propertyId: string) => apiCall(`/api/v2/applications/property/${propertyId}`),
   update: (id: string, data: any) => apiCall(`/api/v2/applications/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  updateStatus: (id: string, status: string, reason?: string) => 
+    apiCall(`/api/v2/applications/${id}/status`, { method: "PATCH", body: JSON.stringify({ status, reason }) }),
 };
 
-// Inquiries API
+// Inquiries API - Using v2 endpoints
 export const inquiriesApi = {
-  create: (data: any) => apiCall("/api/inquiries", { method: "POST", body: JSON.stringify(data) }),
-  getByAgent: (agentId: string) => apiCall(`/api/inquiries/agent/${agentId}`),
+  create: (data: any) => apiCall("/api/v2/inquiries", { method: "POST", body: JSON.stringify(data) }),
+  getByAgent: (agentId: string) => apiCall(`/api/v2/inquiries/agent/${agentId}`),
+  getByProperty: (propertyId: string) => apiCall(`/api/v2/inquiries/property/${propertyId}`),
 };
 
 // Requirements API
@@ -73,10 +90,10 @@ export const favoritesApi = {
   getByUser: (userId: string) => apiCall(`/api/favorites/user/${userId}`),
 };
 
-// Reviews API
+// Reviews API - Using v2 endpoints
 export const reviewsApi = {
-  getByProperty: (propertyId: string) => apiCall(`/api/reviews/property/${propertyId}`),
-  create: (data: any) => apiCall("/api/reviews", { method: "POST", body: JSON.stringify(data) }),
+  getByProperty: (propertyId: string) => apiCall(`/api/v2/reviews/property/${propertyId}`),
+  create: (data: any) => apiCall("/api/v2/reviews", { method: "POST", body: JSON.stringify(data) }),
 };
 
 // Auth API - Using v2 endpoints (Note: Primary auth handled by Supabase client)
@@ -85,6 +102,13 @@ export const authApi = {
     apiCall("/api/v2/auth/signup", { method: "POST", body: JSON.stringify({ email, password, fullName }) }),
   login: (email: string, password: string) =>
     apiCall("/api/v2/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+};
+
+// User Dashboard API
+export const dashboardApi = {
+  getUserDashboard: () => apiCall("/api/user/dashboard"),
+  getNotifications: () => apiCall("/api/user/notifications"),
+  markNotificationRead: (id: string) => apiCall(`/api/notifications/${id}/read`, { method: "PATCH" }),
 };
 
 // Health check

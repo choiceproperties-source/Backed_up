@@ -80,7 +80,7 @@ export default function PropertyDetails() {
   const owner = propertyData?.owner;
 
   const { data: reviews = [] } = useQuery<Review[]>({
-    queryKey: ['/api/reviews/property', id],
+    queryKey: ['/api/v2/reviews/property', id],
     enabled: !!id,
     select: (res: any) => res?.data ?? [],
   });
@@ -97,7 +97,7 @@ export default function PropertyDetails() {
   }
 
   const { data: photosData } = useQuery<PropertyPhoto[]>({
-    queryKey: ['/api/images/property', id],
+    queryKey: ['/api/v2/images/property', id],
     enabled: !!id,
     select: (res: any) => res?.data ?? [],
   });
