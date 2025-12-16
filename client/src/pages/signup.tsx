@@ -5,10 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
 import { Link, useLocation } from 'wouter';
 import { Mail, Lock, User, Phone, Eye, EyeOff, Home, Building2, Users, Briefcase, Check, X, UserPlus } from 'lucide-react';
-import { SiGoogle, SiGithub } from 'react-icons/si';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signupSchema } from '@shared/schema';
@@ -85,11 +83,9 @@ export default function Signup() {
     });
   }, []);
 
-  const { signup, loginWithGoogle, loginWithGithub } = useAuth();
+  const { signup } = useAuth();
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [githubLoading, setGithubLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
@@ -129,28 +125,6 @@ export default function Signup() {
     }
   };
 
-  const handleGoogleSignup = async () => {
-    setGoogleLoading(true);
-    try {
-      await loginWithGoogle();
-    } catch (err: any) {
-      form.setError('root', { message: err.message || 'Google signup failed' });
-      setGoogleLoading(false);
-    }
-  };
-
-  const handleGithubSignup = async () => {
-    setGithubLoading(true);
-    try {
-      await loginWithGithub();
-    } catch (err: any) {
-      form.setError('root', { message: err.message || 'GitHub signup failed' });
-      setGithubLoading(false);
-    }
-  };
-
-  const isAnyLoading = loading || googleLoading || githubLoading;
-
   const goToStep2 = async () => {
     const isValid = await form.trigger(['fullName', 'email', 'phone', 'role']);
     if (isValid) {
@@ -183,37 +157,6 @@ export default function Signup() {
               </motion.div>
             </div>
 
-            <div className="flex gap-3 mb-6">
-              <Button 
-                type="button"
-                variant="outline" 
-                className="flex-1 flex items-center justify-center gap-2"
-                onClick={handleGoogleSignup}
-                disabled={isAnyLoading}
-                data-testid="button-google-signup"
-              >
-                <SiGoogle className="h-4 w-4" />
-                <span className="hidden sm:inline">{googleLoading ? 'Connecting...' : 'Google'}</span>
-              </Button>
-              <Button 
-                type="button"
-                variant="outline" 
-                className="flex-1 flex items-center justify-center gap-2"
-                onClick={handleGithubSignup}
-                disabled={isAnyLoading}
-                data-testid="button-github-signup"
-              >
-                <SiGithub className="h-4 w-4" />
-                <span className="hidden sm:inline">{githubLoading ? 'Connecting...' : 'GitHub'}</span>
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-4 my-6">
-              <Separator className="flex-1" />
-              <span className="text-xs text-muted-foreground uppercase tracking-wide">or with email</span>
-              <Separator className="flex-1" />
-            </div>
-
             <div className="flex items-center gap-2 mb-6">
               <div className={`flex-1 h-1 rounded-full transition-colors ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
               <div className={`flex-1 h-1 rounded-full transition-colors ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
@@ -243,7 +186,7 @@ export default function Signup() {
                               <Input
                                 type="text"
                                 placeholder="John Doe"
-                                disabled={isAnyLoading}
+                                disabled={loading}
                                 autoComplete="name"
                                 data-testid="input-fullname"
                                 className="h-11"
@@ -267,7 +210,7 @@ export default function Signup() {
                               <Input
                                 type="email"
                                 placeholder="you@example.com"
-                                disabled={isAnyLoading}
+                                disabled={loading}
                                 autoComplete="email"
                                 data-testid="input-email"
                                 className="h-11"
@@ -292,7 +235,7 @@ export default function Signup() {
                               <Input
                                 type="tel"
                                 placeholder="+1 (555) 123-4567"
-                                disabled={isAnyLoading}
+                                disabled={loading}
                                 autoComplete="tel"
                                 data-testid="input-phone"
                                 className="h-11"
@@ -320,7 +263,7 @@ export default function Signup() {
                                       key={roleOption.value}
                                       type="button"
                                       onClick={() => field.onChange(roleOption.value)}
-                                      disabled={isAnyLoading}
+                                      disabled={loading}
                                       data-testid={`button-role-${roleOption.value}`}
                                       className={`p-3 rounded-md border text-left transition-all ${
                                         isSelected 
@@ -345,11 +288,22 @@ export default function Signup() {
                         )}
                       />
 
+                      {form.formState.errors.root && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-red-600 text-sm bg-red-50 dark:bg-red-950/50 p-3 rounded-md"
+                          data-testid="text-error"
+                        >
+                          {form.formState.errors.root.message}
+                        </motion.div>
+                      )}
+
                       <Button 
                         type="button"
                         onClick={goToStep2}
                         className="w-full h-11" 
-                        disabled={isAnyLoading}
+                        disabled={loading}
                         data-testid="button-continue"
                       >
                         Continue
@@ -388,7 +342,7 @@ export default function Signup() {
                                 <Input
                                   type={showPassword ? 'text' : 'password'}
                                   placeholder="Create a strong password"
-                                  disabled={isAnyLoading}
+                                  disabled={loading}
                                   autoComplete="new-password"
                                   data-testid="input-password"
                                   className="h-11 pr-10"
@@ -397,7 +351,7 @@ export default function Signup() {
                                 <button
                                   type="button"
                                   onClick={() => setShowPassword(!showPassword)}
-                                  disabled={isAnyLoading}
+                                  disabled={loading}
                                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                   data-testid="button-toggle-password"
                                   aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -464,7 +418,7 @@ export default function Signup() {
                                 <Input
                                   type={showConfirmPassword ? 'text' : 'password'}
                                   placeholder="Confirm your password"
-                                  disabled={isAnyLoading}
+                                  disabled={loading}
                                   autoComplete="new-password"
                                   data-testid="input-confirm-password"
                                   className="h-11 pr-10"
@@ -473,7 +427,7 @@ export default function Signup() {
                                 <button
                                   type="button"
                                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                  disabled={isAnyLoading}
+                                  disabled={loading}
                                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                   data-testid="button-toggle-confirm-password"
                                   aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
@@ -511,20 +465,20 @@ export default function Signup() {
                               <Checkbox
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
-                                disabled={isAnyLoading}
+                                disabled={loading}
                                 data-testid="checkbox-terms"
                                 className="mt-0.5"
                               />
                             </FormControl>
                             <div className="flex-1">
-                              <FormLabel className="text-sm font-normal text-muted-foreground cursor-pointer leading-relaxed">
+                              <FormLabel className="text-sm font-normal text-muted-foreground leading-relaxed cursor-pointer">
                                 I agree to the{' '}
                                 <Link href="/terms">
-                                  <span className="text-primary font-medium hover:underline">Terms of Service</span>
+                                  <span className="text-primary hover:underline">Terms of Service</span>
                                 </Link>
                                 {' '}and{' '}
                                 <Link href="/privacy">
-                                  <span className="text-primary font-medium hover:underline">Privacy Policy</span>
+                                  <span className="text-primary hover:underline">Privacy Policy</span>
                                 </Link>
                               </FormLabel>
                               <FormMessage />
@@ -547,8 +501,8 @@ export default function Signup() {
                       <Button 
                         type="submit" 
                         className="w-full h-11" 
-                        disabled={isAnyLoading}
-                        data-testid="button-submit"
+                        disabled={loading}
+                        data-testid="button-create-account"
                       >
                         {loading ? 'Creating Account...' : 'Create Account'}
                       </Button>
