@@ -49,7 +49,7 @@ export function NearbyPlaces({ places }: NearbyPlacesProps) {
         return (
           <Card
             key={category}
-            className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 hover:border-primary/30 dark:hover:border-primary/30 transition-all duration-200 hover-elevate overflow-hidden"
+            className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 hover:border-primary/30 dark:hover:border-primary/30 transition-all duration-200"
             data-testid={`card-category-${category.toLowerCase()}`}
           >
             <CardContent className="p-4">

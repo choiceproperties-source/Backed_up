@@ -655,7 +655,7 @@ export default function LandlordProperties() {
             {properties.map((property: any) => (
               <Card
                 key={property.id}
-                className="overflow-hidden hover-elevate"
+                className="overflow-hidden"
                 data-testid={`card-property-${property.id}`}
               >
                 {/* Image */}

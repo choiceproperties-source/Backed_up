@@ -1,377 +1,52 @@
 # Choice Properties - Full Stack Real Estate Application
 
-## Project Overview
-A full-stack real estate platform built with React, Express, and Supabase. The application allows users to browse properties, submit applications, manage inquiries, and complete full lease workflows with digital signatures and move-in coordination.
-
-## Tech Stack
-- **Frontend:** React 19, Vite, TailwindCSS, Shadcn UI
-- **Backend:** Express.js, Node.js
-- **Database:** PostgreSQL (Supabase)
-- **Authentication:** Supabase Auth (JWT-based)
-- **State Management:** React Query, Context API
-- **Routing:** Wouter
-
-## Project Structure
-
-```
-project/
-├── client/                 # Frontend React application
-│   ├── public/            # Static assets
-│   ├── src/
-│   │   ├── components/    # React components
-│   │   │   ├── ui/       # Shadcn UI components
-│   │   │   ├── timeline.tsx    # Lease timeline component
-│   │   │   └── ...       # Feature components
-│   │   ├── pages/        # Page components
-│   │   │   ├── tenant-lease-dashboard.tsx
-│   │   │   ├── landlord-lease-dashboard.tsx
-│   │   │   └── ...
-│   │   ├── hooks/        # Custom React hooks
-│   │   ├── lib/          # Utilities and services
-│   │   ├── data/         # Mock data
-│   │   ├── index.css     # Global styles
-│   │   └── main.tsx      # Entry point
-│   └── index.html
-├── server/                 # Backend Express application
-│   ├── db/               # Database setup SQL files
-│   ├── app.ts            # Express app configuration
-│   ├── routes.ts         # API route handlers
-│   ├── auth-middleware.ts # Authentication middleware
-│   ├── storage.ts        # Database service layer
-│   ├── index-dev.ts      # Development entry point
-│   └── index-prod.ts     # Production entry point
-├── shared/                # Shared types and schemas
-│   └── schema.ts         # Database schema definitions
-├── migrations/            # Database migrations
-├── scripts/              # Utility scripts (seeding, etc.)
-├── public/               # PWA manifest and meta files
-└── package.json          # Project dependencies
-
-```
-
-## Key Features
-
-### Authentication
-- User signup/login with email and password
-- JWT-based token authentication
-- Role-based access control (user, agent, admin)
-- Automatic user record creation on signup via Supabase trigger
-
-### Properties
-- Browse active property listings
-- Filter by location, price, bedrooms, property type
-- View detailed property information with images
-- Save favorite properties
-- Submit rental applications
-
-### Lease Management (NEW)
-- **Lease Preparation:** Landlord creates lease documents
-- **Lease Delivery:** Send lease to tenant for review
-- **Lease Acceptance:** Tenant accepts/declines lease terms
-- **Digital Signatures:** Both parties sign lease electronically
-- **Move-In Preparation:** Set key pickup, access codes, utilities, checklist
-- **Lease Dashboards:** Real-time status tracking for both parties
-
-### Lease Dashboards (NEW)
-**Tenant Lease Dashboard** (`/tenant-lease-dashboard`):
-- Visual lease status timeline
-- Download signed lease documents
-- Move-in readiness information
-- Interactive move-in checklist
-- Access codes and key pickup details
-
-**Landlord Lease Dashboard** (`/landlord-lease-dashboard`):
-- Lease pipeline overview with stats
-- Applications grouped by status
-- Tenant information and contact
-- Visual timeline for each lease
-- Quick action buttons
-
-### Inquiries & Reviews
-- Submit inquiries about properties
-- View and manage property reviews (1-5 stars)
-- Submit reviews for properties you've viewed
-
-### User Management
-- User profiles with customizable information
-- Agent profiles visible to public
-- Admin panel for managing all content
-- Saved searches for properties
-
-### Security
-- Row Level Security (RLS) policies on all tables
-- Rate limiting on auth and sensitive endpoints
-- Encrypted database connections
-- Secure session management
-
-### Payment Audit & Safeguards (NEW)
-- **Full Audit Trail:** All payment actions are logged with actor, timestamp, and action type
-  - `payment_created` - When a payment record is generated
-  - `payment_marked_paid` - When tenant marks payment as paid
-  - `payment_verified` - When landlord/admin verifies payment
-  - `payment_marked_overdue` - When payment becomes overdue
-  - `payment_delete_blocked` - When deletion is attempted (blocked)
-- **Role-Based Access Control:**
-  - Only tenants can mark their own payments as paid
-  - Only landlords/admins can verify payments
-  - Only admins, landlords, and property managers can view audit logs
-- **Payment Deletion Prevention:** Payments cannot be deleted for financial accountability
-- **Audit Log Endpoint:** `GET /api/payments/audit-logs` for viewing payment history
-
-### Property Manager Role Foundation (NEW)
-- **New Role:** `property_manager` with 60 level hierarchy (same as landlord)
-- **Permission Groups:**
-  - `view_properties` - View assigned properties
-  - `manage_applications` - Manage tenant applications
-  - `manage_leases` - Handle lease documents and signatures
-  - `manage_payments` - Process and verify payments
-  - `manage_maintenance` - Track maintenance issues (future)
-  - `messaging_access` - Communication with tenants/landlords
-- **Scoped Access:**
-  - Property managers can ONLY access properties explicitly assigned to them via `property_manager_assignments` table
-  - Assignments include granular permission control per property
-  - Revoked assignments are tracked with `revokedAt` timestamp
-- **Authorization Functions:**
-  - `isPropertyManagerForProperty()` - Check if manager is assigned to property
-  - `canAccessProperty()` - Unified access control across all roles
-
-## Environment Variables
-
-### Required Secrets (set in Replit Secrets tab):
-- `SUPABASE_URL` - Your Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY` - Admin key for server operations
-- `SESSION_SECRET` - Secret for session encryption
-
-### Required Environment Variables:
-- `IMAGEKIT_PUBLIC_KEY` - ImageKit public key for image uploads
-- `IMAGEKIT_PRIVATE_KEY` - ImageKit private key
-- `IMAGEKIT_URL_ENDPOINT` - ImageKit URL endpoint
-
-### Auto-Configured (by Replit):
-- `DATABASE_URL` - PostgreSQL connection string
-- `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` - PostgreSQL credentials
-- `REPLIT_DOMAINS`, `REPLIT_DEV_DOMAIN` - Replit domain configuration
-
-### Optional:
-- `SENDGRID_API_KEY` - For email notifications
-- `RATE_LIMITING_ENABLED` - Enable rate limiting
-
-## Database Schema
-
-### Tables
-1. **users** - User accounts with roles (user, agent, admin)
-2. **properties** - Property listings with details and amenities
-3. **applications** - Rental applications with multi-step process
-4. **leaseSignatures** - Digital signature tracking for leases
-5. **inquiries** - Contact inquiries about properties
-6. **reviews** - User reviews for properties
-7. **favorites** - Saved properties per user
-8. **requirements** - User property search criteria
-9. **saved_searches** - Saved property searches
-10. **newsletter_subscribers** - Email newsletter subscriptions
-11. **contact_messages** - General contact form submissions
-
-### Lease-Related Fields in Applications Table
-- `leaseStatus` - Current lease stage (draft, lease_preparation, lease_sent, lease_accepted, lease_signed, move_in_ready, completed)
-- `leaseVersion` - Lease document version number
-- `leaseSentAt` - When lease was sent to tenant
-- `leaseAcceptedAt` - When tenant accepted lease
-- `leaseSignedAt` - When both parties signed
-- `moveInDate` - Scheduled move-in date
-- `moveInInstructions` - Key pickup, access codes, utilities, checklist
-
-### Security
-- All tables have Row Level Security (RLS) enabled
-- 22+ RLS policies for fine-grained access control
-- Automatic user sync trigger from auth.users to public.users
-- Storage buckets for property images, profile images, and documents
-
-## Running the Application
-
-### Development
-```bash
-npm run dev
-```
-- Starts Express backend on port 5000
-- Starts Vite frontend on port 5000 (same server)
-- Hot reload enabled for both frontend and backend
-
-### Production Build
-```bash
-npm run build
-npm run start
-```
-
-### Type Checking
-```bash
-npm run check
-```
-
-### Database Operations
-```bash
-npm run db:push     # Push schema changes to database
-npm run seed        # Run database seeding script
-```
-
-## API Documentation
-
-### Lease Endpoints
-
-**Lease Preparation (4)**
-- `POST /api/applications/:applicationId/lease-draft` - Create/update draft lease
-- `GET /api/applications/:applicationId/lease-draft` - Get draft lease
-- `PATCH /api/applications/:applicationId/lease-draft` - Update draft (blocked after acceptance)
-- `GET /api/applications/:applicationId/lease-draft/history` - Get version history
-
-**Lease Delivery (4)**
-- `POST /api/applications/:applicationId/lease-draft/send` - Send lease to tenant
-- `GET /api/applications/:applicationId/lease` - Get tenant's lease
-- `POST /api/applications/:applicationId/lease/accept` - Tenant accepts lease
-- `POST /api/applications/:applicationId/lease/decline` - Tenant declines lease
-
-**Digital Signatures (4)**
-- `PATCH /api/applications/:applicationId/lease-draft/signature-enable` - Enable signatures
-- `POST /api/applications/:applicationId/lease/sign` - Sign lease electronically
-- `POST /api/applications/:applicationId/lease/countersign` - Countersign lease
-- `GET /api/applications/:applicationId/lease/signatures` - Get signature records
-
-**Move-In Preparation (3)**
-- `POST /api/applications/:applicationId/move-in/prepare` - Set move-in details
-- `GET /api/applications/:applicationId/move-in/instructions` - Get move-in info
-- `PATCH /api/applications/:applicationId/move-in/checklist` - Update checklist
-
-## Development Guidelines
-
-### Frontend
-- Use `wouter` for routing
-- Use React Query (`@tanstack/react-query`) for data fetching
-- Use Shadcn UI components for consistent styling
-- Use React Hook Form for form management
-- Add `data-testid` to interactive elements
-- Timeline component at `client/src/components/timeline.tsx`
-
-### Backend
-- Keep routes thin - use storage service layer
-- Validate all inputs with Zod schemas
-- Use `authenticateToken` middleware for protected routes
-- Use `requireRole` middleware for role-based access
-- Cache user roles for performance
-
-### Database
-- Use Drizzle ORM for type-safe queries
-- Define schemas in `shared/schema.ts`
-- Create insert schemas with Zod validation
-- Use migrations for structural changes
-
-## Deployment
-
-The project is configured for Replit deployment:
-- **Build:** `npm run build` (compiles TypeScript, bundles frontend)
-- **Run:** `node ./dist/index.cjs` (starts Express production server)
-- **Type:** Autoscale (stateless web application)
-
-### Setup Instructions
-1. Ensure all required secrets are set in the Replit Secrets tab
-2. Run `npm run db:push` to sync database schema
-3. Click the "Deploy" button in Replit to publish
-
-## User Roles
-
-### User (Renter)
-- Browse properties
-- Submit rental applications
-- View and submit reviews
-- Save favorite properties
-- Track saved searches
-- **Access:** `/tenant-lease-dashboard` - Track lease status
-
-### Agent
-- Manage property listings
-- View inquiries about properties
-- View property requirements from other users
-- Manage application status
-
-### Landlord
-- Create and manage leases
-- Send lease documents
-- Review tenant signatures
-- Set move-in details
-- **Access:** `/landlord-lease-dashboard` - Monitor lease pipeline
-
-### Admin
-- Access admin panel
-- Manage all users and properties
-- View all applications and inquiries
-- Manage platform settings
-- View all reviews and content
-
-## Recent Changes (December 16, 2025)
-
-### Production Readiness Improvements
-- Added Helmet security headers (CSP, HSTS, referrer policy)
-- Dynamic sitemap.xml generation for SEO (covers all property pages)
-- Verified rate limiting on critical routes (auth, signup, inquiries)
-- Confirmed ImageKit image optimization (WebP auto-format)
-- Removed unused swiper dependency to reduce bundle size
-- Environment variables properly separated for dev vs production
-
-## Previous Changes (December 13, 2025)
-
-### Phase 7: Lease Dashboards & Timeline
-✅ Timeline component created with status indicators
-✅ Tenant Lease Dashboard with visual timeline
-✅ Landlord Lease Dashboard with pipeline view
-✅ Move-in readiness information display
-✅ Interactive checklist functionality
-✅ Real-time data fetching with React Query
-✅ Role-based access control
-
-### Phase 6: Move-In Preparation
-✅ User notification preferences table added with preference controls
-✅ Property notifications table added for property-related events
-✅ Support for email, in-app, and SMS notification channels
-✅ Notification types: new applications, status updates, property saved, lease reminders
-
-## Useful Commands
-
-```bash
-# Install dependencies
-npm install
-
-# Development server (http://localhost:5000)
-npm run dev
-
-# Type checking
-npm run check
-
-# Production build
-npm run build
-
-# Start production server
-npm run start
-
-# Push database schema changes
-npm run db:push
-
-# Seed database with sample data
-npm run seed
-```
-
-## Notes
-
-- The application uses Supabase for all backend services
-- Authentication is handled entirely by Supabase
-- Database queries are cached for performance optimization
-- Rate limiting is enabled in production to prevent abuse
-- All sensitive data is encrypted and requires authentication
-- Email notifications use SendGrid (optional)
-- Lease workflow includes complete digital signature support
-- Dashboards provide real-time progress tracking
-
-## Next Steps
-
-1. Test lease dashboard functionality
-2. Verify real-time updates with React Query
-3. Test move-in instruction display
-4. Create sample leases and track through pipeline
-5. Deploy to production when ready
+## Overview
+Choice Properties is a full-stack real estate platform designed to streamline property browsing, rental applications, and the entire lease workflow. The application aims to provide a comprehensive solution for both tenants and landlords, offering features from property discovery to digital lease signing and move-in coordination. The business vision is to modernize the real estate rental process, enhance user experience, and provide robust tools for property management, thereby capturing a significant share of the digital rental market.
+
+## User Preferences
+- I prefer simple language and clear explanations.
+- I want iterative development, with frequent, small updates.
+- Ask before making major changes or architectural decisions.
+- Do not make changes to files related to authentication without explicit approval.
+- Ensure all new features are thoroughly tested before integration.
+
+## System Architecture
+The application is built with a React frontend, an Express.js backend, and a PostgreSQL database managed by Supabase.
+
+**UI/UX Decisions:**
+- **Design System:** Utilizes TailwindCSS and Shadcn UI components for a consistent and modern aesthetic.
+- **Key Dashboards:** Features dedicated dashboards for tenants and landlords, offering visual timelines and status tracking for leases.
+- **Interactive Elements:** Incorporates interactive checklists and status indicators for an engaging user experience.
+
+**Technical Implementations:**
+- **Frontend:** React 18.3.1 with Vite for fast development, Wouter for routing, React Query for data fetching, and Context API for state management.
+- **Backend:** Express.js and Node.js for API services, with a focus on thin routes and a storage service layer.
+- **Authentication:** JWT-based authentication handled by Supabase Auth, including role-based access control (user, agent, landlord, admin, property_manager).
+- **Database Interaction:** Drizzle ORM for type-safe queries, with schema definitions in `shared/schema.ts` and Zod for validation.
+- **Security:** Implements Row Level Security (RLS) on all tables, rate limiting on sensitive endpoints, encrypted database connections, and secure session management. Helmet security headers are used for enhanced production security.
+- **Lease Workflow:** Comprehensive digital lease management including preparation, delivery, acceptance, digital signatures, and move-in coordination.
+- **Payment Audit:** Full audit trail for all payment actions, with role-based access to payment verification and logs. Payments are non-deletable for financial accountability.
+- **Property Manager Role:** A new `property_manager` role with granular, scoped access to properties and associated tasks (applications, leases, payments, messaging).
+
+**Feature Specifications:**
+- **Authentication:** User signup/login, JWT tokens, role-based access, automatic user record creation.
+- **Properties:** Browsing, filtering, detailed views, saving favorites, rental application submission.
+- **Lease Management:** Landlord lease creation, digital delivery, tenant acceptance/declining, electronic signing, move-in preparation (key pickup, utilities, checklist).
+- **Dashboards:** Tenant Lease Dashboard with visual timeline and move-in readiness; Landlord Lease Dashboard with pipeline overview and quick actions.
+- **Inquiries & Reviews:** Submission of property inquiries, 1-5 star reviews.
+- **User Management:** Customizable user profiles, agent profiles, admin panel, saved searches.
+- **Payment Auditing:** Detailed logging of payment events, role-based controls, and deletion prevention.
+- **Property Manager Capabilities:** Management of assigned properties, applications, leases, and payments with fine-grained permissions.
+
+## External Dependencies
+- **Supabase:** Database (PostgreSQL), Authentication, Storage (for property images, profile images, documents).
+- **ImageKit:** Image optimization and delivery.
+- **SendGrid (Optional):** Email notifications.
+- **TailwindCSS:** CSS framework.
+- **Shadcn UI:** UI component library.
+- **React Query (@tanstack/react-query):** Data fetching and caching.
+- **Wouter:** Frontend routing.
+- **React Hook Form:** Form management.
+- **Zod:** Schema validation.
+- **Drizzle ORM:** Type-safe database queries.
+- **Helmet:** Security headers.

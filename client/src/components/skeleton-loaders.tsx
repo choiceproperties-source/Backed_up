@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export function PropertyCardSkeleton() {
   return (
-    <Card className="overflow-hidden hover-elevate">
+    <Card className="overflow-hidden">
       <div className="relative">
         <Skeleton className="h-48 w-full" />
       </div>

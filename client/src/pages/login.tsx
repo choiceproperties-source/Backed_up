@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useState, useEffect } from 'react';
 import { updateMetaTags } from "@/lib/seo";
 import { z } from 'zod';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 
 const magicLinkSchema = z.object({
@@ -196,12 +196,10 @@ export default function Login() {
                 </TabsTrigger>
               </TabsList>
 
-              <AnimatePresence mode="wait">
                 <TabsContent value="password" className="mt-0">
                   <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{ duration: 0.2 }}
                   >
                     <Form {...form}>
@@ -325,9 +323,8 @@ export default function Login() {
 
                 <TabsContent value="magic" className="mt-0">
                   <motion.div
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{ duration: 0.2 }}
                   >
                     {magicLinkSent ? (
@@ -426,7 +423,6 @@ export default function Login() {
                     )}
                   </motion.div>
                 </TabsContent>
-              </AnimatePresence>
             </Tabs>
 
             <p className="text-center text-sm text-muted-foreground mt-6">
