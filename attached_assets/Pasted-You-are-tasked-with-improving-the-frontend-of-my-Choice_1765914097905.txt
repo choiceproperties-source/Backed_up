@@ -1,0 +1,61 @@
+You are tasked with improving the frontend of my Choice Properties website. The backend is fully modular and uses /api/v2/* endpoints for Properties, Applications, Payments, Leases, Admin, and Auth. Your goal is to implement high-quality frontend improvements for usability, polish, and role-based functionality, ensuring the site works properly with the current backend. 
+
+Requirements:
+
+1. Role-Based Dashboards:
+   - Tenant: Show applications, saved searches, favorite properties.
+   - Landlord: Show property listings, pending applications, payment status.
+   - Agent: Show assigned properties, leads, notifications.
+   - Admin: Show settings, audit logs, users, notifications.
+   - Each dashboard should dynamically load data using the /api/v2/* endpoints.
+
+2. Loading and Feedback Enhancements:
+   - Implement skeleton screens for all lists and tables (properties, applications, payments, leases, admin tables).
+   - Add inline form validation: highlight invalid fields, show error messages, and success notifications.
+   - Ensure consistent toast notifications for all actions (success, error, warning).
+
+3. Property Management UI:
+   - Allow toggle between grid and list views for properties.
+   - Add filters (price, bedrooms, property type) and sorting (latest, cheapest, most viewed).
+   - Implement favorite/bookmark functionality with visual feedback.
+   - Enhance property detail pages to show views, applications count, and payment info.
+
+4. Application & Payment Flow UI:
+   - Implement a step-by-step application wizard with a progress bar.
+   - Display payment status clearly (verified/unverified) with color coding or icons.
+   - Create a receipts page displaying payment history and downloadable PDFs.
+   - Add confirmation modals for destructive actions.
+
+5. Admin & Analytics:
+   - Admin tables for users, audit logs, notifications, personas, and settings.
+   - Inline editing for editable fields where applicable.
+   - Powerful search and filters across all admin data.
+   - Notifications panel for recent actions or alerts.
+
+6. UX & Polish:
+   - Standardize UI elements (buttons, spacing, cards, headings).
+   - Fully responsive design for mobile and desktop.
+   - Optional theme switcher (light/dark mode).
+   - Sticky headers and floating action buttons for key actions.
+   - Empty states with friendly illustrations/text.
+   - Error boundaries to handle unexpected errors gracefully.
+
+7. Small Enhancements:
+   - Lazy-load images with low-res placeholders.
+   - Format all dates in a readable format.
+   - Loading indicators for form submission, file uploads, and payment verification.
+   - Tooltips or help text for forms and dashboards.
+
+Constraints:
+- Do not add any paid services or premium features.
+- Ensure every change works with the existing /api/v2/* endpoints.
+- Maintain type safety where TypeScript is used.
+- Make the site fully usable and visually polished for end-users.
+
+Deliverables:
+- Updated frontend pages and components implementing all requested improvements.
+- Fully tested role-based dashboards and page functionality.
+- All skeletons, loading states, error states, and form validation integrated.
+- Site should be fully functional with the backend and show no API errors.
+
+Please proceed to implement these frontend improvements, verify all pages work with the backend, and ensure the UX is professional and consistent across the site.
