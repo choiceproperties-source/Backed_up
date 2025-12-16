@@ -13,16 +13,17 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import MapView from "@/components/map-view";
 import { useProperties } from "@/hooks/use-properties";
 import type { Property, PropertyWithOwner } from "@/lib/types";
-import { Search, Bookmark, Filter, Map, LayoutGrid, Scale, X } from "lucide-react";
+import { Search, Bookmark, Filter, Map, LayoutGrid, List, Scale, X } from "lucide-react";
 import { toast } from "sonner";
 import { updateMetaTags } from "@/lib/seo";
 import { PropertyCardSkeletonGrid } from "@/components/skeleton-loaders";
+import { PropertyListCard } from "@/components/property-list-card";
 
 export default function Properties() {
   const { properties: allProperties, loading } = useProperties();
   const [filteredProperties, setFilteredProperties] = useState<Property[]>(allProperties);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
   const [comparisonList, setComparisonList] = useState<PropertyWithOwner[]>([]);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
 
@@ -313,6 +314,14 @@ export default function Properties() {
                     <LayoutGrid className="h-4 w-4" />
                   </button>
                   <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2.5 transition-colors ${viewMode === "list" ? "bg-primary text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
+                    title="List View"
+                    data-testid="button-list-view"
+                  >
+                    <List className="h-4 w-4" />
+                  </button>
+                  <button
                     onClick={() => setViewMode("map")}
                     className={`p-2.5 transition-colors ${viewMode === "map" ? "bg-primary text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
                     title="Map View"
@@ -516,6 +525,16 @@ export default function Properties() {
                   <PropertyCard 
                     key={property.id} 
                     property={property}
+                  />
+                ))}
+              </div>
+            ) : viewMode === "list" ? (
+              <div className="space-y-4">
+                {filteredProperties.map((property) => (
+                  <PropertyListCard 
+                    key={property.id} 
+                    property={property}
+                    onQuickView={handleQuickView}
                   />
                 ))}
               </div>
