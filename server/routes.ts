@@ -7311,6 +7311,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== SITEMAP.XML FOR SEO =====
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      // Get all active properties
+      const { data: properties, error } = await supabase
+        .from("properties")
+        .select("id, updated_at")
+        .eq("status", "active")
+        .order("updated_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Get base URL from request or environment
+      const baseUrl = process.env.PRODUCTION_DOMAIN || 
+        `${req.protocol}://${req.get('host')}`;
+
+      // Static pages with their priority
+      const staticPages = [
+        { url: '/', priority: '1.0', changefreq: 'daily' },
+        { url: '/properties', priority: '0.9', changefreq: 'daily' },
+        { url: '/about', priority: '0.7', changefreq: 'monthly' },
+        { url: '/contact', priority: '0.7', changefreq: 'monthly' },
+        { url: '/faq', priority: '0.6', changefreq: 'monthly' },
+        { url: '/agents', priority: '0.8', changefreq: 'weekly' },
+        { url: '/success-stories', priority: '0.6', changefreq: 'monthly' },
+        { url: '/terms', priority: '0.3', changefreq: 'yearly' },
+        { url: '/privacy', priority: '0.3', changefreq: 'yearly' },
+      ];
+
+      const now = new Date().toISOString().split('T')[0];
+
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+`;
+      
+      // Add static pages
+      for (const page of staticPages) {
+        xml += `  <url>
+    <loc>${baseUrl}${page.url}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>
+`;
+      }
+
+      // Add property pages
+      if (properties && properties.length > 0) {
+        for (const property of properties) {
+          const lastmod = property.updated_at 
+            ? new Date(property.updated_at).toISOString().split('T')[0] 
+            : now;
+          xml += `  <url>
+    <loc>${baseUrl}/property/${property.id}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+`;
+        }
+      }
+
+      xml += `</urlset>`;
+
+      res.header('Content-Type', 'application/xml');
+      res.header('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      res.send(xml);
+    } catch (err: any) {
+      console.error("[SEO] Sitemap generation error:", err);
+      res.status(500).send("Failed to generate sitemap");
+    }
+  });
+
   // ===== ADMIN: STORAGE & BANDWIDTH MONITOR =====
   app.get("/api/admin/storage-metrics", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {

@@ -2,6 +2,7 @@ import { type Server } from "node:http";
 
 import express, { type Express, type Request, Response, NextFunction } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import { registerRoutes } from "./routes";
 
 export function log(message: string, source = "express") {
@@ -40,6 +41,29 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
+}));
+
+// Security headers with helmet - configured for production readiness
+app.use(helmet({
+  contentSecurityPolicy: isDev ? false : {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https://ik.imagekit.io", "https://*.supabase.co"],
+      connectSrc: ["'self'", "https://*.supabase.co", "wss://*.supabase.co"],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Allow embedding for Replit preview
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
 }));
 
 app.use(express.json({
