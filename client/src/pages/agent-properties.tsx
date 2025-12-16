@@ -17,6 +17,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { updateMetaTags } from '@/lib/seo';
+import { PropertyCardSkeletonGrid } from '@/components/skeleton-loaders';
 
 export default function AgentProperties() {
   const { user, isLoggedIn } = useAuth();
@@ -66,7 +67,7 @@ export default function AgentProperties() {
       {/* Properties Grid */}
       <div className="container mx-auto px-4 py-12 flex-1">
         {loading ? (
-          <div className="text-center py-12">Loading properties...</div>
+          <PropertyCardSkeletonGrid />
         ) : assignedProperties.length === 0 ? (
           <Card className="p-12 text-center" data-testid="empty-state">
             <Home className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />

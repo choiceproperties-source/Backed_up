@@ -28,6 +28,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { updateMetaTags } from '@/lib/seo';
+import { PropertyCardSkeletonGrid } from '@/components/skeleton-loaders';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import {
@@ -641,10 +642,7 @@ export default function LandlordProperties() {
 
         {/* Properties List */}
         {loading ? (
-          <Card className="p-12 text-center">
-            <Loader2 className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
-            <p className="text-foreground font-semibold">Loading properties...</p>
-          </Card>
+          <PropertyCardSkeletonGrid />
         ) : properties.length === 0 ? (
           <Card className="p-12 text-center">
             <Home className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
