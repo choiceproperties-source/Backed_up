@@ -18,6 +18,7 @@ import { useState, useEffect } from 'react';
 import { updateMetaTags } from "@/lib/seo";
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
 
 const magicLinkSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -26,6 +27,8 @@ const magicLinkSchema = z.object({
 type MagicLinkInput = z.infer<typeof magicLinkSchema>;
 
 export default function Login() {
+  const { toast } = useToast();
+  
   useEffect(() => {
     updateMetaTags({
       title: "Login - Choice Properties",
