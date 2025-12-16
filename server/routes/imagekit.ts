@@ -33,7 +33,7 @@ export function registerImageKitRoutes(app: Express): void {
 
       const expirySeconds = 15 * 60;
       const token = imagekit.getAuthenticationParameters(
-        Math.floor(Date.now() / 1000) + expirySeconds
+        String(Math.floor(Date.now() / 1000) + expirySeconds)
       );
 
       return res.json(success({
@@ -91,7 +91,7 @@ export function registerImageKitRoutes(app: Express): void {
           return res.status(403).json({ error: "You do not have access to this property" });
         }
 
-        const limitStatus = await checkPropertyImageLimit(supabase, propertyId);
+        const limitStatus = await checkPropertyImageLimit(supabase, String(propertyId));
         if (!limitStatus.allowed) {
           await logSecurityEvent(
             req.user!.id,
@@ -104,14 +104,15 @@ export function registerImageKitRoutes(app: Express): void {
         }
       }
 
-      if (metadata?.fileSize) {
-        const sizeValidation = validateFileSize((metadata as any)?.[0]?.fileSize);
+      const metadataObj = metadata as Record<string, unknown> | undefined;
+      if (metadataObj?.fileSize) {
+        const sizeValidation = validateFileSize(metadataObj.fileSize as number);
         if (!sizeValidation.valid) {
           await logSecurityEvent(
             req.user!.id,
             "upload_size_exceeded",
             false,
-            { reason: "File size exceeds limit", fileSize: (metadata as any)?.[0]?.fileSize, propertyId },
+            { reason: "File size exceeds limit", fileSize: metadataObj.fileSize, propertyId },
             req
           );
           return res.status(400).json({ error: sizeValidation.reason });
@@ -147,7 +148,7 @@ export function registerImageKitRoutes(app: Express): void {
         actorRole: req.user!.role,
         action: "image_upload",
         photoId: data[0].id,
-        propertyId: propertyId || undefined,
+        propertyId: propertyId ? String(propertyId) : undefined,
         metadata: { category, url }
       });
 
