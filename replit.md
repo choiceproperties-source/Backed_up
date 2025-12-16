@@ -50,3 +50,9 @@ The application is built with a React frontend, an Express.js backend, and a Pos
 - **Zod:** Schema validation.
 - **Drizzle ORM:** Type-safe database queries.
 - **Helmet:** Security headers.
+
+## Recent Changes (December 16, 2025)
+- **API Migration:** Migrated frontend API calls to use /api/v2/* endpoints for properties, applications, and other resources
+- **Skeleton Loading:** Added comprehensive skeleton loaders for dashboards (RenterDashboardSkeleton, LandlordDashboardSkeleton) for improved perceived performance
+- **API Client Enhancements:** Updated client/src/lib/api.ts with authentication token support and consistent error handling
+- **Dashboard Polish:** Renter and landlord dashboards now show smooth skeleton loading states while data is being fetched
