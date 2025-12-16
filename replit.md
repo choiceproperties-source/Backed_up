@@ -137,13 +137,22 @@ project/
 
 ## Environment Variables
 
-Required environment variables (see `.env.example`):
+### Required Secrets (set in Replit Secrets tab):
 - `SUPABASE_URL` - Your Supabase project URL
-- `SUPABASE_ANON_KEY` - Public anon key for frontend
 - `SUPABASE_SERVICE_ROLE_KEY` - Admin key for server operations
-- `NODE_ENV` - development or production
+- `SESSION_SECRET` - Secret for session encryption
 
-Optional:
+### Required Environment Variables:
+- `IMAGEKIT_PUBLIC_KEY` - ImageKit public key for image uploads
+- `IMAGEKIT_PRIVATE_KEY` - ImageKit private key
+- `IMAGEKIT_URL_ENDPOINT` - ImageKit URL endpoint
+
+### Auto-Configured (by Replit):
+- `DATABASE_URL` - PostgreSQL connection string
+- `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` - PostgreSQL credentials
+- `REPLIT_DOMAINS`, `REPLIT_DEV_DOMAIN` - Replit domain configuration
+
+### Optional:
 - `SENDGRID_API_KEY` - For email notifications
 - `RATE_LIMITING_ENABLED` - Enable rate limiting
 
@@ -258,8 +267,13 @@ npm run seed        # Run database seeding script
 
 The project is configured for Replit deployment:
 - **Build:** `npm run build` (compiles TypeScript, bundles frontend)
-- **Run:** `npm run start` (starts Express production server)
+- **Run:** `node ./dist/index.cjs` (starts Express production server)
 - **Type:** Autoscale (stateless web application)
+
+### Setup Instructions
+1. Ensure all required secrets are set in the Replit Secrets tab
+2. Run `npm run db:push` to sync database schema
+3. Click the "Deploy" button in Replit to publish
 
 ## User Roles
 
