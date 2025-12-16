@@ -384,6 +384,39 @@
   @apply shadow-xl shadow-black/30;
 }
 
+/* Interactive card with subtle lift effect */
+.interactive-card {
+  @apply transition-all duration-300 ease-out cursor-pointer;
+}
+
+.interactive-card:hover {
+  @apply shadow-xl -translate-y-0.5;
+  border-color: hsl(var(--border) / 0.7);
+}
+
+.dark .interactive-card:hover {
+  @apply shadow-2xl shadow-black/40;
+}
+
+/* Gradient text utility */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+}
+
+/* Subtle glow effect for important elements */
+.glow-effect {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+}
+
+.dark .glow-effect {
+  box-shadow: 0 0 30px hsl(var(--primary) / 0.25);
+}
+
+/* Glass morphism effect */
+.glass-effect {
+  @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-md;
+}
+
 /* Smooth image hover zoom */
 .img-zoom {
   @apply transition-transform duration-500 ease-out;

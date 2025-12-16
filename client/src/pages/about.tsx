@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { Card, CardContent } from "@/components/ui/card";
 import { Award, Users, Shield, Home, Heart, CheckCircle } from "lucide-react";
 import { updateMetaTags, getOrganizationStructuredData, addStructuredData } from "@/lib/seo";
 
@@ -101,18 +102,20 @@ export default function About() {
                 desc: "From application to move-in, we support you every step of the way."
               }
             ].map((card, idx) => (
-              <div 
+              <Card 
                 key={idx} 
-                className="bg-white dark:bg-gray-900 border border-border p-8 rounded-xl text-center hover:shadow-lg transition-shadow"
+                className="text-center hover:-translate-y-1"
                 data-aos="fade-up"
                 data-aos-delay={idx * 100}
               >
-                <div className="w-14 h-14 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-secondary-foreground">
-                  {card.icon}
-                </div>
-                <h3 className="font-bold text-xl mb-3">{card.title}</h3>
-                <p className="text-muted-foreground">{card.desc}</p>
-              </div>
+                <CardContent className="p-8">
+                  <div className="w-14 h-14 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-secondary">
+                    {card.icon}
+                  </div>
+                  <h3 className="font-bold text-xl mb-3">{card.title}</h3>
+                  <p className="text-muted-foreground">{card.desc}</p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
