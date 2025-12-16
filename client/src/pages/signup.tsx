@@ -18,6 +18,7 @@ import { updateMetaTags } from "@/lib/seo";
 import { z } from 'zod';
 import type { UserRole } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
 
 const SIGNUP_ROLES: { value: UserRole; label: string; description: string; icon: typeof Home }[] = [
   { value: 'renter', label: 'Renter', description: 'Looking to rent a property', icon: Home },
@@ -73,6 +74,8 @@ const getStrengthLabel = (strength: number) => {
 };
 
 export default function Signup() {
+  const { toast } = useToast();
+  
   useEffect(() => {
     updateMetaTags({
       title: "Sign Up - Choice Properties",
@@ -114,6 +117,10 @@ export default function Signup() {
     setLoading(true);
     try {
       await signup(data.email, data.fullName, data.password, data.phone, data.role);
+      toast({
+        title: 'Account created!',
+        description: 'Please check your email to verify your account.',
+      });
       setLocation('/verify-email');
     } catch (err: any) {
       form.setError('root', { message: err.message || 'Signup failed' });

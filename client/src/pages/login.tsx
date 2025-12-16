@@ -68,6 +68,10 @@ export default function Login() {
     setLoading(true);
     try {
       const role = await login(data.email, data.password, data.rememberMe);
+      toast({
+        title: 'Welcome back!',
+        description: 'You have successfully signed in.',
+      });
       switch (role) {
         case 'admin':
           setLocation('/admin');
