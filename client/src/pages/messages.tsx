@@ -21,10 +21,12 @@ import {
   Plus, 
   ArrowLeft,
   Search,
-  Building2
+  Building2,
+  Loader2
 } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { EmptyState, EmptyStatePresets } from "@/components/empty-state";
 
 interface Conversation {
   id: string;
@@ -307,10 +309,16 @@ export default function Messages() {
             <CardContent className="flex-1 p-0">
               <ScrollArea className="h-full">
                 {loadingConversations ? (
-                  <div className="p-4 text-center text-muted-foreground">Loading...</div>
+                  <div className="p-4 flex items-center justify-center gap-2 text-muted-foreground" role="status">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Loading conversations...</span>
+                  </div>
                 ) : filteredConversations.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground">
-                    No conversations yet
+                  <div className="p-6">
+                    <div className="text-center">
+                      <MessageSquare className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-muted-foreground">No conversations yet</p>
+                    </div>
                   </div>
                 ) : (
                   <div className="divide-y">

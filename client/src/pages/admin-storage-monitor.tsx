@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth-context";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { useEffect } from "react";
+import { ErrorState, ErrorStatePresets } from "@/components/error-state";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
 
 interface StorageMetrics {
   totalImages: number;
@@ -13,9 +15,8 @@ interface StorageMetrics {
 
 export default function AdminStorageMonitor() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
 
-  // Redirect if not admin
   useEffect(() => {
     if (user && user.role !== 'admin') {
       navigate('/');
@@ -36,23 +37,30 @@ export default function AdminStorageMonitor() {
   };
 
   if (!user || user.role !== 'admin') {
-    return <div className="p-4">Access denied</div>;
-  }
-
-  if (isLoading) {
-    return <div className="p-4">Loading usage data...</div>;
-  }
-
-  if (error) {
     return (
-      <div className="p-4">
-        <p className="text-foreground font-semibold">Usage data is temporarily unavailable.</p>
+      <div className="container mx-auto px-4 py-8">
+        <ErrorState {...ErrorStatePresets.unauthorized} />
       </div>
     );
   }
 
-  if (!metrics) {
-    return <div className="p-4">Usage data is temporarily unavailable.</div>;
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <LoadingSkeleton variant="spinner" message="Loading usage data..." />
+      </div>
+    );
+  }
+
+  if (error || !metrics) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <ErrorState 
+          title="Data Unavailable" 
+          description="Usage data is temporarily unavailable. Please try again later."
+        />
+      </div>
+    );
   }
 
   const isWarning = metrics.storagePercentage > 70;
