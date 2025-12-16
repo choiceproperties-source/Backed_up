@@ -291,7 +291,17 @@ The project is configured for Replit deployment:
 - Manage platform settings
 - View all reviews and content
 
-## Recent Changes (December 13, 2025)
+## Recent Changes (December 16, 2025)
+
+### Production Readiness Improvements
+- Added Helmet security headers (CSP, HSTS, referrer policy)
+- Dynamic sitemap.xml generation for SEO (covers all property pages)
+- Verified rate limiting on critical routes (auth, signup, inquiries)
+- Confirmed ImageKit image optimization (WebP auto-format)
+- Removed unused swiper dependency to reduce bundle size
+- Environment variables properly separated for dev vs production
+
+## Previous Changes (December 13, 2025)
 
 ### Phase 7: Lease Dashboards & Timeline
 ✅ Timeline component created with status indicators
