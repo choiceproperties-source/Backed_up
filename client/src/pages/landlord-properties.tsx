@@ -20,7 +20,6 @@ import {
   DollarSign,
   Bed,
   Bath,
-  Loader2,
   ArrowLeft,
   Edit2,
   X,
