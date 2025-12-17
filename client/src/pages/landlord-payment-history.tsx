@@ -47,6 +47,11 @@ interface PaymentHistoryData {
 }
 
 export default function LandlordPaymentHistory() {
+  const { isLoggedIn } = useAuth();
+  const [, navigate] = useLocation();
+  const { leaseId } = useParams<{ leaseId: string }>();
+  const { toast } = useToast();
+
   useEffect(() => {
     updateMetaTags({
       title: 'Payment History - Choice Properties',
@@ -55,19 +60,16 @@ export default function LandlordPaymentHistory() {
     });
   }, []);
 
-  const { isLoggedIn } = useAuth();
-  const [, navigate] = useLocation();
-  const { leaseId } = useParams<{ leaseId: string }>();
-  const { toast } = useToast();
+  // All hooks must be called before any early returns
+  const { data: historyData, isLoading } = useQuery<PaymentHistoryData>({
+    queryKey: [`/api/v2/leases/${leaseId}/payment-history`],
+    enabled: isLoggedIn,
+  });
 
   if (!isLoggedIn) {
     navigate('/login');
     return null;
   }
-
-  const { data: historyData, isLoading } = useQuery<PaymentHistoryData>({
-    queryKey: [`/api/v2/leases/${leaseId}/payment-history`],
-  });
 
   const downloadReceipt = async (paymentId: string) => {
     try {

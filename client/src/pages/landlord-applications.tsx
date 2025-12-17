@@ -39,13 +39,7 @@ export default function LandlordApplications() {
     });
   }, []);
 
-  // Redirect if not logged in or not a landlord
-  if (!isLoggedIn || !user || (user.role !== 'landlord' && user.role !== 'admin')) {
-    navigate('/login');
-    return null;
-  }
-
-  // Group applications by status
+  // Group applications by status - MUST be before early returns for React hooks rules
   const groupedApplications = useMemo(() => {
     const groups: Record<string, any[]> = {
       pending: [],
@@ -77,6 +71,12 @@ export default function LandlordApplications() {
 
     return groups;
   }, [applications]);
+
+  // Redirect if not logged in or not a landlord
+  if (!isLoggedIn || !user || (user.role !== 'landlord' && user.role !== 'admin')) {
+    navigate('/login');
+    return null;
+  }
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {

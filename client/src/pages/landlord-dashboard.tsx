@@ -42,6 +42,29 @@ export default function LandlordDashboard() {
     });
   }, []);
 
+  // Calculate stats - MUST be before any early returns to comply with React hooks rules
+  const stats = useMemo(() => {
+    const activeProperties = properties.filter((p: any) => p.status === 'active');
+    const rentedProperties = properties.filter((p: any) => p.status === 'rented');
+    const totalProperties = properties.length;
+    const occupancyRate = totalProperties > 0 ? Math.round((rentedProperties.length / totalProperties) * 100) : 0;
+    
+    const monthlyRevenue = rentedProperties.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
+    const potentialRevenue = properties.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
+    
+    return {
+      properties: totalProperties,
+      activeListings: activeProperties.length,
+      rentedProperties: rentedProperties.length,
+      applications: applications.length,
+      approvedApps: applications.filter((a: any) => a.status === 'approved').length,
+      pendingApps: applications.filter((a: any) => a.status === 'pending').length,
+      occupancyRate,
+      monthlyRevenue,
+      potentialRevenue,
+    };
+  }, [properties, applications]);
+
   // Redirect if not logged in or not a landlord
   if (!isLoggedIn || !user || (user.role !== 'landlord' && user.role !== 'admin')) {
     navigate('/login');
@@ -64,30 +87,6 @@ export default function LandlordDashboard() {
       </div>
     );
   }
-
-  // Calculate stats
-  const stats = useMemo(() => {
-    const activeProperties = properties.filter((p: any) => p.status === 'active');
-    const rentedProperties = properties.filter((p: any) => p.status === 'rented');
-    const totalProperties = properties.length;
-    const occupancyRate = totalProperties > 0 ? Math.round((rentedProperties.length / totalProperties) * 100) : 0;
-    
-    // Calculate estimated monthly revenue (from rented properties)
-    const monthlyRevenue = rentedProperties.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
-    const potentialRevenue = properties.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
-    
-    return {
-      properties: totalProperties,
-      activeListings: activeProperties.length,
-      rentedProperties: rentedProperties.length,
-      applications: applications.length,
-      approvedApps: applications.filter((a: any) => a.status === 'approved').length,
-      pendingApps: applications.filter((a: any) => a.status === 'pending').length,
-      occupancyRate,
-      monthlyRevenue,
-      potentialRevenue,
-    };
-  }, [properties, applications]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

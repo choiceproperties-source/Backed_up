@@ -113,6 +113,7 @@ export function NotificationBell() {
     }
   };
 
+  // All hooks are called above, safe to return null here
   if (!user) return null;
 
   return (

@@ -51,6 +51,7 @@ export function FavoritesDropdown() {
     fetchFavorites();
   }, [user]);
 
+  // Render nothing if no user or no favorites, but hooks are already called above
   if (!user || favorites.length === 0) {
     return null;
   }

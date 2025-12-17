@@ -42,14 +42,6 @@ interface Payment {
 }
 
 export default function LandlordPaymentsVerification() {
-  useEffect(() => {
-    updateMetaTags({
-      title: 'Verify Payments - Choice Properties',
-      description: 'Verify tenant rent and deposit payments.',
-      url: 'https://choiceproperties.com/landlord-payments-verification',
-    });
-  }, []);
-
   const { isLoggedIn } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -59,17 +51,21 @@ export default function LandlordPaymentsVerification() {
     method: string;
     dateReceived: string;
   }>>({});
-
-  if (!isLoggedIn) {
-    navigate('/login');
-    return null;
-  }
-
   const [allPayments, setAllPayments] = useState<Payment[]>([]);
   const [isLoadingPayments, setIsLoadingPayments] = useState(true);
 
-  // Fetch payments on mount
   useEffect(() => {
+    updateMetaTags({
+      title: 'Verify Payments - Choice Properties',
+      description: 'Verify tenant rent and deposit payments.',
+      url: 'https://choiceproperties.com/landlord-payments-verification',
+    });
+  }, []);
+
+  // Fetch payments on mount - must be before early returns
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    
     const fetchPayments = async () => {
       try {
         const res = await fetch('/api/applications/landlord');
@@ -103,7 +99,7 @@ export default function LandlordPaymentsVerification() {
     };
 
     fetchPayments();
-  }, [toast]);
+  }, [toast, isLoggedIn]);
 
   const verifyMutation = useMutation({
     mutationFn: async ({
@@ -147,6 +143,12 @@ export default function LandlordPaymentsVerification() {
       });
     },
   });
+
+  // Redirect if not logged in - after all hooks
+  if (!isLoggedIn) {
+    navigate('/login');
+    return null;
+  }
 
   const handleVerify = (paymentId: string) => {
     const data = verificationData[paymentId];

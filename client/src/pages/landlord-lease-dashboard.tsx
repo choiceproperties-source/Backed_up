@@ -31,6 +31,9 @@ interface LandlordApplication {
 }
 
 export default function LandlordLeaseDashboard() {
+  const { user, isLoggedIn } = useAuth();
+  const [, navigate] = useLocation();
+
   useEffect(() => {
     updateMetaTags({
       title: 'Lease Pipeline Dashboard - Choice Properties',
@@ -39,17 +42,17 @@ export default function LandlordLeaseDashboard() {
     });
   }, []);
 
-  const { user, isLoggedIn } = useAuth();
-  const [, navigate] = useLocation();
+  // All hooks must be called before any early returns
+  const { data: applications, isLoading } = useQuery<LandlordApplication[]>({
+    queryKey: ['/api/landlord/applications/leases'],
+    enabled: isLoggedIn && user?.role === 'landlord',
+  });
 
+  // Redirect if not logged in or not a landlord
   if (!isLoggedIn || user?.role !== 'landlord') {
     navigate('/login');
     return null;
   }
-
-  const { data: applications, isLoading } = useQuery<LandlordApplication[]>({
-    queryKey: ['/api/landlord/applications/leases'],
-  });
 
   const getTimelineSteps = (app: LandlordApplication): TimelineStep[] => [
     {
