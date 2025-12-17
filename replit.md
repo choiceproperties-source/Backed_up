@@ -51,7 +51,14 @@ The application is built with a React frontend, an Express.js backend, and a Pos
 - **Drizzle ORM:** Type-safe database queries.
 - **Helmet:** Security headers.
 
-## Recent Changes (December 16, 2025)
+## Recent Changes (December 17, 2025)
+- **Email Verification Flow:** Implemented production-grade email verification with proper redirect URLs using `getAppUrl()` helper
+- **APP_URL Configuration:** Added `VITE_APP_URL` environment variable support for custom domains with automatic fallback to `window.location.origin` for Replit
+- **Resend Verification:** Email stored in localStorage (`pending_verification_email`) to allow resend even before auth state hydrates
+- **Auth Callback Improvements:** Enhanced `/auth/callback` page with proper session handling, email verification detection, and role-based redirects
+- **Status Check Enhancement:** Verify-email page now re-fetches session to check actual `email_confirmed_at` status
+
+## Previous Changes (December 16, 2025)
 - **API Migration:** Migrated frontend API calls to use /api/v2/* endpoints for properties, applications, and other resources
 - **Skeleton Loading:** Added comprehensive skeleton loaders for dashboards (RenterDashboardSkeleton, LandlordDashboardSkeleton) for improved perceived performance
 - **API Client Enhancements:** Updated client/src/lib/api.ts with authentication token support and consistent error handling
