@@ -28,6 +28,7 @@ export const agencies = pgTable("agencies", {
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),
+  // NOTE: passwordHash is unused - Supabase Auth handles password storage
   passwordHash: text("password_hash"),
   fullName: text("full_name"),
   phone: text("phone"),
