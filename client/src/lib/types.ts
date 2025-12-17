@@ -147,8 +147,6 @@ export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<UserRole>;
   signup: (email: string, name: string, password: string, phone?: string, role?: UserRole) => Promise<UserRole>;
-  loginWithGoogle: () => Promise<void>;
-  loginWithGithub: () => Promise<void>;
   sendMagicLink: (email: string) => Promise<void>;
   logout: () => void;
   resetPassword: (email: string) => Promise<void>;

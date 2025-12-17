@@ -202,32 +202,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return userRole;
   };
 
-  const loginWithGoogle = async (): Promise<void> => {
-    if (!supabase) throw new Error('Authentication service unavailable. Please try again later.');
-    
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
-    });
-    
-    if (error) throw error;
-  };
-
-  const loginWithGithub = async (): Promise<void> => {
-    if (!supabase) throw new Error('Authentication service unavailable. Please try again later.');
-    
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
-    });
-    
-    if (error) throw error;
-  };
-
   const sendMagicLink = async (email: string): Promise<void> => {
     if (!email) throw new Error('Please enter your email address');
     if (!supabase) throw new Error('Authentication service unavailable. Please try again later.');
@@ -311,8 +285,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user, 
       login, 
       signup, 
-      loginWithGoogle,
-      loginWithGithub,
       sendMagicLink,
       logout, 
       resetPassword,
