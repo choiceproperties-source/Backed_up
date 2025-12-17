@@ -44,21 +44,23 @@ export default function LandlordDashboard() {
 
   // Calculate stats - MUST be before any early returns to comply with React hooks rules
   const stats = useMemo(() => {
-    const activeProperties = properties.filter((p: any) => p.status === 'active');
-    const rentedProperties = properties.filter((p: any) => p.status === 'rented');
-    const totalProperties = properties.length;
+    const propList = properties || [];
+    const appList = applications || [];
+    const activeProperties = propList.filter((p: any) => p.status === 'active');
+    const rentedProperties = propList.filter((p: any) => p.status === 'rented');
+    const totalProperties = propList.length;
     const occupancyRate = totalProperties > 0 ? Math.round((rentedProperties.length / totalProperties) * 100) : 0;
     
     const monthlyRevenue = rentedProperties.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
-    const potentialRevenue = properties.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
+    const potentialRevenue = propList.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
     
     return {
       properties: totalProperties,
       activeListings: activeProperties.length,
       rentedProperties: rentedProperties.length,
-      applications: applications.length,
-      approvedApps: applications.filter((a: any) => a.status === 'approved').length,
-      pendingApps: applications.filter((a: any) => a.status === 'pending').length,
+      applications: appList.length,
+      approvedApps: appList.filter((a: any) => a.status === 'approved').length,
+      pendingApps: appList.filter((a: any) => a.status === 'pending').length,
       occupancyRate,
       monthlyRevenue,
       potentialRevenue,
