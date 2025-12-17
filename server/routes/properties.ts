@@ -1,9 +1,13 @@
 import type { Express } from "express";
-import { supabase } from "../supabase";
+import { getSupabaseOrThrow, isSupabaseConfigured } from "../supabase";
 import { authenticateToken, requireOwnership, type AuthenticatedRequest } from "../auth-middleware";
 import { success, error as errorResponse } from "../response";
 import { insertPropertySchema } from "@shared/schema";
 import { cache, CACHE_TTL } from "../cache";
+
+function getSupabase() {
+  return getSupabaseOrThrow();
+}
 
 export function registerPropertyRoutes(app: Express): void {
   app.get("/api/properties", async (req, res) => {
@@ -20,7 +24,7 @@ export function registerPropertyRoutes(app: Express): void {
         return res.json(success(cached, "Properties fetched successfully"));
       }
 
-      let query = supabase.from("properties").select("*", { count: "exact" });
+      let query = getSupabase().from("properties").select("*", { count: "exact" });
 
       if (propertyType) query = query.eq("property_type", propertyType);
       if (city) query = query.ilike("city", `%${city}%`);
@@ -69,7 +73,7 @@ export function registerPropertyRoutes(app: Express): void {
         return res.json(success(cached, "Property fetched successfully"));
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("properties")
         .select("*")
         .eq("id", req.params.id)
@@ -97,7 +101,7 @@ export function registerPropertyRoutes(app: Express): void {
         owner_id: req.user!.id,
       };
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("properties")
         .insert([propertyData])
         .select();
@@ -114,7 +118,7 @@ export function registerPropertyRoutes(app: Express): void {
 
   app.patch("/api/properties/:id", authenticateToken, requireOwnership("property"), async (req: AuthenticatedRequest, res) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("properties")
         .update({ ...req.body, updated_at: new Date().toISOString() })
         .eq("id", req.params.id)
@@ -133,7 +137,7 @@ export function registerPropertyRoutes(app: Express): void {
 
   app.delete("/api/properties/:id", authenticateToken, requireOwnership("property"), async (req: AuthenticatedRequest, res) => {
     try {
-      const { error } = await supabase
+      const { error } = await getSupabase()
         .from("properties")
         .delete()
         .eq("id", req.params.id);
@@ -155,7 +159,7 @@ export function registerPropertyRoutes(app: Express): void {
         return res.status(403).json({ error: "Not authorized" });
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("properties")
         .select("*")
         .eq("owner_id", req.params.userId);
@@ -184,7 +188,7 @@ export function registerPropertyRoutes(app: Express): void {
         updateData.visibility = visibility;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("properties")
         .update(updateData)
         .eq("id", req.params.id)
@@ -217,7 +221,7 @@ export function registerPropertyRoutes(app: Express): void {
         updateData.auto_unpublish = autoUnpublish;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("properties")
         .update(updateData)
         .eq("id", req.params.id)
@@ -241,7 +245,7 @@ export function registerPropertyRoutes(app: Express): void {
         return res.status(400).json(errorResponse("Price is required"));
       }
 
-      const { data: currentProperty, error: fetchError } = await supabase
+      const { data: currentProperty, error: fetchError } = await getSupabase()
         .from("properties")
         .select("price, price_history")
         .eq("id", req.params.id)
@@ -256,7 +260,7 @@ export function registerPropertyRoutes(app: Express): void {
         changedBy: req.user!.id
       });
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("properties")
         .update({ 
           price,
@@ -279,7 +283,7 @@ export function registerPropertyRoutes(app: Express): void {
 
   app.get("/api/properties/:id/analytics", authenticateToken, requireOwnership("property"), async (req: AuthenticatedRequest, res) => {
     try {
-      const { data: property, error: propertyError } = await supabase
+      const { data: property, error: propertyError } = await getSupabase()
         .from("properties")
         .select("view_count, save_count, application_count, listed_at, price_history")
         .eq("id", req.params.id)
@@ -287,7 +291,7 @@ export function registerPropertyRoutes(app: Express): void {
 
       if (propertyError) throw propertyError;
 
-      const { data: applications, error: appError } = await supabase
+      const { data: applications, error: appError } = await getSupabase()
         .from("applications")
         .select("status, created_at")
         .eq("property_id", req.params.id);
@@ -314,16 +318,16 @@ export function registerPropertyRoutes(app: Express): void {
 
   app.post("/api/properties/:id/view", async (req, res) => {
     try {
-      const { error } = await supabase.rpc('increment_property_views', { property_id: req.params.id });
+      const { error } = await getSupabase().rpc('increment_property_views', { property_id: req.params.id });
       
       if (error) {
-        const { data: property } = await supabase
+        const { data: property } = await getSupabase()
           .from("properties")
           .select("view_count")
           .eq("id", req.params.id)
           .single();
         
-        await supabase
+        await getSupabase()
           .from("properties")
           .update({ view_count: (property?.view_count || 0) + 1 })
           .eq("id", req.params.id);
@@ -337,7 +341,7 @@ export function registerPropertyRoutes(app: Express): void {
 
   app.get("/api/properties/:id/notes", authenticateToken, requireOwnership("property"), async (req: AuthenticatedRequest, res) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("property_notes")
         .select("*, user:users(full_name, email)")
         .eq("property_id", req.params.id)
@@ -360,7 +364,7 @@ export function registerPropertyRoutes(app: Express): void {
         return res.status(400).json(errorResponse("Note content is required"));
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("property_notes")
         .insert({
           property_id: req.params.id,
@@ -383,7 +387,7 @@ export function registerPropertyRoutes(app: Express): void {
     try {
       const { content, isPinned } = req.body;
       
-      const { data: note, error: noteError } = await supabase
+      const { data: note, error: noteError } = await getSupabase()
         .from("property_notes")
         .select("user_id")
         .eq("id", req.params.noteId)
@@ -401,7 +405,7 @@ export function registerPropertyRoutes(app: Express): void {
       if (content !== undefined) updateData.content = content;
       if (isPinned !== undefined) updateData.is_pinned = isPinned;
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("property_notes")
         .update(updateData)
         .eq("id", req.params.noteId)
@@ -417,7 +421,7 @@ export function registerPropertyRoutes(app: Express): void {
 
   app.delete("/api/properties/:propertyId/notes/:noteId", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const { data: note, error: noteError } = await supabase
+      const { data: note, error: noteError } = await getSupabase()
         .from("property_notes")
         .select("user_id")
         .eq("id", req.params.noteId)
@@ -431,7 +435,7 @@ export function registerPropertyRoutes(app: Express): void {
         return res.status(403).json(errorResponse("Not authorized to delete this note"));
       }
 
-      const { error } = await supabase
+      const { error } = await getSupabase()
         .from("property_notes")
         .delete()
         .eq("id", req.params.noteId);
@@ -446,7 +450,7 @@ export function registerPropertyRoutes(app: Express): void {
 
   app.get("/api/property-templates", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("property_templates")
         .select("*")
         .eq("user_id", req.user!.id)
@@ -467,7 +471,7 @@ export function registerPropertyRoutes(app: Express): void {
         return res.status(400).json(errorResponse("Template name is required"));
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("property_templates")
         .insert({
           user_id: req.user!.id,
@@ -486,7 +490,7 @@ export function registerPropertyRoutes(app: Express): void {
 
   app.patch("/api/property-templates/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const { data: template, error: templateError } = await supabase
+      const { data: template, error: templateError } = await getSupabase()
         .from("property_templates")
         .select("user_id")
         .eq("id", req.params.id)
@@ -506,7 +510,7 @@ export function registerPropertyRoutes(app: Express): void {
       if (description !== undefined) updateData.description = description;
       if (templateData !== undefined) updateData.template_data = templateData;
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("property_templates")
         .update(updateData)
         .eq("id", req.params.id)
@@ -521,7 +525,7 @@ export function registerPropertyRoutes(app: Express): void {
 
   app.delete("/api/property-templates/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const { data: template, error: templateError } = await supabase
+      const { data: template, error: templateError } = await getSupabase()
         .from("property_templates")
         .select("user_id")
         .eq("id", req.params.id)
@@ -535,7 +539,7 @@ export function registerPropertyRoutes(app: Express): void {
         return res.status(403).json(errorResponse("Not authorized to delete this template"));
       }
 
-      const { error } = await supabase
+      const { error } = await getSupabase()
         .from("property_templates")
         .delete()
         .eq("id", req.params.id);
@@ -605,7 +609,7 @@ export function registerPropertyRoutes(app: Express): void {
       if (latitude !== undefined) updateData.latitude = latitude;
       if (longitude !== undefined) updateData.longitude = longitude;
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("properties")
         .update(updateData)
         .eq("id", req.params.id)

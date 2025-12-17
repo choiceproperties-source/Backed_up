@@ -1,4 +1,4 @@
-import { supabase } from "../../supabase";
+import { getSupabaseOrThrow } from "../../supabase";
 
 export interface PropertyFilters {
   propertyType?: string;
@@ -37,6 +37,7 @@ export interface PropertyCreateData {
 export async function findAllProperties(filters: PropertyFilters) {
   const { propertyType, city, minPrice, maxPrice, status, page, limit } = filters;
   const offset = (page - 1) * limit;
+  const supabase = getSupabaseOrThrow();
 
   let query = supabase.from("properties").select("*", { count: "exact" });
 
@@ -62,25 +63,25 @@ export async function findAllProperties(filters: PropertyFilters) {
 
 export async function findPropertyById(id: string) {
   try {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("properties")
       .select("*")
       .eq("id", id)
       .single();
 
-    // If no rows found or any error, return null (will be handled as 404 by route)
     if (error || !data) {
       return null;
     }
 
     return data;
   } catch (err) {
-    // Catch any unexpected errors and return null
     return null;
   }
 }
 
 export async function createProperty(propertyData: PropertyCreateData) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("properties")
     .insert([propertyData])
@@ -92,6 +93,7 @@ export async function createProperty(propertyData: PropertyCreateData) {
 }
 
 export async function updateProperty(id: string, updateData: Record<string, any>) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("properties")
     .update({ ...updateData, updated_at: new Date().toISOString() })
@@ -104,6 +106,7 @@ export async function updateProperty(id: string, updateData: Record<string, any>
 }
 
 export async function deleteProperty(id: string) {
+  const supabase = getSupabaseOrThrow();
   const { error } = await supabase
     .from("properties")
     .delete()
@@ -115,6 +118,7 @@ export async function deleteProperty(id: string) {
 }
 
 export async function incrementPropertyViews(propertyId: string) {
+  const supabase = getSupabaseOrThrow();
   const { error } = await supabase.rpc('increment_property_views', { property_id: propertyId });
   
   if (error) {

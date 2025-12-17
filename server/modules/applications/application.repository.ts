@@ -1,6 +1,7 @@
-import { supabase } from "../../supabase";
+import { getSupabaseOrThrow } from "../../supabase";
 
 export async function findApplicationById(id: string) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("applications")
     .select("*")
@@ -12,6 +13,7 @@ export async function findApplicationById(id: string) {
 }
 
 export async function findApplicationsByUserId(userId: string) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("applications")
     .select("*, properties(*)")
@@ -22,6 +24,7 @@ export async function findApplicationsByUserId(userId: string) {
 }
 
 export async function findApplicationsByPropertyId(propertyId: string) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("applications")
     .select("*, users(id, full_name, email, phone)")
@@ -32,6 +35,7 @@ export async function findApplicationsByPropertyId(propertyId: string) {
 }
 
 export async function checkDuplicateApplication(userId: string, propertyId: string) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("applications")
     .select("id")
@@ -43,6 +47,7 @@ export async function checkDuplicateApplication(userId: string, propertyId: stri
 }
 
 export async function createApplication(applicationData: Record<string, any>) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("applications")
     .insert([applicationData])
@@ -53,6 +58,7 @@ export async function createApplication(applicationData: Record<string, any>) {
 }
 
 export async function updateApplication(id: string, updateData: Record<string, any>) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("applications")
     .update({ ...updateData, updated_at: new Date().toISOString() })
@@ -64,6 +70,7 @@ export async function updateApplication(id: string, updateData: Record<string, a
 }
 
 export async function updateApplicationStatus(id: string, updateData: Record<string, any>) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("applications")
     .update(updateData)
@@ -75,6 +82,7 @@ export async function updateApplicationStatus(id: string, updateData: Record<str
 }
 
 export async function getProperty(id: string) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("properties")
     .select("owner_id, title")
@@ -86,6 +94,7 @@ export async function getProperty(id: string) {
 }
 
 export async function getUser(id: string) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("users")
     .select("email, full_name")
@@ -96,10 +105,11 @@ export async function getUser(id: string) {
   return data;
 }
 
-export async function createConversation(data: Record<string, any>) {
+export async function createConversation(conversationData: Record<string, any>) {
+  const supabase = getSupabaseOrThrow();
   const { data: conversation, error } = await supabase
     .from("conversations")
-    .insert([data])
+    .insert([conversationData])
     .select()
     .single();
 
@@ -108,6 +118,7 @@ export async function createConversation(data: Record<string, any>) {
 }
 
 export async function addConversationParticipant(conversationId: string, userId: string) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("conversation_participants")
     .insert([{ conversation_id: conversationId, user_id: userId }]);
@@ -117,6 +128,7 @@ export async function addConversationParticipant(conversationId: string, userId:
 }
 
 export async function updateApplicationConversation(applicationId: string, conversationId: string) {
+  const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
     .from("applications")
     .update({ conversation_id: conversationId })

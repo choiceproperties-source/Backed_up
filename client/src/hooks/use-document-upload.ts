@@ -71,6 +71,12 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
       if (!user) {
         const reader = new FileReader();
         return new Promise((resolve) => {
+          reader.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const progress = Math.round((event.loaded / event.total) * 100);
+              setUploadProgress(progress);
+            }
+          };
           reader.onload = () => {
             const base64Data = reader.result as string;
             const doc: UploadedDocument = {
@@ -101,6 +107,17 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
       }
 
       // For authenticated users, upload to Supabase
+      // Simulate progress since Supabase storage doesn't support progress events
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 100);
+
       const filePath = `${user!.id}/${docType}_${timestamp}_${sanitizedName}`;
 
       const { data, error } = await supabase!.storage
@@ -110,7 +127,10 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
           upsert: false,
         });
 
+      clearInterval(progressInterval);
+
       if (error) {
+        setUploadProgress(0);
         throw error;
       }
 

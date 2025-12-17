@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { supabase } from "./supabase";
+import { supabase, getSupabaseOrThrow, isSupabaseConfigured } from "./supabase";
 import { cache, CACHE_TTL } from "./cache";
 import { logSecurityEvent } from "./security/audit-logger";
 
@@ -75,11 +75,16 @@ export async function authenticateToken(
     return res.status(401).json({ error: "Access token required" });
   }
 
+  if (!isSupabaseConfigured()) {
+    return res.status(503).json({ error: "Authentication service is not configured. Please contact support." });
+  }
+
   try {
+    const supabaseClient = getSupabaseOrThrow();
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser(token);
+    } = await supabaseClient.auth.getUser(token);
 
     if (error || !user) {
       return res.status(401).json({ error: "Invalid or expired token" });
@@ -90,7 +95,7 @@ export async function authenticateToken(
     let cachedRole = cache.get<string>(cacheKey) || "renter";
     
     if (cachedRole === "renter" && !cache.has(cacheKey)) {
-      const { data: userData } = await supabase
+      const { data: userData } = await supabaseClient
         .from("users")
         .select("role")
         .eq("id", user.id)
@@ -119,11 +124,12 @@ export function optionalAuth(
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (!token) {
+  if (!token || !isSupabaseConfigured()) {
     return next();
   }
 
-  supabase.auth
+  const supabaseClient = getSupabaseOrThrow();
+  supabaseClient.auth
     .getUser(token)
     .then(async ({ data: { user }, error }) => {
       if (!error && user) {
@@ -132,7 +138,7 @@ export function optionalAuth(
         let cachedRole = cache.get<string>(cacheKey) || "renter";
         
         if (cachedRole === "renter" && !cache.has(cacheKey)) {
-          const { data: userData } = await supabase
+          const { data: userData } = await supabaseClient
             .from("users")
             .select("role")
             .eq("id", user.id)
@@ -175,31 +181,36 @@ async function getResourceOwner(resourceType: string, resourceId: string): Promi
   const cached = cache.get<{ ownerId: string | null; found: boolean }>(cacheKey);
   if (cached) return cached;
 
+  if (!isSupabaseConfigured()) {
+    throw new Error("Database service is not configured");
+  }
+
+  const supabaseClient = getSupabaseOrThrow();
   let ownerId: string | null = null;
   let found = false;
 
   if (resourceType === "property") {
-    const { data } = await supabase.from("properties").select("owner_id").eq("id", resourceId).single();
+    const { data } = await supabaseClient.from("properties").select("owner_id").eq("id", resourceId).single();
     ownerId = data?.owner_id || null;
     found = !!data;
   } else if (resourceType === "application") {
-    const { data } = await supabase.from("applications").select("user_id").eq("id", resourceId).single();
+    const { data } = await supabaseClient.from("applications").select("user_id").eq("id", resourceId).single();
     ownerId = data?.user_id || null;
     found = !!data;
   } else if (resourceType === "review") {
-    const { data } = await supabase.from("reviews").select("user_id").eq("id", resourceId).single();
+    const { data } = await supabaseClient.from("reviews").select("user_id").eq("id", resourceId).single();
     ownerId = data?.user_id || null;
     found = !!data;
   } else if (resourceType === "inquiry") {
-    const { data } = await supabase.from("inquiries").select("agent_id").eq("id", resourceId).single();
+    const { data } = await supabaseClient.from("inquiries").select("agent_id").eq("id", resourceId).single();
     ownerId = data?.agent_id || null;
     found = !!data;
   } else if (resourceType === "saved_search") {
-    const { data } = await supabase.from("saved_searches").select("user_id").eq("id", resourceId).single();
+    const { data } = await supabaseClient.from("saved_searches").select("user_id").eq("id", resourceId).single();
     ownerId = data?.user_id || null;
     found = !!data;
   } else if (resourceType === "favorite") {
-    const { data } = await supabase.from("favorites").select("user_id").eq("id", resourceId).single();
+    const { data } = await supabaseClient.from("favorites").select("user_id").eq("id", resourceId).single();
     ownerId = data?.user_id || null;
     found = !!data;
   } else if (resourceType === "user") {
@@ -337,8 +348,13 @@ export async function isPropertyManagerForProperty(
   propertyManagerId: string,
   propertyId: string
 ): Promise<boolean> {
+  if (!isSupabaseConfigured()) {
+    return false;
+  }
+  
   try {
-    const { data } = await supabase
+    const supabaseClient = getSupabaseOrThrow();
+    const { data } = await supabaseClient
       .from("property_manager_assignments")
       .select("id")
       .eq("property_manager_id", propertyManagerId)
@@ -361,8 +377,13 @@ export async function canAccessProperty(
   // Admins can access all properties
   if (userRole === "admin") return true;
 
+  if (!isSupabaseConfigured()) {
+    return false;
+  }
+
+  const supabaseClient = getSupabaseOrThrow();
   // Get property owner
-  const { data: property } = await supabase
+  const { data: property } = await supabaseClient
     .from("properties")
     .select("owner_id")
     .eq("id", propertyId)
