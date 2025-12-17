@@ -1,0 +1,194 @@
+GOAL
+Fix all critical, warning, and cleanup issues identified in the audit so the application is:
+- Fully functional on frontend and backend
+- Architecturally clean
+- Stable and ready to be considered "done"
+
+STRICT RULES
+- Do NOT add paid services
+- Do NOT introduce new features
+- Do NOT change business logic unless required to fix a bug
+- Preserve existing behavior unless explicitly stated
+- Make minimal, safe changes
+- Verify after each major step
+
+========================================
+STEP 1 — FIX FRONTEND AUTH (CRITICAL)
+========================================
+
+Problem:
+Frontend Supabase client is null due to missing env variables, breaking login and auth state.
+
+Action:
+1. Add the following environment variables to the frontend runtime:
+   - VITE_SUPABASE_URL
+   - VITE_SUPABASE_ANON_KEY
+
+2. Ensure these variables are accessible via import.meta.env in:
+   client/src/lib/supabase.ts
+
+3. Restart the application after adding variables.
+
+Verification:
+- supabase client is no longer null
+- Frontend login works
+- Auth context correctly updates isLoggedIn state
+
+========================================
+STEP 2 — CLEAN UP DEAD / ORPHANED PAGES
+========================================
+
+Problem:
+Multiple page files exist but are not registered in the router, causing dead code.
+
+Action:
+1. Identify unused pages not registered in client/src/App.tsx
+2. Remove the following files IF they are not actively used:
+   - buy.tsx
+   - sell.tsx
+   - buyer-dashboard.tsx
+   - seller-dashboard.tsx
+   - property-templates.tsx
+   - agent-dashboard.tsx (old version if replaced)
+   - agencies.tsx (if not routed)
+
+3. Ensure no imports reference deleted files.
+
+Verification:
+- App builds without errors
+- No broken imports
+- Router only contains active pages
+
+========================================
+STEP 3 — FIX DUPLICATE DASHBOARD ROUTES
+========================================
+
+Problem:
+Duplicate /api/health route and unused registerDashboardRoutes function.
+
+Action (choose safest approach):
+1. Remove server/routes/dashboard.ts entirely
+2. Ensure all required routes already exist in server/routes.ts
+3. Remove any unused imports or references
+
+Verification:
+- /api/health exists only once
+- Server boots without route conflicts
+
+========================================
+STEP 4 — STANDARDIZE API VERSIONING
+========================================
+
+Problem:
+Frontend inconsistently calls /api/* and /api/v2/* endpoints, breaking caching and data consistency.
+
+Action:
+1. Choose /api/v2/* as the single source of truth
+2. Update ALL frontend API calls to use /api/v2/*
+   - client/src/lib/api.ts
+   - client/src/hooks/*
+   - any direct fetch/axios calls
+3. Ensure React Query queryKeys match the endpoint paths
+
+Verification:
+- No frontend calls to /api/*
+- Cache invalidation works correctly
+- Data stays consistent across pages
+
+========================================
+STEP 5 — FIX REACT-LEAFLET DEPENDENCY WARNING
+========================================
+
+Problem:
+react-leaflet@5 requires React 19 but app uses React 18.
+
+Action:
+1. Downgrade react-leaflet to latest v4.x version compatible with React 18
+2. Update package.json
+3. Reinstall dependencies cleanly
+
+Verification:
+- No peer dependency warnings
+- Map components still render correctly
+
+========================================
+STEP 6 — CLEAN UP FRAMER MOTION NOTE
+========================================
+
+Problem:
+package.json notes say framer-motion is removed, but it still exists.
+
+Action (choose one):
+- If framer-motion is used: remove the misleading note
+- If unused: remove framer-motion dependency entirely
+
+Verification:
+- package.json accurately reflects dependencies
+- App builds successfully
+
+========================================
+STEP 7 — DATABASE SCHEMA CLARITY
+========================================
+
+Problem:
+users.passwordHash exists but Supabase Auth handles passwords.
+
+Action:
+1. Confirm no code uses passwordHash
+2. Either:
+   - Remove passwordHash from schema
+   - OR leave it documented as unused
+
+(Do NOT break migrations.)
+
+Verification:
+- No references to passwordHash in code
+- Schema remains valid
+
+========================================
+STEP 8 — CONSOLIDATE DATA ACCESS PATTERN
+========================================
+
+Problem:
+Frontend makes direct Supabase calls while backend also exists.
+
+Action:
+1. Choose backend API as primary data access layer
+2. Remove or deprecate client/src/lib/supabase-service.ts
+3. Ensure frontend uses backend endpoints consistently
+
+Verification:
+- No direct DB mutations from frontend
+- Authorization logic lives in backend only
+
+========================================
+STEP 9 — CLEAN UP UNUSED FILES
+========================================
+
+Action:
+1. Remove unused instruction .txt files from attached_assets/
+2. Remove unused route files
+3. Remove old dashboard implementations
+
+Verification:
+- Cleaner repo structure
+- No effect on runtime behavior
+
+========================================
+STEP 10 — FINAL VERIFICATION
+========================================
+
+Run the following checks:
+1. Frontend login/logout works
+2. Protected routes redirect correctly
+3. All /api/v2 endpoints respond as expected
+4. No console errors
+5. No build warnings
+6. App runs on localhost:5000 successfully
+
+FINAL STATE
+- Frontend fully functional
+- Backend stable
+- Architecture clean
+- No critical or warning issues remaining
+- Project ready to be frozen
