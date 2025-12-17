@@ -78,6 +78,17 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', server: 'running' });
 });
 
+// Debug endpoint for Supabase connection status
+app.get('/debug/supabase', async (_req, res) => {
+  try {
+    const { testSupabaseConnection } = await import('./supabase');
+    const result = await testSupabaseConnection();
+    res.json(result);
+  } catch (err: any) {
+    res.json({ connected: false, error: err.message || 'Failed to test connection' });
+  }
+});
+
 // API Versioning: Support both /api/v1/* and /api/* paths
 // Rewrite /api/v1/* to /api/* for backwards compatibility
 app.use((req, _res, next) => {

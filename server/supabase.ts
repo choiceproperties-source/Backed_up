@@ -60,4 +60,37 @@ export function getSupabaseOrThrow(): SupabaseClient {
   return supabase;
 }
 
+/**
+ * Tests the Supabase connection by making a simple query.
+ * Returns { connected: true } on success, or { connected: false, error: string } on failure.
+ */
+export async function testSupabaseConnection(): Promise<{ connected: boolean; error?: string }> {
+  if (!supabase) {
+    return { connected: false, error: 'Supabase client not initialized - missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY' };
+  }
+  
+  try {
+    // Use a simple auth check that doesn't require any tables
+    const { error } = await supabase.auth.getSession();
+    if (error) {
+      return { connected: false, error: error.message };
+    }
+    return { connected: true };
+  } catch (err: any) {
+    return { connected: false, error: err.message || 'Unknown connection error' };
+  }
+}
+
+/**
+ * Validates Supabase connection at startup (non-blocking).
+ */
+export async function validateSupabaseConnection(): Promise<void> {
+  const result = await testSupabaseConnection();
+  if (result.connected) {
+    console.log('[SUPABASE] Connection validated - Supabase connected');
+  } else {
+    console.error(`[SUPABASE] Connection failed: ${result.error}`);
+  }
+}
+
 export { supabase };
