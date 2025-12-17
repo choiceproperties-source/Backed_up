@@ -80,6 +80,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerAdminModuleRoutes(app);
   registerAuthModuleRoutes(app);
 
+  // Legacy routes control: Set ENABLE_LEGACY_ROUTES=true to enable legacy routes
+  // Default: disabled (only module routes are active)
+  const enableLegacyRoutes = process.env.ENABLE_LEGACY_ROUTES === 'true';
+  
+  if (!enableLegacyRoutes) {
+    console.log('[ROUTES] Legacy routes disabled. Only module routes (server/modules/*) are active.');
+    console.log('[ROUTES] Set ENABLE_LEGACY_ROUTES=true to re-enable legacy routes from server/routes.ts');
+    return httpServer;
+  }
+
+  console.log('[ROUTES] Legacy routes enabled. Both module routes and legacy routes are active.');
+
   // ===== AUTHENTICATION =====
   // Legacy signup route - forwards to v2 auth service
   app.post("/api/auth/signup", signupLimiter, async (req, res) => {
