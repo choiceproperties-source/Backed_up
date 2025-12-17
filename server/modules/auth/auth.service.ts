@@ -8,26 +8,37 @@ export class AuthService {
   }
 
   async signup(email: string, password: string, fullName: string, phone: string | null, role: string = 'renter') {
-    // Validate input
     if (!email || !password || !fullName) {
       throw { status: 400, message: "Email, password, and full name are required" };
     }
 
-    try {
-      // Create user in Supabase Auth
-      const authData = await this.repository.createUser(email, password, fullName, phone, role);
+    const normalizedEmail = email.toLowerCase().trim();
 
-      // Store user profile in users table
-      if (authData.user) {
-        try {
-          await this.repository.storeUserProfile(authData.user.id, email, fullName, phone, role);
-        } catch (profileError) {
-          console.error('Failed to save user profile:', profileError);
-        }
+    try {
+      const emailExists = await this.repository.checkEmailExists(normalizedEmail);
+      if (emailExists) {
+        throw { status: 400, message: "An account with this email already exists. Please sign in instead." };
+      }
+
+      const authData = await this.repository.createUser(normalizedEmail, password, fullName, phone, role);
+
+      if (!authData.user) {
+        throw { status: 500, message: "Failed to create user account. Please try again." };
+      }
+
+      try {
+        await this.repository.storeUserProfile(authData.user.id, normalizedEmail, fullName, phone, role);
+      } catch (profileError: any) {
+        console.error('Failed to save user profile, rolling back auth user:', profileError);
+        await this.repository.deleteAuthUser(authData.user.id);
+        throw { status: 500, message: "Failed to create user profile. Please try again." };
       }
 
       return { success: true, user: authData.user };
     } catch (err: any) {
+      if (err.status) {
+        throw err;
+      }
       if (err.message?.includes("duplicate") || err.message?.includes("already exists")) {
         throw { status: 400, message: "An account with this email already exists. Please sign in instead." };
       }

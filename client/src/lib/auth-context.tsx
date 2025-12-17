@@ -4,17 +4,11 @@ import { supabase } from './supabase';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Check if user needs to select a role (new OAuth users)
+// Check if user needs to select a role
 function checkNeedsRoleSelection(authUser: any): boolean {
   if (!authUser) return false;
-  const provider = authUser.app_metadata?.provider;
-  if (provider === 'google' || provider === 'oauth') {
-    const createdAt = new Date(authUser.created_at);
-    const now = new Date();
-    const isNewUser = (now.getTime() - createdAt.getTime()) < 60000; // within 1 minute
-    return isNewUser;
-  }
-  return false;
+  const metadata = authUser.user_metadata || {};
+  return !metadata.role;
 }
 
 async function fetchUserRole(userId: string): Promise<UserRole> {

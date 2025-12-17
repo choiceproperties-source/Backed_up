@@ -90,13 +90,35 @@ export default function Signup() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
 
+  const STORAGE_KEY = 'signup_step1_data';
+
+  const getStoredData = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return {
+          email: parsed.email || '',
+          fullName: parsed.fullName || '',
+          phone: parsed.phone || '',
+          role: parsed.role || 'renter',
+        };
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+    return null;
+  };
+
+  const storedData = getStoredData();
+
   const form = useForm<ExtendedSignupInput>({
     resolver: zodResolver(extendedSignupSchema),
     defaultValues: {
-      email: '',
-      fullName: '',
-      phone: '',
-      role: 'renter',
+      email: storedData?.email || '',
+      fullName: storedData?.fullName || '',
+      phone: storedData?.phone || '',
+      role: storedData?.role || 'renter',
       password: '',
       confirmPassword: '',
       agreeToTerms: false,
@@ -109,17 +131,47 @@ export default function Signup() {
   const strengthInfo = getStrengthLabel(passwordStrength);
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
 
+  const saveStep1Data = () => {
+    const values = form.getValues();
+    const step1Data = {
+      email: values.email,
+      fullName: values.fullName,
+      phone: values.phone,
+      role: values.role,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(step1Data));
+  };
+
+  const clearStoredData = () => {
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  const parseServerError = (message: string) => {
+    const lowerMsg = message.toLowerCase();
+    if (lowerMsg.includes('email') && (lowerMsg.includes('exists') || lowerMsg.includes('duplicate') || lowerMsg.includes('already'))) {
+      form.setError('email', { message: 'An account with this email already exists. Please sign in instead.' });
+      setStep(1);
+      return;
+    }
+    if (lowerMsg.includes('password')) {
+      form.setError('password', { message });
+      return;
+    }
+    form.setError('root', { message });
+  };
+
   const onSubmit = async (data: ExtendedSignupInput) => {
     setLoading(true);
     try {
       await signup(data.email, data.fullName, data.password, data.phone, data.role);
+      clearStoredData();
       toast({
         title: 'Account created!',
         description: 'Please check your email to verify your account.',
       });
       setLocation('/verify-email');
     } catch (err: any) {
-      form.setError('root', { message: err.message || 'Signup failed' });
+      parseServerError(err.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -128,6 +180,7 @@ export default function Signup() {
   const goToStep2 = async () => {
     const isValid = await form.trigger(['fullName', 'email', 'phone', 'role']);
     if (isValid) {
+      saveStep1Data();
       setStep(2);
     }
   };
