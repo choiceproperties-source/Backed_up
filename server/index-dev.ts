@@ -9,24 +9,36 @@ import { createServer as createViteServer, createLogger } from "vite";
 import runApp from "./app";
 
 import viteConfig from "../vite.config";
+import { validateEnvSilent } from "./lib/env";
 
-// Environment validation
+// Validate environment variables before anything else
+// In development, we allow the app to run with warnings for easier setup
 function validateEnvironment() {
-  const supabaseVars = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
-  const missingSupabase = supabaseVars.filter(key => !process.env[key]);
+  // Use the centralized validation utility
+  const result = validateEnvSilent();
   
-  if (missingSupabase.length > 0) {
-    console.warn(`[WARN] Supabase configuration incomplete. Missing: ${missingSupabase.join(", ")}`);
-    console.warn("[WARN] Database features will not work until Supabase is configured.");
+  if (!result.valid) {
+    console.error('\n' + '='.repeat(60));
+    console.error('ENVIRONMENT CONFIGURATION ERROR');
+    console.error('='.repeat(60));
+    console.error(`Missing required configuration: ${result.missing.join(", ")}`);
+    console.error('\nHOW TO FIX:');
+    console.error('1. Go to Replit Secrets (lock icon in the sidebar)');
+    console.error('2. Add the missing environment variables');
+    console.error('3. Restart the application');
+    console.error('\nSee SETUP.md for detailed instructions.');
+    console.error('='.repeat(60) + '\n');
+    console.warn("[WARN] Database and authentication features will not work.");
   }
 
-  const optional = ["IMAGEKIT_PUBLIC_KEY", "IMAGEKIT_PRIVATE_KEY", "IMAGEKIT_URL_ENDPOINT"];
-  const missingOptional = optional.filter(key => !process.env[key]);
-  
-  if (missingOptional.length > 0) {
-    console.warn(`[WARN] ImageKit configuration incomplete. Missing: ${missingOptional.join(", ")}`);
-    console.warn("[WARN] Image upload and optimization features will be limited.");
+  // Log optional configuration warnings
+  if (result.warnings.length > 0) {
+    console.warn('\n[ENV] Optional configuration warnings:');
+    result.warnings.forEach(warning => console.warn(`  - ${warning}`));
+    console.warn('');
   }
+  
+  console.log('[ENV] Environment validation completed');
 }
 
 validateEnvironment();
