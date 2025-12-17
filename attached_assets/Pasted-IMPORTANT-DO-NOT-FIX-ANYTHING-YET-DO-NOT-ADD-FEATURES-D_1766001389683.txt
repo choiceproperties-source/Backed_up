@@ -1,0 +1,95 @@
+IMPORTANT:
+DO NOT FIX ANYTHING YET.
+DO NOT ADD FEATURES.
+DO NOT CHANGE UI.
+DO NOT REFACTOR.
+
+Goal:
+Perform a full diagnostic scan to IDENTIFY the exact root causes of the following failures in the ChoiceProperties system.
+
+Current Known Failures:
+1. Landlord dashboard:
+   - Creating a new property fails
+   - Updating an existing property fails
+
+2. Tenant flow:
+   - File upload stuck at 0%
+   - Upload error references a "bucket"
+   - Application submission fails after upload attempt
+
+This task is DIAGNOSTIC ONLY.
+
+========================
+PART 1: Backend diagnostics
+========================
+1. Trace POST /api/v2/properties
+2. Trace PATCH /api/v2/properties/:id
+3. Trace POST /api/v2/applications
+
+For EACH endpoint:
+- Log the incoming request body
+- Log headers (confirm Authorization token presence)
+- Log authenticated user context (Supabase session)
+- Log database query being executed
+- Log the exact error returned by Supabase (if any)
+
+DO NOT swallow errors. Output them clearly.
+
+========================
+PART 2: Supabase database & RLS diagnostics
+========================
+1. Verify tables:
+   - users
+   - properties
+   - applications
+2. Check Row Level Security (RLS) status on each table
+3. For each table:
+   - Is RLS enabled?
+   - Are there INSERT / UPDATE / SELECT policies?
+   - Do policies match authenticated users?
+
+Report if ANY write is blocked by RLS.
+
+========================
+PART 3: Supabase Storage diagnostics
+========================
+1. Identify upload implementation:
+   - Supabase Storage OR ImageKit
+2. If Supabase Storage:
+   - Check if the referenced bucket exists
+   - Verify bucket name matches frontend usage
+   - Check bucket privacy (public/private)
+   - Check storage RLS policies for INSERT
+3. Log the exact error returned by Supabase Storage SDK
+
+========================
+PART 4: Frontend diagnostics
+========================
+1. Inspect API calls from landlord dashboard:
+   - Confirm token is attached
+   - Confirm payload shape matches backend expectations
+2. Inspect file upload logic:
+   - Where upload is triggered
+   - What bucket/path is used
+   - What error is thrown
+
+========================
+Rules:
+- DO NOT APPLY FIXES
+- DO NOT GUESS
+- DO NOT SILENCE ERRORS
+- ONLY REPORT FACTUAL FINDINGS
+
+========================
+Deliverables (MANDATORY):
+1. A clear list of ROOT CAUSES (not symptoms)
+2. Exact error messages (verbatim)
+3. Which layer is responsible for each issue:
+   - Frontend
+   - Backend
+   - Supabase DB
+   - Supabase Storage
+4. A short recommendation list (no code yet)
+
+End the report with:
+"Diagnostic scan complete. Awaiting fix authorization."
