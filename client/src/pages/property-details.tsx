@@ -64,14 +64,15 @@ export default function PropertyDetails() {
   const [showScheduleTour, setShowScheduleTour] = useState(false);
 
   const { data: propertyData, isLoading } = useQuery<{ property: Property; owner: Owner | null }>({
-    queryKey: ['/api/v2/properties', id, 'full'],
+    queryKey: ['/api/v2/properties', id],
     enabled: !!id && !!match,
     queryFn: async () => {
-      const res = await fetch(`/api/v2/properties/${id}/full`);
-      const data = await res.json();
+      const res = await fetch(`/api/v2/properties/${id}`);
+      const json = await res.json();
+      const propertyInfo = json?.data || json;
       return {
-        property: data?.data,
-        owner: data?.data?.owner || null
+        property: propertyInfo,
+        owner: propertyInfo?.owner || null
       };
     },
   });
