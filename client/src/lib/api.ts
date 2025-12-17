@@ -77,17 +77,17 @@ export const inquiriesApi = {
   getByProperty: (propertyId: string) => apiCall(`/api/v2/inquiries/property/${propertyId}`),
 };
 
-// Requirements API - Using v2 endpoints
+// Requirements API
 export const requirementsApi = {
-  create: (data: any) => apiCall("/api/v2/requirements", { method: "POST", body: JSON.stringify(data) }),
-  getByUser: (userId: string) => apiCall(`/api/v2/requirements/user/${userId}`),
+  create: (data: any) => apiCall("/api/requirements", { method: "POST", body: JSON.stringify(data) }),
+  getByUser: (userId: string) => apiCall(`/api/requirements/user/${userId}`),
 };
 
-// Favorites API - Using v2 endpoints
+// Favorites API
 export const favoritesApi = {
-  create: (data: any) => apiCall("/api/v2/favorites", { method: "POST", body: JSON.stringify(data) }),
-  delete: (id: string) => apiCall(`/api/v2/favorites/${id}`, { method: "DELETE" }),
-  getByUser: (userId: string) => apiCall(`/api/v2/favorites/user/${userId}`),
+  create: (data: any) => apiCall("/api/favorites", { method: "POST", body: JSON.stringify(data) }),
+  delete: (id: string) => apiCall(`/api/favorites/${id}`, { method: "DELETE" }),
+  getByUser: (userId: string) => apiCall(`/api/favorites/user/${userId}`),
 };
 
 // Reviews API - Using v2 endpoints
@@ -104,14 +104,14 @@ export const authApi = {
     apiCall("/api/v2/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
 };
 
-// User Dashboard API - Using v2 endpoints
+// User Dashboard API
 export const dashboardApi = {
-  getUserDashboard: () => apiCall("/api/v2/user/dashboard"),
-  getNotifications: () => apiCall("/api/v2/user/notifications"),
-  markNotificationRead: (id: string) => apiCall(`/api/v2/notifications/${id}/read`, { method: "PATCH" }),
+  getUserDashboard: () => apiCall("/api/user/dashboard"),
+  getNotifications: () => apiCall("/api/user/notifications"),
+  markNotificationRead: (id: string) => apiCall(`/api/notifications/${id}/read`, { method: "PATCH" }),
 };
 
-// Health check - Using v2 endpoints
+// Health check
 export const healthApi = {
-  check: () => apiCall("/api/v2/health"),
+  check: () => apiCall("/api/health"),
 };
