@@ -81,10 +81,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerAuthModuleRoutes(app);
 
   // ===== AUTHENTICATION =====
-  // Legacy signup route - redirect to v2
-  app.post("/api/auth/signup", signupLimiter, (req, res, next) => {
-    req.url = "/api/v2/auth/signup";
-    next('route');
+  // Legacy signup route - forwards to v2 auth service
+  app.post("/api/auth/signup", signupLimiter, async (req, res) => {
+    try {
+      const validation = signupSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ success: false, error: validation.error.errors[0].message });
+      }
+
+      const { email, password, fullName, phone, role = 'renter' } = validation.data;
+
+      const { data, error } = await supabase.auth.admin.createUser({
+        email: email.toLowerCase().trim(),
+        password,
+        phone: phone || undefined,
+        user_metadata: { full_name: fullName, phone: phone || null, role },
+        email_confirm: false,
+      });
+
+      if (error) {
+        if (error.message?.includes("duplicate") || error.message?.includes("already exists")) {
+          return res.status(400).json({ success: false, error: "An account with this email already exists. Please sign in instead." });
+        }
+        console.error("[AUTH] Signup error:", error.message);
+        return res.status(400).json({ success: false, error: error.message || "Signup failed. Please try again." });
+      }
+
+      if (data.user) {
+        try {
+          await supabase
+            .from('users')
+            .upsert({
+              id: data.user.id,
+              email: email.toLowerCase().trim(),
+              full_name: fullName,
+              phone: phone || null,
+              role
+            }, { onConflict: 'id' });
+        } catch (profileError) {
+          console.error('Failed to save user profile:', profileError);
+        }
+      }
+
+      res.json({ success: true, data: data.user });
+    } catch (err: any) {
+      console.error("[AUTH] Signup exception:", err);
+      res.status(500).json({ success: false, error: err.message || "Signup failed. Please try again." });
+    }
   });
 
   app.post("/api/auth/login", authLimiter, async (req, res) => {
