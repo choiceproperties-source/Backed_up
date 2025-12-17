@@ -1,0 +1,63 @@
+Scan the entire project (frontend, backend, folders, and dependencies) and enforce a strict, automatic environment-variable configuration system with the following requirements:
+
+1️⃣ Environment Contract
+- Create a committed `.env.example` file at the project root
+- Include placeholders (no real secrets) for:
+  - NEXT_PUBLIC_SUPABASE_URL
+  - NEXT_PUBLIC_SUPABASE_ANON_KEY
+  - SUPABASE_SERVICE_ROLE_KEY
+  - NEXT_PUBLIC_APP_URL
+  - Any other env vars currently referenced in the codebase
+- Ensure `.env.example` is referenced in documentation
+
+2️⃣ Automatic Environment Validation
+- Create `src/lib/env.ts`
+- Implement a `validateEnv()` function that:
+  - Defines a list of required environment variables
+  - Checks `process.env` for missing values
+  - Logs each missing variable clearly
+  - Throws a hard error if any required variable is missing
+- This must fail fast and never allow silent misconfiguration
+
+3️⃣ Startup Enforcement
+- Call `validateEnv()` automatically on application startup
+- Ensure validation runs:
+  - Before Supabase initialization
+  - Before rendering the app
+- In development, the app should crash immediately with a clear error if env vars are missing
+
+4️⃣ Supabase Safety Guard
+- Update all Supabase client/server initialization files to:
+  - Explicitly check required Supabase env vars
+  - Throw a descriptive error if any are undefined
+- Prevent Supabase from initializing with invalid config
+
+5️⃣ Replit-Friendly Behavior
+- Do NOT rely on `.env` files for runtime secrets
+- Assume Replit Secrets may be missing on first run
+- Design the system to guide developers to Replit Secrets automatically
+
+6️⃣ Developer Guidance
+- Create or update `SETUP.md` with:
+  - Step-by-step instructions for adding Replit Secrets
+  - Clear reference to `.env.example`
+  - Explanation of startup error messages
+- Add concise inline comments explaining why this system exists
+
+7️⃣ Consistency Audit
+- Scan the entire codebase for any `process.env.*` usage
+- Ensure all referenced variables exist in `.env.example`
+- Remove unused or duplicate env variables
+- Standardize naming (no mismatched or legacy env names)
+
+8️⃣ Non-Goals (Strict)
+- Do NOT add paid services
+- Do NOT hardcode secrets
+- Do NOT weaken validation
+- Do NOT add GitHub or Google OAuth
+- Do NOT change application behavior beyond env safety
+
+After implementation:
+- Ensure the app fails fast with helpful errors if env vars are missing
+- Ensure importing this project into a new Replit account never results in silent Supabase errors
+- Ensure future developers cannot run the app incorrectly by accident
