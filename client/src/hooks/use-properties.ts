@@ -21,7 +21,7 @@ interface PropertiesApiResponse {
 
 export function useProperties() {
   const { data, isLoading: loading, error } = useQuery<PropertiesApiResponse>({
-    queryKey: ['api', 'properties'],
+    queryKey: ['/api/v2/properties'],
     staleTime: 60000,
     refetchOnMount: true,
   });
