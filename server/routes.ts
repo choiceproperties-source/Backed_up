@@ -84,9 +84,391 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Default: disabled (only module routes are active)
   const enableLegacyRoutes = process.env.ENABLE_LEGACY_ROUTES === 'true';
   
+  // ===== CRITICAL LEGACY ENDPOINTS =====
+  // These endpoints are required for core renter/landlord flows
+  // They are enabled regardless of ENABLE_LEGACY_ROUTES flag
+  
+  // GET /api/stats/market-insights - Market insights for landing page
+  app.get("/api/stats/market-insights", async (req, res) => {
+    try {
+      const cacheKey = "stats:market-insights";
+      const cached = cache.get(cacheKey);
+      if (cached) {
+        return res.json(success(cached, "Market insights fetched successfully"));
+      }
+
+      const insights = [
+        {
+          title: "Average Approval Time",
+          value: "2.4 days",
+          change: "-40% faster",
+          description: "Our streamlined process gets you approved quickly",
+          icon: "zap"
+        },
+        {
+          title: "Properties Available",
+          value: "500+",
+          change: "New listings daily",
+          description: "Fresh inventory added constantly",
+          icon: "target"
+        },
+        {
+          title: "Avg Rent Price (Market)",
+          value: "$1,450",
+          change: "Stable market",
+          description: "Compare with actual listings",
+          icon: "trending-up"
+        },
+        {
+          title: "Active Users",
+          value: "2,000+",
+          change: "Growing monthly",
+          description: "Join our community of renters",
+          icon: "users"
+        }
+      ];
+
+      cache.set(cacheKey, insights, CACHE_TTL.PROPERTIES_LIST);
+
+      return res.json(success(insights, "Market insights fetched successfully"));
+    } catch (err: any) {
+      console.error("[STATS] Market insights error:", err);
+      return res.status(500).json(errorResponse("Failed to fetch market insights"));
+    }
+  });
+
+  // PATCH /api/properties/:id/verify-address - Verify property address
+  app.patch("/api/properties/:id/verify-address", authenticateToken, requireOwnership("property"), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { latitude, longitude, addressVerified } = req.body;
+      
+      const updateData: any = { 
+        address_verified: addressVerified ?? true,
+        updated_at: new Date().toISOString() 
+      };
+      
+      if (latitude !== undefined) updateData.latitude = latitude;
+      if (longitude !== undefined) updateData.longitude = longitude;
+
+      const { data, error } = await supabase
+        .from("properties")
+        .update(updateData)
+        .eq("id", req.params.id)
+        .select();
+
+      if (error) throw error;
+      
+      cache.invalidate(`property:${req.params.id}`);
+      
+      return res.json(success(data[0], "Address verified successfully"));
+    } catch (err: any) {
+      return res.status(500).json(errorResponse("Failed to verify address"));
+    }
+  });
+
+  // POST /api/applications/:id/comments - Add application comment
+  app.post("/api/applications/:applicationId/comments", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { data: application } = await supabase
+        .from("applications")
+        .select("user_id, property_id")
+        .eq("id", req.params.applicationId)
+        .single();
+
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      const { data: property } = await supabase
+        .from("properties")
+        .select("owner_id")
+        .eq("id", application.property_id)
+        .single();
+
+      const isApplicant = application.user_id === req.user!.id;
+      const isPropertyOwner = property?.owner_id === req.user!.id;
+      const isAdmin = req.user!.role === "admin";
+
+      if (!isApplicant && !isPropertyOwner && !isAdmin) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+
+      const { comment, commentType, isInternal } = req.body;
+
+      if (!comment) {
+        return res.status(400).json({ error: "Comment is required" });
+      }
+
+      const actualIsInternal = isApplicant && !isPropertyOwner && !isAdmin ? false : (isInternal ?? true);
+
+      const { data, error } = await supabase
+        .from("application_comments")
+        .insert([{
+          application_id: req.params.applicationId,
+          user_id: req.user!.id,
+          comment,
+          comment_type: commentType || "note",
+          is_internal: actualIsInternal,
+        }])
+        .select("*, users(id, full_name)");
+
+      if (error) throw error;
+
+      return res.json(success(data[0], "Comment added successfully"));
+    } catch (err: any) {
+      return res.status(500).json(errorResponse("Failed to add comment"));
+    }
+  });
+
+  // POST /api/applications/:id/score - Score an application
+  app.post("/api/applications/:id/score", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { data: application } = await supabase
+        .from("applications")
+        .select("*, properties(owner_id)")
+        .eq("id", req.params.id)
+        .single();
+
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      const isPropertyOwner = (application.properties as any)?.owner_id === req.user!.id;
+      const isAdmin = req.user!.role === "admin";
+
+      if (!isPropertyOwner && !isAdmin) {
+        return res.status(403).json({ error: "Only property owner can score applications" });
+      }
+
+      const { calculateApplicationScore } = await import("./application-service");
+      const scoreBreakdown = calculateApplicationScore({
+        personalInfo: application.personal_info,
+        employment: application.employment,
+        rentalHistory: application.rental_history,
+        documents: application.documents,
+        documentStatus: application.document_status,
+      });
+
+      const { data, error } = await supabase
+        .from("applications")
+        .update({
+          score: scoreBreakdown.totalScore,
+          score_breakdown: scoreBreakdown,
+          scored_at: new Date().toISOString(),
+        })
+        .eq("id", req.params.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return res.json(success({ application: data, scoreBreakdown }, "Application scored successfully"));
+    } catch (err: any) {
+      return res.status(500).json(errorResponse("Failed to score application"));
+    }
+  });
+
+  // POST /api/applications/:id/verify-payment - Verify manual payment
+  app.post("/api/applications/:id/verify-payment", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { amount, paymentMethod, receivedAt, internalNote, confirmationChecked } = req.body;
+      
+      if (!amount || !paymentMethod || !receivedAt) {
+        return res.status(400).json(errorResponse("Missing required fields: amount, paymentMethod, receivedAt"));
+      }
+
+      if (!confirmationChecked) {
+        return res.status(400).json(errorResponse("You must confirm the application fee has been received"));
+      }
+
+      if (!PAYMENT_VERIFICATION_METHODS.includes(paymentMethod)) {
+        return res.status(400).json(errorResponse("Invalid payment method"));
+      }
+
+      const { data: application, error: appError } = await supabase
+        .from("applications")
+        .select(`
+          *,
+          properties:property_id(id, owner_id, title, address, listing_agent_id),
+          users:user_id(id, full_name, email)
+        `)
+        .eq("id", req.params.id)
+        .single();
+
+      if (appError || !application) {
+        return res.status(404).json(errorResponse("Application not found"));
+      }
+
+      if (application.manual_payment_verified || application.payment_status === 'paid' || application.payment_status === 'manually_verified') {
+        return res.status(400).json(errorResponse("Payment has already been verified for this application"));
+      }
+
+      const isOwner = application.properties?.owner_id === req.user!.id;
+      const isAgent = application.properties?.listing_agent_id === req.user!.id;
+      const isAdmin = req.user!.role === 'admin';
+      
+      if (!isOwner && !isAgent && !isAdmin) {
+        return res.status(403).json(errorResponse("Not authorized to verify payments for this application"));
+      }
+
+      const referenceId = `MV-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+      const { data: verification, error: verifyError } = await supabase
+        .from("payment_verifications")
+        .insert([{
+          application_id: req.params.id,
+          verified_by: req.user!.id,
+          amount,
+          payment_method: paymentMethod,
+          received_at: receivedAt,
+          reference_id: referenceId,
+          internal_note: internalNote || null,
+          confirmation_checked: true,
+          previous_payment_status: application.payment_status,
+        }])
+        .select()
+        .single();
+
+      if (verifyError) throw verifyError;
+
+      const statusHistoryEntry = {
+        status: 'payment_verified',
+        changedAt: new Date().toISOString(),
+        changedBy: req.user!.id,
+        reason: `Manual payment verified via ${paymentMethod}. Amount: $${amount}`
+      };
+
+      const existingHistory = application.status_history || [];
+
+      const { data: updatedApp, error: updateError } = await supabase
+        .from("applications")
+        .update({
+          payment_status: 'manually_verified',
+          status: 'payment_verified',
+          previous_status: application.status,
+          status_history: [...existingHistory, statusHistoryEntry],
+          manual_payment_verified: true,
+          manual_payment_verified_at: new Date().toISOString(),
+          manual_payment_verified_by: req.user!.id,
+          manual_payment_amount: amount,
+          manual_payment_method: paymentMethod,
+          manual_payment_received_at: receivedAt,
+          manual_payment_note: internalNote || null,
+          manual_payment_reference_id: referenceId,
+          payment_paid_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", req.params.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      await logAuditEvent({
+        userId: req.user!.id,
+        action: 'payment_verify_manual',
+        resourceType: 'application',
+        resourceId: req.params.id,
+        metadata: {
+          previousPaymentStatus: application.payment_status,
+          newPaymentStatus: 'manually_verified',
+          amount,
+          paymentMethod,
+          referenceId,
+        },
+        req,
+      });
+
+      return res.json(success({
+        application: updatedApp,
+        verification,
+        referenceId
+      }, "Payment verified successfully"));
+    } catch (err: any) {
+      console.error("[PAYMENT] Verify error:", err);
+      return res.status(500).json(errorResponse("Failed to verify payment"));
+    }
+  });
+
+  // GET /api/applications/:applicationId/payments - Get payments for application
+  app.get("/api/applications/:applicationId/payments", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const applicationId = req.params.applicationId;
+      
+      const { data: application } = await supabase
+        .from("applications")
+        .select("user_id, properties(owner_id)")
+        .eq("id", applicationId)
+        .single();
+
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      const isTenant = application.user_id === req.user!.id;
+      const isLandlord = (application.properties as any)?.[0]?.owner_id === req.user!.id;
+      const isAdmin = req.user!.role === "admin";
+
+      if (!isTenant && !isLandlord && !isAdmin) {
+        return res.status(403).json({ error: "Not authorized to view payments" });
+      }
+
+      const { data: lease } = await supabase
+        .from("leases")
+        .select("id")
+        .eq("application_id", applicationId)
+        .single();
+
+      if (!lease) {
+        return res.json(success([], "No lease found for this application"));
+      }
+
+      const { data: payments, error } = await supabase
+        .from("payments")
+        .select("*, verified_by_user:users!payments_verified_by_fkey(full_name)")
+        .eq("lease_id", lease.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const now = new Date();
+      const enrichedPayments = (payments || []).map((p: any) => {
+        const dueDate = new Date(p.due_date);
+        const isOverdue = p.status === 'pending' && dueDate < now;
+        return {
+          ...p,
+          status: isOverdue ? 'overdue' : p.status
+        };
+      });
+
+      return res.json(success(enrichedPayments, "Payments retrieved successfully"));
+    } catch (err: any) {
+      console.error("[PAYMENTS] Get error:", err);
+      return res.status(500).json(errorResponse("Failed to retrieve payments"));
+    }
+  });
+
+  // GET /api/reviews/property/:propertyId - Get property reviews
+  app.get("/api/reviews/property/:propertyId", async (req, res) => {
+    try {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*, users(id, full_name, profile_image)")
+        .eq("property_id", req.params.propertyId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return res.json(success(data, "Reviews fetched successfully"));
+    } catch (err: any) {
+      return res.status(500).json(errorResponse("Failed to fetch reviews"));
+    }
+  });
+
+  console.log('[ROUTES] Critical legacy endpoints enabled, all others disabled.');
+  
   if (!enableLegacyRoutes) {
-    console.log('[ROUTES] Legacy routes disabled. Only module routes (server/modules/*) are active.');
-    console.log('[ROUTES] Set ENABLE_LEGACY_ROUTES=true to re-enable legacy routes from server/routes.ts');
+    console.log('[ROUTES] Full legacy routes disabled. Only module routes (server/modules/*) and critical legacy endpoints are active.');
+    console.log('[ROUTES] Set ENABLE_LEGACY_ROUTES=true to re-enable all legacy routes from server/routes.ts');
     return httpServer;
   }
 
