@@ -12,11 +12,12 @@ import viteConfig from "../vite.config";
 
 // Environment validation
 function validateEnvironment() {
-  const required = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
-  const missing = required.filter(key => !process.env[key]);
+  const supabaseVars = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
+  const missingSupabase = supabaseVars.filter(key => !process.env[key]);
   
-  if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+  if (missingSupabase.length > 0) {
+    console.warn(`[WARN] Supabase configuration incomplete. Missing: ${missingSupabase.join(", ")}`);
+    console.warn("[WARN] Database features will not work until Supabase is configured.");
   }
 
   const optional = ["IMAGEKIT_PUBLIC_KEY", "IMAGEKIT_PRIVATE_KEY", "IMAGEKIT_URL_ENDPOINT"];
