@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { supabase } from '@/lib/supabase';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mail, RefreshCw, CheckCircle, ArrowRight, Clock, Inbox, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { updateMetaTags } from "@/lib/seo";
 
@@ -26,6 +27,9 @@ export default function VerifyEmail() {
   const [resent, setResent] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [checkingStatus, setCheckingStatus] = useState(false);
+  
+  // Get email from user or localStorage for display
+  const displayEmail = user?.email || localStorage.getItem('pending_verification_email') || 'your email address';
 
   useEffect(() => {
     if (countdown > 0) {
@@ -57,17 +61,61 @@ export default function VerifyEmail() {
     }
   };
 
+  const [, setLocation] = useLocation();
+  
   const handleCheckStatus = async () => {
     setCheckingStatus(true);
-    setTimeout(() => {
-      setCheckingStatus(false);
-      if (!isEmailVerified) {
+    try {
+      if (!supabase) {
+        toast({
+          title: "Service unavailable",
+          description: "Authentication service is not available. Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Re-fetch the session to get the latest email_confirmed_at status
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('[Verify Email] Error checking status:', error);
+        toast({
+          title: "Error checking status",
+          description: "Could not verify your status. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (session?.user?.email_confirmed_at) {
+        // Email is verified - clear pending email and redirect
+        localStorage.removeItem('pending_verification_email');
+        toast({
+          title: "Email verified!",
+          description: "Your email has been verified successfully.",
+        });
+        
+        // Redirect to home after a brief delay
+        setTimeout(() => {
+          setLocation('/');
+        }, 1000);
+      } else {
         toast({
           title: "Not verified yet",
-          description: "Please check your email and click the verification link.",
+          description: "Please check your email and click the verification link, then try again.",
         });
       }
-    }, 1500);
+    } catch (err: any) {
+      console.error('[Verify Email] Unexpected error:', err);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCheckingStatus(false);
+    }
   };
 
   if (isEmailVerified) {
@@ -141,7 +189,7 @@ export default function VerifyEmail() {
               className="bg-muted/50 rounded-lg p-4 mb-6"
             >
               <p className="font-medium text-center text-foreground break-all">
-                {user?.email || 'your email address'}
+                {displayEmail}
               </p>
             </motion.div>
 

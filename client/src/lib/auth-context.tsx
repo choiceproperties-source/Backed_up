@@ -151,16 +151,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return 'renter';
   };
 
+  // Helper to get app URL for email redirects - uses env var if set, falls back to origin
+  const getAppUrl = (): string => {
+    // Use VITE_APP_URL if configured (for custom domains/staging), otherwise use current origin (works on Replit)
+    return import.meta.env.VITE_APP_URL || window.location.origin;
+  };
+
   const signup = async (email: string, name: string, password: string, phone?: string, role?: UserRole): Promise<UserRole> => {
     if (!email || !name || !password) throw new Error('Please fill in all required fields');
     if (!supabase) throw new Error('Authentication service unavailable. Please try again later.');
     
     const userRole = role || 'renter';
     
+    // Store email in localStorage for resend verification fallback
+    localStorage.setItem('pending_verification_email', email);
+    
+    // Get the app URL for email redirect
+    const appUrl = getAppUrl();
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: `${appUrl}/auth/callback`,
         data: { 
           name,
           full_name: name,
@@ -200,10 +213,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!email) throw new Error('Please enter your email address');
     if (!supabase) throw new Error('Authentication service unavailable. Please try again later.');
     
+    const appUrl = getAppUrl();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`
+        emailRedirectTo: `${appUrl}/auth/callback`
       }
     });
     
@@ -214,8 +228,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!email) throw new Error('Please enter your email address');
     if (!supabase) throw new Error('Authentication service unavailable. Please try again later.');
     
+    const appUrl = getAppUrl();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`
+      redirectTo: `${appUrl}/reset-password`
     });
     
     if (error) throw error;
@@ -223,14 +238,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resendVerificationEmail = async (): Promise<void> => {
     if (!supabase) throw new Error('Authentication service unavailable. Please try again later.');
-    if (!user?.email) throw new Error('No email address found');
+    
+    // Try to get email from user state, or fall back to localStorage
+    const email = user?.email || localStorage.getItem('pending_verification_email');
+    
+    if (!email) {
+      throw new Error('No email address found. Please sign up again.');
+    }
+    
+    // Get the app URL for email redirect
+    const appUrl = getAppUrl();
     
     const { error } = await supabase.auth.resend({
       type: 'signup',
-      email: user.email,
+      email: email,
+      options: {
+        emailRedirectTo: `${appUrl}/auth/callback`
+      }
     });
     
-    if (error) throw error;
+    if (error) {
+      // Provide user-friendly error messages
+      if (error.message.includes('rate limit')) {
+        throw new Error('Too many requests. Please wait a few minutes before trying again.');
+      }
+      console.error('[Auth] Resend verification error:', error);
+      throw error;
+    }
   };
 
   const updateUserRole = async (role: UserRole): Promise<void> => {
