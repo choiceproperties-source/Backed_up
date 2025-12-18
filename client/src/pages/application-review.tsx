@@ -158,7 +158,7 @@ export default function ApplicationReview() {
     },
   });
 
-  if (!isLoggedIn || !user || (user.role !== 'landlord' && user.role !== 'admin' && user.role !== 'agent')) {
+  if (!isLoggedIn || !user || (user.role !== 'landlord' && user.role !== 'property_manager' && user.role !== 'admin' && user.role !== 'agent')) {
     navigate('/login');
     return null;
   }

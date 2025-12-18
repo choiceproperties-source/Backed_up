@@ -123,7 +123,7 @@ export default function LandlordProperties() {
     });
   }, []);
 
-  if (!isLoggedIn || !user || (user.role !== 'landlord' && user.role !== 'admin')) {
+  if (!isLoggedIn || !user || (user.role !== 'landlord' && user.role !== 'property_manager' && user.role !== 'admin')) {
     navigate('/login');
     return null;
   }

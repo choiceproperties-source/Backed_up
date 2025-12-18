@@ -45,11 +45,11 @@ export default function LandlordLeaseDashboard() {
   // All hooks must be called before any early returns
   const { data: applications, isLoading } = useQuery<LandlordApplication[]>({
     queryKey: ['/api/landlord/applications/leases'],
-    enabled: isLoggedIn && user?.role === 'landlord',
+    enabled: isLoggedIn && (user?.role === 'landlord' || user?.role === 'property_manager' || user?.role === 'admin'),
   });
 
-  // Redirect if not logged in or not a landlord
-  if (!isLoggedIn || user?.role !== 'landlord') {
+  // Redirect if not logged in or not a landlord/property manager
+  if (!isLoggedIn || (user?.role !== 'landlord' && user?.role !== 'property_manager' && user?.role !== 'admin')) {
     navigate('/login');
     return null;
   }

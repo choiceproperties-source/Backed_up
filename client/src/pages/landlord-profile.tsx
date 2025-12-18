@@ -50,8 +50,8 @@ export default function LandlordProfile() {
     });
   }, []);
 
-  // Redirect if not logged in or not a landlord
-  if (!isLoggedIn || !user || (user.role !== 'landlord' && user.role !== 'admin')) {
+  // Redirect if not logged in or not a landlord/property manager
+  if (!isLoggedIn || !user || (user.role !== 'landlord' && user.role !== 'property_manager' && user.role !== 'admin')) {
     navigate('/login');
     return null;
   }
