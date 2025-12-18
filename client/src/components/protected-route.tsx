@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRoles?: ('user' | 'agent' | 'admin' | 'renter' | 'buyer' | 'landlord' | 'property_manager')[];
+  requiredRoles?: ('user' | 'agent' | 'admin' | 'renter' | 'landlord' | 'property_manager')[];
   redirectTo?: string;
   requireEmailVerification?: boolean;
 }

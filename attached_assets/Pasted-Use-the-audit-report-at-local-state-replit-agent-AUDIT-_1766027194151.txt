@@ -1,0 +1,89 @@
+Use the audit report at:
+.local/state/replit/agent/AUDIT_REPORT.md
+
+IMPORTANT CONSTRAINTS:
+- Do NOT add new major features
+- Do NOT refactor unrelated code
+- Do NOT redesign UI
+- Focus ONLY on making the platform stable and clear for rentals
+
+PRIMARY GOAL:
+Ensure landlords can post/manage properties
+Ensure renters can apply smoothly without confusion
+
+====================================
+PHASE 1 — CRITICAL CLARITY FIXES
+====================================
+
+1. REMOVE "buyer" ROLE COMPLETELY
+- This is a rental-only platform
+- Remove "buyer" from:
+  - Signup form
+  - Role selection UI
+  - Backend role validation
+  - Any conditional logic
+- Ensure existing users with role "buyer" default to "renter"
+
+====================================
+PHASE 2 — DASHBOARD FLOW FIXES
+====================================
+
+2. FIX RENTER DASHBOARD REDIRECT
+- Create a basic renter dashboard route
+- Redirect renters there after login
+- Minimum content required:
+  - List of submitted applications
+  - Placeholder text if none exist
+- Do NOT add advanced features
+
+3. FIX ROLE SELECTION CONSISTENCY
+- Ensure roles shown are consistent everywhere:
+  - renter
+  - landlord
+  - property_manager
+- No role should appear in one screen and not another
+
+====================================
+PHASE 3 — AUTH & VERIFICATION SAFETY
+====================================
+
+4. ADD EMAIL VERIFICATION GATE
+- Users must verify email before:
+  - Selecting role
+  - Accessing dashboards
+- If unverified:
+  - Show clear message
+  - Block progression
+
+====================================
+PHASE 4 — CORE FLOW PROTECTION
+====================================
+
+5. ENSURE CORE RENTAL FLOWS REMAIN UNTOUCHED
+- Do NOT break:
+  - Property creation/editing
+  - Property browsing
+  - Application submission
+- If any change affects these flows, revert and log
+
+====================================
+EXPLICITLY IGNORE FOR NOW
+====================================
+- Rent payments
+- Lease management
+- Maintenance tickets
+- Tenant screening automation
+- Multi-role accounts
+- Property ownership verification
+
+====================================
+DELIVERABLE
+====================================
+Confirm the following after changes:
+- No "buyer" role exists anywhere
+- Renters land on a dashboard after login
+- Role selection is consistent
+- Email verification blocks unverified access
+- Landlord posting & renter applications still work
+
+Log any skipped items clearly.

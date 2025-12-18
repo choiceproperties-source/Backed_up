@@ -19,7 +19,6 @@ export const ROLE_HIERARCHY: Record<string, number> = {
   agent: 70,
   landlord: 60,
   property_manager: 60,
-  buyer: 20,
   renter: 10,
   guest: 0,
 };

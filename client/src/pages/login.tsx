@@ -63,9 +63,8 @@ export default function Login() {
           setLocation('/landlord-dashboard');
           break;
         case 'renter':
-        case 'buyer':
         default:
-          setLocation('/');
+          setLocation('/renter-dashboard');
           break;
       }
     } catch (err: any) {

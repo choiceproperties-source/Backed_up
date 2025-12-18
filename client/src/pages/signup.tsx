@@ -20,7 +20,6 @@ import { useToast } from '@/hooks/use-toast';
 
 const SIGNUP_ROLES: { value: UserRole; label: string; description: string; icon: typeof Home }[] = [
   { value: 'renter', label: 'Renter', description: 'Looking to rent a property', icon: Home },
-  { value: 'buyer', label: 'Buyer', description: 'Looking to buy a property', icon: Home },
   { value: 'landlord', label: 'Landlord', description: 'Individual property owner', icon: Building2 },
   { value: 'property_manager', label: 'Property Manager', description: 'Manage multiple properties', icon: Users },
   { value: 'agent', label: 'Real Estate Agent', description: 'Licensed agent', icon: Briefcase },
@@ -28,7 +27,7 @@ const SIGNUP_ROLES: { value: UserRole; label: string; description: string; icon:
 
 const extendedSignupSchema = signupSchema.extend({
   phone: z.string().optional(),
-  role: z.enum(['renter', 'buyer', 'landlord', 'property_manager', 'agent']),
+  role: z.enum(['renter', 'landlord', 'property_manager', 'agent']),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
   agreeToTerms: z.boolean().refine(val => val === true, {
     message: 'You must agree to the terms and privacy policy',

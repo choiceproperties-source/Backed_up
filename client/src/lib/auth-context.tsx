@@ -19,7 +19,12 @@ async function fetchUserRole(userId: string): Promise<UserRole> {
       .select('role')
       .eq('id', userId)
       .single();
-    return (data?.role as UserRole) || 'renter';
+    const role = data?.role as UserRole;
+    // Migrate legacy "buyer" role to "renter"
+    if (role === 'buyer') {
+      return 'renter';
+    }
+    return role || 'renter';
   } catch {
     return 'renter';
   }

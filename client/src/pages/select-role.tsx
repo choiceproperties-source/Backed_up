@@ -65,6 +65,8 @@ export default function SelectRole() {
         setLocation('/agent-dashboard');
       } else if (selectedRole === 'landlord' || selectedRole === 'property_manager') {
         setLocation('/landlord-dashboard');
+      } else if (selectedRole === 'renter') {
+        setLocation('/renter-dashboard');
       } else {
         setLocation('/');
       }
