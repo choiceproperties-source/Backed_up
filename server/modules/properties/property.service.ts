@@ -101,7 +101,16 @@ export async function createProperty(input: CreatePropertyInput): Promise<{ data
   return { data };
 }
 
-export async function updateProperty(id: string, updateData: Record<string, any>): Promise<any> {
+export async function updateProperty(id: string, updateData: Record<string, any>, userId?: string): Promise<any> {
+  // PRIORITY 2 FIX: Ensure only owner can update (requireOwnership middleware handles this, but log for debugging)
+  if (userId) {
+    const property = await propertyRepository.findPropertyById(id);
+    if (property && property.owner_id !== userId) {
+      console.error(`[PROPERTY] Ownership mismatch: User ${userId} attempted to update property owned by ${property.owner_id}`);
+      throw new Error("Unauthorized: You do not own this property");
+    }
+  }
+
   const data = await propertyRepository.updateProperty(id, updateData);
 
   cache.invalidate(`property:${id}`);

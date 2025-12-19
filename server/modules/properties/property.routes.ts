@@ -57,9 +57,12 @@ router.post("/", authenticateToken, async (req: AuthenticatedRequest, res) => {
 
 router.patch("/:id", authenticateToken, requireOwnership("property"), async (req: AuthenticatedRequest, res) => {
   try {
-    const data = await propertyService.updateProperty(req.params.id, req.body);
+    const data = await propertyService.updateProperty(req.params.id, req.body, req.user!.id);
     return res.json(success(data, "Property updated successfully"));
   } catch (err: any) {
+    if (err.message && err.message.includes("Unauthorized")) {
+      return res.status(403).json(errorResponse(err.message));
+    }
     return res.status(500).json(errorResponse("Failed to update property"));
   }
 });

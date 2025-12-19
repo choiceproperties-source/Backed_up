@@ -106,20 +106,27 @@ export function useOwnedProperties() {
 
     try {
       const token = await getAuthToken();
+      // PRIORITY 1 FIX: Normalize numeric fields to strings for decimal validation
+      const normalizedData = {
+        ...propertyData,
+        ownerId: user.id,
+        // Convert numeric values to strings for decimal fields in backend
+        price: propertyData.price !== undefined ? String(propertyData.price) : undefined,
+        bathrooms: propertyData.bathrooms !== undefined ? String(propertyData.bathrooms) : undefined,
+      };
+      
       const response = await fetch('/api/v2/properties', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': token ? `Bearer ${token}` : '',
         },
-        body: JSON.stringify({
-          ...propertyData,
-          ownerId: user.id,
-        }),
+        body: JSON.stringify(normalizedData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create property');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create property');
       }
 
       const data = await response.json();
@@ -162,17 +169,30 @@ export function useOwnedProperties() {
 
     try {
       const token = await getAuthToken();
+      // PRIORITY 1 FIX: Normalize numeric fields to strings for decimal validation
+      const normalizedData: any = { ...propertyData };
+      if (propertyData.price !== undefined) {
+        normalizedData.price = String(propertyData.price);
+      }
+      if (propertyData.bathrooms !== undefined) {
+        normalizedData.bathrooms = String(propertyData.bathrooms);
+      }
+
       const response = await fetch(`/api/v2/properties/${propertyId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': token ? `Bearer ${token}` : '',
         },
-        body: JSON.stringify(propertyData),
+        body: JSON.stringify(normalizedData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update property');
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 403) {
+          throw new Error('You do not have permission to edit this property');
+        }
+        throw new Error(errorData.error || 'Failed to update property');
       }
 
       const data = await response.json();
