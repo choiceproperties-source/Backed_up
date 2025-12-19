@@ -1,0 +1,99 @@
+Proceed with fixing the property creation and update failure.
+Use the completed diagnostic report as the source of truth.
+
+GOAL:
+Allow landlords to successfully CREATE and UPDATE properties.
+
+STRICT RULES:
+- DO NOT modify backend code
+- DO NOT modify database schema
+- DO NOT modify Zod or Drizzle schemas
+- DO NOT add new features
+- Fix ONLY frontend normalization
+
+ROOT CAUSE:
+Frontend sends camelCase fields.
+Backend schema expects snake_case.
+Validation fails before DB insert.
+
+APPLY FIXES HERE ONLY:
+File: client/src/hooks/use-owned-properties.ts
+
+--------------------------------
+1) FIX createProperty NORMALIZATION
+--------------------------------
+In createProperty (around lines 107–125):
+
+Convert ALL camelCase fields to snake_case
+BEFORE sending payload to backend.
+
+Required mappings:
+- ownerId → owner_id
+- squareFeet → square_feet
+- propertyType → property_type
+- zipCode → zip_code
+- petsAllowed → pets_allowed
+- leaseTerm → lease_term
+- utilitiesIncluded → utilities_included
+
+Ensure:
+- price remains string
+- bathrooms remains string
+- bedrooms remains number
+- booleans remain booleans
+- arrays remain arrays
+
+Example structure (illustrative only):
+{
+  title,
+  description,
+  address,
+  city,
+  state,
+  zip_code,
+  price,
+  bedrooms,
+  bathrooms,
+  square_feet,
+  property_type,
+  pets_allowed,
+  lease_term,
+  utilities_included,
+  amenities,
+  images,
+  owner_id,
+  status
+}
+
+--------------------------------
+2) FIX updateProperty NORMALIZATION
+--------------------------------
+Apply the SAME camelCase → snake_case conversion
+inside updateProperty (around lines 170–190).
+
+Ensure PATCH payload matches backend schema.
+
+--------------------------------
+3) VALIDATION CHECK
+--------------------------------
+After fixes, verify:
+- POST /api/v2/properties succeeds
+- PATCH /api/v2/properties/:id succeeds
+- No Zod validation errors
+- No 400 responses
+- Landlord can create, edit, and save properties
+
+--------------------------------
+4) TEST SCENARIOS
+--------------------------------
+Test in UI:
+- New landlord creates property → success
+- Edit existing owned property → success
+- Sample properties still NOT editable (expected)
+- Property appears correctly in landlord dashboard
+- Property appears in public listings
+
+REPORT BACK WITH:
+- Files changed
+- Confirmation of successful create/update
+- Any remaining warnings (if any)

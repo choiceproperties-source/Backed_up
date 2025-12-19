@@ -106,13 +106,27 @@ export function useOwnedProperties() {
 
     try {
       const token = await getAuthToken();
-      // PRIORITY 1 FIX: Normalize numeric fields to strings for decimal validation
+      // FIX: Convert camelCase to snake_case for backend schema + normalize numeric fields to strings
       const normalizedData = {
-        ...propertyData,
-        ownerId: user.id,
-        // Convert numeric values to strings for decimal fields in backend
+        title: propertyData.title,
+        description: propertyData.description,
+        address: propertyData.address,
+        city: propertyData.city,
+        state: propertyData.state,
+        zip_code: propertyData.zipCode,  // camelCase → snake_case
         price: propertyData.price !== undefined ? String(propertyData.price) : undefined,
+        bedrooms: propertyData.bedrooms,
         bathrooms: propertyData.bathrooms !== undefined ? String(propertyData.bathrooms) : undefined,
+        square_feet: propertyData.squareFeet,  // camelCase → snake_case
+        property_type: propertyData.propertyType,  // camelCase → snake_case
+        pets_allowed: propertyData.petsAllowed,  // camelCase → snake_case
+        lease_term: propertyData.leaseTerm,  // camelCase → snake_case
+        utilities_included: propertyData.utilitiesIncluded,  // camelCase → snake_case
+        amenities: propertyData.amenities,
+        images: propertyData.images,
+        furnished: propertyData.furnished,
+        status: propertyData.status,
+        owner_id: user.id,  // camelCase → snake_case
       };
       
       const response = await fetch('/api/v2/properties', {
@@ -169,14 +183,28 @@ export function useOwnedProperties() {
 
     try {
       const token = await getAuthToken();
-      // PRIORITY 1 FIX: Normalize numeric fields to strings for decimal validation
-      const normalizedData: any = { ...propertyData };
-      if (propertyData.price !== undefined) {
-        normalizedData.price = String(propertyData.price);
-      }
-      if (propertyData.bathrooms !== undefined) {
-        normalizedData.bathrooms = String(propertyData.bathrooms);
-      }
+      // FIX: Convert camelCase to snake_case for backend schema + normalize numeric fields to strings
+      const normalizedData: any = {};
+      
+      // Map camelCase properties to snake_case for backend
+      if (propertyData.title !== undefined) normalizedData.title = propertyData.title;
+      if (propertyData.description !== undefined) normalizedData.description = propertyData.description;
+      if (propertyData.address !== undefined) normalizedData.address = propertyData.address;
+      if (propertyData.city !== undefined) normalizedData.city = propertyData.city;
+      if (propertyData.state !== undefined) normalizedData.state = propertyData.state;
+      if (propertyData.zipCode !== undefined) normalizedData.zip_code = propertyData.zipCode;
+      if (propertyData.price !== undefined) normalizedData.price = String(propertyData.price);
+      if (propertyData.bedrooms !== undefined) normalizedData.bedrooms = propertyData.bedrooms;
+      if (propertyData.bathrooms !== undefined) normalizedData.bathrooms = String(propertyData.bathrooms);
+      if (propertyData.squareFeet !== undefined) normalizedData.square_feet = propertyData.squareFeet;
+      if (propertyData.propertyType !== undefined) normalizedData.property_type = propertyData.propertyType;
+      if (propertyData.petsAllowed !== undefined) normalizedData.pets_allowed = propertyData.petsAllowed;
+      if (propertyData.leaseTerm !== undefined) normalizedData.lease_term = propertyData.leaseTerm;
+      if (propertyData.utilitiesIncluded !== undefined) normalizedData.utilities_included = propertyData.utilitiesIncluded;
+      if (propertyData.amenities !== undefined) normalizedData.amenities = propertyData.amenities;
+      if (propertyData.images !== undefined) normalizedData.images = propertyData.images;
+      if (propertyData.furnished !== undefined) normalizedData.furnished = propertyData.furnished;
+      if (propertyData.status !== undefined) normalizedData.status = propertyData.status;
 
       const response = await fetch(`/api/v2/properties/${propertyId}`, {
         method: 'PATCH',
