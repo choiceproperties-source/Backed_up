@@ -193,12 +193,10 @@ export function CoApplicantForm({
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add Co-Applicant</DialogTitle>
-                <DialogDescription>
-                  Enter the details of the person you want to add to your application. They will receive an email invitation to complete their portion.
-                </DialogDescription>
-              </DialogHeader>
+              <DialogTitle>Add Co-Applicant</DialogTitle>
+              <DialogDescription>
+                Enter the details of the person you want to add to your application. They will receive an email invitation to complete their portion.
+              </DialogDescription>
               
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">

@@ -163,12 +163,10 @@ export function ApplicationReviewWorkflow({
                 </Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Approve Application</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to approve this application from {applicantName}?
-                  </DialogDescription>
-                </DialogHeader>
+                <DialogTitle>Approve Application</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to approve this application from {applicantName}?
+                </DialogDescription>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setApproveDialogOpen(false)}>
                     Cancel
@@ -198,12 +196,10 @@ export function ApplicationReviewWorkflow({
                 </Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Request Additional Information</DialogTitle>
-                  <DialogDescription>
-                    Specify what additional information or documents are required from the applicant.
-                  </DialogDescription>
-                </DialogHeader>
+                <DialogTitle>Request Additional Information</DialogTitle>
+                <DialogDescription>
+                  Specify what additional information or documents are required from the applicant.
+                </DialogDescription>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
                     <Label htmlFor="infoRequest">Information Required</Label>
@@ -259,12 +255,10 @@ export function ApplicationReviewWorkflow({
                 </Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Reject Application</DialogTitle>
-                  <DialogDescription>
-                    Please provide a reason for rejecting this application. This will be communicated to the applicant.
-                  </DialogDescription>
-                </DialogHeader>
+                <DialogTitle>Reject Application</DialogTitle>
+                <DialogDescription>
+                  Please provide a reason for rejecting this application. This will be communicated to the applicant.
+                </DialogDescription>
                 <div className="py-4">
                   <div className="space-y-2">
                     <Label htmlFor="rejectReason">Rejection Reason</Label>

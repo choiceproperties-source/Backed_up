@@ -463,11 +463,12 @@ export function ApplicationDetailView({
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
+                    <DialogTitle>Reject Application</DialogTitle>
+                    <DialogDescription>
+                      Please provide a reason for rejecting this application.
+                    </DialogDescription>
                     <DialogHeader>
-                      <DialogTitle>Reject Application</DialogTitle>
-                      <DialogDescription>
-                        Please provide a reason for rejecting this application.
-                      </DialogDescription>
+                      <div className="sr-only">Reject Application form</div>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div>
