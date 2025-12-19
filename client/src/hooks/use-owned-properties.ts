@@ -110,6 +110,7 @@ export function useOwnedProperties() {
     try {
       const token = await getAuthToken();
       // FIX: Convert camelCase to snake_case for backend schema
+      // Note: price and bathrooms must be strings (decimal fields in DB)
       const normalizedData = {
         title: propertyData.title,
         description: propertyData.description,
@@ -117,9 +118,9 @@ export function useOwnedProperties() {
         city: propertyData.city,
         state: propertyData.state,
         zip_code: propertyData.zipCode,  // camelCase → snake_case
-        price: propertyData.price,  // Keep as number (decimal in DB)
+        price: propertyData.price?.toString(),  // Convert to string (decimal in DB)
         bedrooms: propertyData.bedrooms,  // Keep as number (integer in DB)
-        bathrooms: propertyData.bathrooms,  // Keep as number (decimal in DB)
+        bathrooms: propertyData.bathrooms?.toString(),  // Convert to string (decimal in DB)
         square_feet: propertyData.squareFeet,  // camelCase → snake_case
         property_type: propertyData.propertyType,  // camelCase → snake_case
         pets_allowed: propertyData.petsAllowed,  // camelCase → snake_case
@@ -187,18 +188,19 @@ export function useOwnedProperties() {
     try {
       const token = await getAuthToken();
       // FIX: Convert camelCase to snake_case for backend schema
+      // Note: price and bathrooms must be strings (decimal fields in DB)
       const normalizedData: any = {};
       
-      // Map camelCase properties to snake_case for backend (preserve numeric types)
+      // Map camelCase properties to snake_case for backend
       if (propertyData.title !== undefined) normalizedData.title = propertyData.title;
       if (propertyData.description !== undefined) normalizedData.description = propertyData.description;
       if (propertyData.address !== undefined) normalizedData.address = propertyData.address;
       if (propertyData.city !== undefined) normalizedData.city = propertyData.city;
       if (propertyData.state !== undefined) normalizedData.state = propertyData.state;
       if (propertyData.zipCode !== undefined) normalizedData.zip_code = propertyData.zipCode;
-      if (propertyData.price !== undefined) normalizedData.price = propertyData.price;  // Keep as number
-      if (propertyData.bedrooms !== undefined) normalizedData.bedrooms = propertyData.bedrooms;  // Keep as number
-      if (propertyData.bathrooms !== undefined) normalizedData.bathrooms = propertyData.bathrooms;  // Keep as number
+      if (propertyData.price !== undefined) normalizedData.price = propertyData.price?.toString();  // Convert to string (decimal in DB)
+      if (propertyData.bedrooms !== undefined) normalizedData.bedrooms = propertyData.bedrooms;
+      if (propertyData.bathrooms !== undefined) normalizedData.bathrooms = propertyData.bathrooms?.toString();  // Convert to string (decimal in DB)
       if (propertyData.squareFeet !== undefined) normalizedData.square_feet = propertyData.squareFeet;
       if (propertyData.propertyType !== undefined) normalizedData.property_type = propertyData.propertyType;
       if (propertyData.petsAllowed !== undefined) normalizedData.pets_allowed = propertyData.petsAllowed;
