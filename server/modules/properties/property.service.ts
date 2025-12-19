@@ -9,6 +9,7 @@ export interface GetPropertiesParams {
   minPrice?: string;
   maxPrice?: string;
   status?: string;
+  ownerId?: string;  // FIX 2d: Accept ownerId in service params
   page?: string;
   limit?: string;
 }
@@ -29,7 +30,7 @@ export async function getProperties(params: GetPropertiesParams): Promise<GetPro
   const pageNum = Math.max(1, parseInt(params.page || "1") || 1);
   const limitNum = Math.min(100, Math.max(1, parseInt(params.limit || "20") || 20));
 
-  const cacheKey = `properties:${params.propertyType || ''}:${params.city || ''}:${params.minPrice || ''}:${params.maxPrice || ''}:${params.status || 'active'}:${pageNum}:${limitNum}`;
+  const cacheKey = `properties:${params.propertyType || ''}:${params.city || ''}:${params.minPrice || ''}:${params.maxPrice || ''}:${params.status || 'active'}:${params.ownerId || ''}:${pageNum}:${limitNum}`;
   const cached = cache.get<GetPropertiesResult>(cacheKey);
   if (cached) {
     return cached;
@@ -41,6 +42,7 @@ export async function getProperties(params: GetPropertiesParams): Promise<GetPro
     minPrice: params.minPrice,
     maxPrice: params.maxPrice,
     status: params.status,
+    ownerId: params.ownerId,  // FIX 2e: Pass ownerId to repository
     page: pageNum,
     limit: limitNum,
   });

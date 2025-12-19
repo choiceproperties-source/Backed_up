@@ -8,7 +8,7 @@ const router = Router();
 
 router.get("/", async (req, res) => {
   try {
-    const { propertyType, city, minPrice, maxPrice, status, page, limit } = req.query;
+    const { propertyType, city, minPrice, maxPrice, status, page, limit, ownerId } = req.query;
 
     const result = await propertyService.getProperties({
       propertyType: propertyType as string | undefined,
@@ -16,6 +16,7 @@ router.get("/", async (req, res) => {
       minPrice: minPrice as string | undefined,
       maxPrice: maxPrice as string | undefined,
       status: status as string | undefined,
+      ownerId: ownerId as string | undefined,  // FIX 2a: Accept ownerId parameter
       page: page as string | undefined,
       limit: limit as string | undefined,
     });

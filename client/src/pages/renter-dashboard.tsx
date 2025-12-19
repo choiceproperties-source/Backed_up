@@ -136,8 +136,14 @@ export default function RenterDashboard() {
     fetchFavoriteDetails();
   }, [favorites]);
 
-  // Redirect if not logged in
+  // FIX 4: Enforce role-based access control - only renters allowed
   if (!isLoggedIn || !user) {
+    navigate('/login');
+    return null;
+  }
+
+  // Redirect non-renters away from renter dashboard
+  if (user.role !== 'renter') {
     navigate('/login');
     return null;
   }

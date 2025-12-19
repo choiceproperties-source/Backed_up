@@ -6,6 +6,7 @@ export interface PropertyFilters {
   minPrice?: string;
   maxPrice?: string;
   status?: string;
+  ownerId?: string;  // FIX 2b: Add ownerId filter
   page: number;
   limit: number;
 }
@@ -35,11 +36,16 @@ export interface PropertyCreateData {
 }
 
 export async function findAllProperties(filters: PropertyFilters) {
-  const { propertyType, city, minPrice, maxPrice, status, page, limit } = filters;
+  const { propertyType, city, minPrice, maxPrice, status, ownerId, page, limit } = filters;
   const offset = (page - 1) * limit;
   const supabase = getSupabaseOrThrow();
 
   let query = supabase.from("properties").select("*", { count: "exact" });
+
+  // FIX 2c: Apply owner filter when provided (for landlord dashboard)
+  if (ownerId) {
+    query = query.eq("owner_id", ownerId);
+  }
 
   if (propertyType) query = query.eq("property_type", propertyType);
   if (city) query = query.ilike("city", `%${city}%`);
@@ -47,7 +53,8 @@ export async function findAllProperties(filters: PropertyFilters) {
   if (maxPrice) query = query.lte("price", maxPrice);
   if (status) {
     query = query.eq("status", status);
-  } else {
+  } else if (!ownerId) {
+    // Only default to 'active' for public browsing (no owner filter)
     query = query.eq("status", "active");
   }
 

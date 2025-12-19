@@ -26,10 +26,13 @@ async function seedProperties() {
     const propertiesPath = path.join(__dirname, '../client/src/data/properties.json');
     const propertiesData = JSON.parse(fs.readFileSync(propertiesPath, 'utf-8'));
 
+    // FIX 1: Assign sample properties to dedicated DEMO owner (not null)
+    const DEMO_OWNER_ID = "11111111-1111-1111-1111-111111111111";
+
     // Transform properties for database
     const transformedProperties = propertiesData.map((prop: any) => ({
       id: uuidv4(),
-      owner_id: null,
+      owner_id: DEMO_OWNER_ID,  // Sample properties owned by demo account
       title: prop.title,
       price: prop.price,
       address: prop.address,
