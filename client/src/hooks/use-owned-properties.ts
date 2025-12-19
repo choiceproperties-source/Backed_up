@@ -109,7 +109,7 @@ export function useOwnedProperties() {
 
     try {
       const token = await getAuthToken();
-      // FIX: Convert camelCase to snake_case for backend schema + normalize numeric fields to strings
+      // FIX: Convert camelCase to snake_case for backend schema
       const normalizedData = {
         title: propertyData.title,
         description: propertyData.description,
@@ -117,18 +117,18 @@ export function useOwnedProperties() {
         city: propertyData.city,
         state: propertyData.state,
         zip_code: propertyData.zipCode,  // camelCase → snake_case
-        price: propertyData.price !== undefined ? String(propertyData.price) : undefined,
-        bedrooms: propertyData.bedrooms,
-        bathrooms: propertyData.bathrooms !== undefined ? String(propertyData.bathrooms) : undefined,
+        price: propertyData.price,  // Keep as number (decimal in DB)
+        bedrooms: propertyData.bedrooms,  // Keep as number (integer in DB)
+        bathrooms: propertyData.bathrooms,  // Keep as number (decimal in DB)
         square_feet: propertyData.squareFeet,  // camelCase → snake_case
         property_type: propertyData.propertyType,  // camelCase → snake_case
         pets_allowed: propertyData.petsAllowed,  // camelCase → snake_case
         lease_term: propertyData.leaseTerm,  // camelCase → snake_case
-        utilities_included: propertyData.utilitiesIncluded,  // camelCase → snake_case
-        amenities: propertyData.amenities,
-        images: propertyData.images,
-        furnished: propertyData.furnished,
-        status: propertyData.status,
+        utilities_included: propertyData.utilitiesIncluded,  // camelCase → snake_case (array)
+        amenities: propertyData.amenities,  // Array of amenity strings
+        images: propertyData.images,  // Array of image URLs
+        furnished: propertyData.furnished,  // Boolean
+        status: propertyData.status,  // String: 'active' or 'inactive'
         owner_id: user.id,  // camelCase → snake_case
       };
       
@@ -186,19 +186,19 @@ export function useOwnedProperties() {
 
     try {
       const token = await getAuthToken();
-      // FIX: Convert camelCase to snake_case for backend schema + normalize numeric fields to strings
+      // FIX: Convert camelCase to snake_case for backend schema
       const normalizedData: any = {};
       
-      // Map camelCase properties to snake_case for backend
+      // Map camelCase properties to snake_case for backend (preserve numeric types)
       if (propertyData.title !== undefined) normalizedData.title = propertyData.title;
       if (propertyData.description !== undefined) normalizedData.description = propertyData.description;
       if (propertyData.address !== undefined) normalizedData.address = propertyData.address;
       if (propertyData.city !== undefined) normalizedData.city = propertyData.city;
       if (propertyData.state !== undefined) normalizedData.state = propertyData.state;
       if (propertyData.zipCode !== undefined) normalizedData.zip_code = propertyData.zipCode;
-      if (propertyData.price !== undefined) normalizedData.price = String(propertyData.price);
-      if (propertyData.bedrooms !== undefined) normalizedData.bedrooms = propertyData.bedrooms;
-      if (propertyData.bathrooms !== undefined) normalizedData.bathrooms = String(propertyData.bathrooms);
+      if (propertyData.price !== undefined) normalizedData.price = propertyData.price;  // Keep as number
+      if (propertyData.bedrooms !== undefined) normalizedData.bedrooms = propertyData.bedrooms;  // Keep as number
+      if (propertyData.bathrooms !== undefined) normalizedData.bathrooms = propertyData.bathrooms;  // Keep as number
       if (propertyData.squareFeet !== undefined) normalizedData.square_feet = propertyData.squareFeet;
       if (propertyData.propertyType !== undefined) normalizedData.property_type = propertyData.propertyType;
       if (propertyData.petsAllowed !== undefined) normalizedData.pets_allowed = propertyData.petsAllowed;
