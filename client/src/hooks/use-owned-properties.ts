@@ -20,6 +20,9 @@ export interface OwnedProperty {
   status?: string;
   furnished?: boolean;
   petsAllowed?: boolean;
+  leaseTerm?: string;
+  utilitiesIncluded?: boolean;
+  amenities?: string[];
   createdAt: string;
   updatedAt?: string;
 }
