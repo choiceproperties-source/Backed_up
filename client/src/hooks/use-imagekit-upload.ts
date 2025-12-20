@@ -96,9 +96,12 @@ export function useImageKitUpload(options: UseImageKitUploadOptions = {}) {
         });
 
         xhr.addEventListener('load', () => {
+          console.log('[ImageKit] Response status:', xhr.status, 'Body:', xhr.responseText.substring(0, 200));
+          
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const response = JSON.parse(xhr.responseText);
+              console.log('[ImageKit] Parsed response:', response);
               
               const uploadResponse: ImageKitUploadResponse = {
                 fileId: response.fileId || response.file_id,
@@ -115,22 +118,27 @@ export function useImageKitUpload(options: UseImageKitUploadOptions = {}) {
               options.onUploadComplete?.(uploadResponse);
               resolve(uploadResponse);
             } catch (error) {
-              reject(new Error('Failed to parse upload response'));
+              console.error('[ImageKit] Parse error:', error, 'Response text:', xhr.responseText.substring(0, 500));
+              reject(new Error('Failed to parse upload response: ' + xhr.responseText.substring(0, 100)));
             }
           } else {
-            reject(new Error(`Upload failed with status ${xhr.status}`));
+            console.error('[ImageKit] Error status:', xhr.status, 'Response:', xhr.responseText.substring(0, 500));
+            reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText.substring(0, 100)}`));
           }
         });
 
-        xhr.addEventListener('error', () => {
-          reject(new Error('Upload error'));
+        xhr.addEventListener('error', (e) => {
+          console.error('[ImageKit] XHR error:', e);
+          reject(new Error('Upload error: Network failure'));
         });
 
         xhr.addEventListener('abort', () => {
+          console.error('[ImageKit] Upload aborted');
           reject(new Error('Upload cancelled'));
         });
 
         xhr.open('POST', `${urlEndpoint}/api/upload`);
+        console.log('[ImageKit] Starting upload to:', `${urlEndpoint}/api/upload`);
         xhr.send(formData);
       });
 
