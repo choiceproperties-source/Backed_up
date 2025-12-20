@@ -1,6 +1,6 @@
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { lazy, Suspense as ReactSuspense, useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 
 import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "@/lib/auth-context";
@@ -25,59 +25,58 @@ import "aos/dist/aos.css";
 
 /* ---------------- Lazy Pages ---------------- */
 
-const Apply = lazy(() => import("@/pages/apply"));
-const About = lazy(() => import("@/pages/about"));
-const Contact = lazy(() => import("@/pages/contact"));
-const Privacy = lazy(() => import("@/pages/privacy"));
-const Terms = lazy(() => import("@/pages/terms"));
-const FAQ = lazy(() => import("@/pages/faq"));
-const SuccessStories = lazy(() => import("@/pages/success-stories"));
+const lazyPage = (path: string) =>
+  lazy(() => import(path));
 
-const Login = lazy(() => import("@/pages/login"));
-const Signup = lazy(() => import("@/pages/signup"));
-const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
-const ResetPassword = lazy(() => import("@/pages/reset-password"));
-const AuthCallback = lazy(() => import("@/pages/auth-callback"));
-const VerifyEmail = lazy(() => import("@/pages/verify-email"));
-const SelectRole = lazy(() => import("@/pages/select-role"));
+const Login = lazyPage("@/pages/login");
+const Signup = lazyPage("@/pages/signup");
+const ForgotPassword = lazyPage("@/pages/forgot-password");
+const ResetPassword = lazyPage("@/pages/reset-password");
+const AuthCallback = lazyPage("@/pages/auth-callback");
+const VerifyEmail = lazyPage("@/pages/verify-email");
+const SelectRole = lazyPage("@/pages/select-role");
 
-const Applications = lazy(() => import("@/pages/applications"));
-const ApplicationDetail = lazy(() => import("@/pages/application-detail"));
+const Applications = lazyPage("@/pages/applications");
+const ApplicationDetail = lazyPage("@/pages/application-detail");
+const Messages = lazyPage("@/pages/messages");
 
-const RenterDashboard = lazy(() => import("@/pages/renter-dashboard"));
-const TenantProfile = lazy(() => import("@/pages/tenant-profile"));
-const TenantLeaseDashboard = lazy(() => import("@/pages/tenant-lease-dashboard"));
-const TenantPaymentsDashboard = lazy(() => import("@/pages/tenant-payments-dashboard"));
+const RenterDashboard = lazyPage("@/pages/renter-dashboard");
+const TenantProfile = lazyPage("@/pages/tenant-profile");
+const TenantLeaseDashboard = lazyPage("@/pages/tenant-lease-dashboard");
+const TenantPaymentsDashboard = lazyPage("@/pages/tenant-payments-dashboard");
 
-const LandlordDashboard = lazy(() => import("@/pages/landlord-dashboard"));
-const LandlordProperties = lazy(() => import("@/pages/landlord-properties"));
-const LandlordApplications = lazy(() => import("@/pages/landlord-applications"));
-const LandlordProfile = lazy(() => import("@/pages/landlord-profile"));
-const LandlordLeaseDashboard = lazy(() => import("@/pages/landlord-lease-dashboard"));
-const LandlordPaymentsVerification = lazy(() => import("@/pages/landlord-payments-verification"));
-const LandlordPaymentHistory = lazy(() => import("@/pages/landlord-payment-history"));
+const LandlordDashboard = lazyPage("@/pages/landlord-dashboard");
+const LandlordProperties = lazyPage("@/pages/landlord-properties");
+const LandlordApplications = lazyPage("@/pages/landlord-applications");
+const LandlordProfile = lazyPage("@/pages/landlord-profile");
+const LandlordLeaseDashboard = lazyPage("@/pages/landlord-lease-dashboard");
+const LandlordPaymentsVerification = lazyPage("@/pages/landlord-payments-verification");
+const LandlordPaymentHistory = lazyPage("@/pages/landlord-payment-history");
 
-const AgentDashboard = lazy(() => import("@/pages/agent-dashboard-new"));
-const AgentProperties = lazy(() => import("@/pages/agent-properties"));
-const AgentApplications = lazy(() => import("@/pages/agent-applications"));
-const AgentProfile = lazy(() => import("@/pages/agent-profile"));
+const AgentDashboard = lazyPage("@/pages/agent-dashboard-new");
+const AgentProperties = lazyPage("@/pages/agent-properties");
+const AgentApplications = lazyPage("@/pages/agent-applications");
+const AgentProfile = lazyPage("@/pages/agent-profile");
 
-const Admin = lazy(() => import("@/pages/admin"));
-const AdminStorageMonitor = lazy(() => import("@/pages/admin-storage-monitor"));
+const Admin = lazyPage("@/pages/admin");
+const AdminStorageMonitor = lazyPage("@/pages/admin-storage-monitor");
 
-const Messages = lazy(() => import("@/pages/messages"));
-const OwnerProfile = lazy(() => import("@/pages/owner-profile"));
-const PropertyRequirements = lazy(() => import("@/pages/property-requirements"));
+const Apply = lazyPage("@/pages/apply");
+const About = lazyPage("@/pages/about");
+const Contact = lazyPage("@/pages/contact");
+const Privacy = lazyPage("@/pages/privacy");
+const Terms = lazyPage("@/pages/terms");
+const FAQ = lazyPage("@/pages/faq");
+const SuccessStories = lazyPage("@/pages/success-stories");
+const OwnerProfile = lazyPage("@/pages/owner-profile");
+const PropertyRequirements = lazyPage("@/pages/property-requirements");
 
-/* ---------------- Loading UI ---------------- */
+/* ---------------- Loading ---------------- */
 
-function LoadingFallback() {
+function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-2 text-muted-foreground">
-        <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span>Loading...</span>
-      </div>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   );
 }
@@ -86,203 +85,92 @@ function LoadingFallback() {
 
 function Router() {
   return (
-    <Switch>
-      {/* Public */}
-      <Route path="/" component={Home} />
-      <Route path="/properties" component={Properties} />
-      <Route path="/property/:id" component={PropertyDetails} />
-      <Route path="/owner/:slug" component={OwnerProfile} />
+    <Suspense fallback={<Loading />}>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/properties" component={Properties} />
+        <Route path="/property/:id" component={PropertyDetails} />
+        <Route path="/owner/:slug" component={OwnerProfile} />
 
-      {/* Auth */}
-      <Route path="/login"><ReactSuspense fallback={<LoadingFallback />}><Login /></ReactSuspense></Route>
-      <Route path="/signup"><ReactSuspense fallback={<LoadingFallback />}><Signup /></ReactSuspense></Route>
-      <Route path="/forgot-password"><ReactSuspense fallback={<LoadingFallback />}><ForgotPassword /></ReactSuspense></Route>
-      <Route path="/reset-password"><ReactSuspense fallback={<LoadingFallback />}><ResetPassword /></ReactSuspense></Route>
-      <Route path="/auth/callback"><ReactSuspense fallback={<LoadingFallback />}><AuthCallback /></ReactSuspense></Route>
-      <Route path="/verify-email"><ReactSuspense fallback={<LoadingFallback />}><VerifyEmail /></ReactSuspense></Route>
-      <Route path="/select-role"><ReactSuspense fallback={<LoadingFallback />}><SelectRole /></ReactSuspense></Route>
+        <Route path="/login" component={Login} />
+        <Route path="/signup" component={Signup} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
+        <Route path="/auth/callback" component={AuthCallback} />
+        <Route path="/verify-email" component={VerifyEmail} />
+        <Route path="/select-role" component={SelectRole} />
 
-      {/* General Protected */}
-      <Route path="/applications">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute><Applications /></ProtectedRoute>
-        </ReactSuspense>
-      </Route>
+        <Route path="/applications">
+          <ProtectedRoute>
+            <Applications />
+          </ProtectedRoute>
+        </Route>
 
-      <Route path="/applications/:id">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute><ApplicationDetail /></ProtectedRoute>
-        </ReactSuspense>
-      </Route>
+        <Route path="/applications/:id">
+          <ProtectedRoute>
+            <ApplicationDetail />
+          </ProtectedRoute>
+        </Route>
 
-      <Route path="/messages">
-        <ReactSuspense fallback={<LoadingFallback />}>
+        <Route path="/messages">
           <ProtectedRoute requireEmailVerification={false}>
             <Messages />
           </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
+        </Route>
 
-      {/* Renter */}
-      <Route path="/renter-dashboard">
-        <ReactSuspense fallback={<LoadingFallback />}>
+        <Route path="/renter-dashboard">
           <ProtectedRoute requiredRoles={["renter"]}>
             <RenterDashboard />
           </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
+        </Route>
 
-      <Route path="/tenant-profile">
-        <ReactSuspense fallback={<LoadingFallback />}>
+        <Route path="/tenant-profile">
           <ProtectedRoute requiredRoles={["renter"]}>
             <TenantProfile />
           </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
+        </Route>
 
-      <Route path="/tenant-lease-dashboard">
-        <ReactSuspense fallback={<LoadingFallback />}>
+        <Route path="/tenant-lease-dashboard">
           <ProtectedRoute requiredRoles={["renter"]}>
             <TenantLeaseDashboard />
           </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
+        </Route>
 
-      <Route path="/tenant-payments">
-        <ReactSuspense fallback={<LoadingFallback />}>
+        <Route path="/tenant-payments">
           <ProtectedRoute requiredRoles={["renter"]}>
             <TenantPaymentsDashboard />
           </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
+        </Route>
 
-      {/* Landlord / Property Manager */}
-      <Route path="/landlord-dashboard">
-        <ReactSuspense fallback={<LoadingFallback />}>
+        <Route path="/landlord-dashboard">
           <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
             <LandlordDashboard />
           </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
+        </Route>
 
-      <Route path="/landlord-properties">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
-            <LandlordProperties />
-          </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
-
-      <Route path="/landlord-applications">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
-            <LandlordApplications />
-          </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
-
-      <Route path="/landlord-profile">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
-            <LandlordProfile />
-          </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
-
-      <Route path="/landlord-lease-dashboard">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
-            <LandlordLeaseDashboard />
-          </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
-
-      <Route path="/landlord-payments-verification">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
-            <LandlordPaymentsVerification />
-          </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
-
-      <Route path="/landlord-payment-history/:leaseId">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
-            <LandlordPaymentHistory />
-          </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
-
-      {/* Agent */}
-      <Route path="/agent-dashboard">
-        <ReactSuspense fallback={<LoadingFallback />}>
+        <Route path="/agent-dashboard">
           <ProtectedRoute requiredRoles={["agent", "admin"]}>
             <AgentDashboard />
           </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
+        </Route>
 
-      <Route path="/agent-properties">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute requiredRoles={["agent", "admin"]}>
-            <AgentProperties />
-          </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
-
-      <Route path="/agent-applications">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute requiredRoles={["agent", "admin"]}>
-            <AgentApplications />
-          </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
-
-      <Route path="/agent-profile">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute requiredRoles={["agent", "admin"]}>
-            <AgentProfile />
-          </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
-
-      {/* Admin */}
-      <Route path="/admin">
-        <ReactSuspense fallback={<LoadingFallback />}>
+        <Route path="/admin">
           <ProtectedRoute requiredRoles={["admin"]}>
             <Admin />
           </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
+        </Route>
 
-      <Route path="/admin/storage-monitor">
-        <ReactSuspense fallback={<LoadingFallback />}>
-          <ProtectedRoute requiredRoles={["admin"]}>
-            <AdminStorageMonitor />
-          </ProtectedRoute>
-        </ReactSuspense>
-      </Route>
-
-      {/* Info */}
-      <Route path="/apply"><ReactSuspense fallback={<LoadingFallback />}><Apply /></ReactSuspense></Route>
-      <Route path="/about"><ReactSuspense fallback={<LoadingFallback />}><About /></ReactSuspense></Route>
-      <Route path="/contact"><ReactSuspense fallback={<LoadingFallback />}><Contact /></ReactSuspense></Route>
-      <Route path="/privacy"><ReactSuspense fallback={<LoadingFallback />}><Privacy /></ReactSuspense></Route>
-      <Route path="/terms"><ReactSuspense fallback={<LoadingFallback />}><Terms /></ReactSuspense></Route>
-      <Route path="/faq"><ReactSuspense fallback={<LoadingFallback />}><FAQ /></ReactSuspense></Route>
-      <Route path="/success-stories"><ReactSuspense fallback={<LoadingFallback />}><SuccessStories /></ReactSuspense></Route>
-      <Route path="/property-requirements"><ReactSuspense fallback={<LoadingFallback />}><PropertyRequirements /></ReactSuspense></Route>
-
-      <Route component={NotFound} />
-    </Switch>
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
-/* ---------------- App Root ---------------- */
+/* ---------------- App ---------------- */
 
 export default function App() {
   useEffect(() => {
-    AOS.init({ duration: 1000, once: true, easing: "ease-out-cubic" });
+    AOS.init({ duration: 1000, once: true });
   }, []);
 
   return (
@@ -292,7 +180,7 @@ export default function App() {
           <TooltipProvider>
             <FavoritesProvider>
               <Toaster />
-              <SonnerToaster position="top-right" richColors closeButton />
+              <SonnerToaster richColors position="top-right" />
               <StickyNav />
               <FloatingCTAButton />
               <Router />

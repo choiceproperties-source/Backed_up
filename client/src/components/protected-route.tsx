@@ -25,7 +25,7 @@ export function ProtectedRoute({
   const { user, isLoading, isEmailVerified } = useAuth();
 
   /* ----------------------------------
-     1. Wait for auth initialization
+     1. Auth bootstrapping
   ---------------------------------- */
   if (isLoading) {
     return (
@@ -43,32 +43,21 @@ export function ProtectedRoute({
   }
 
   /* ----------------------------------
-     3. Role not ready (should be rare now)
-  ---------------------------------- */
-  if (!user.role) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  /* ----------------------------------
-     4. Role selection gate
+     3. Role selection gate
   ---------------------------------- */
   if (user.needs_role_selection) {
     return <Redirect to="/select-role" />;
   }
 
   /* ----------------------------------
-     5. Email verification (only when required)
+     4. Email verification gate
   ---------------------------------- */
   if (requireEmailVerification && !isEmailVerified) {
     return <Redirect to="/verify-email" />;
   }
 
   /* ----------------------------------
-     6. Role authorization (LAST)
+     5. Role authorization
   ---------------------------------- */
   if (requiredRoles && !requiredRoles.includes(user.role as AppRole)) {
     return <Redirect to="/" />;
