@@ -47,13 +47,16 @@ async function fetchUserProfile(userId: string): Promise<Partial<User>> {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
 
   const buildUserData = async (authUser: any): Promise<User> => {
+    console.log('[AUTH] Building user data for:', authUser.id);
     const [role, profile] = await Promise.all([
       fetchUserRole(authUser.id),
       fetchUserProfile(authUser.id)
     ]);
+    console.log('[AUTH] User role fetched:', role);
     return {
       id: authUser.id,
       email: authUser.email || '',
@@ -73,20 +76,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         if (!supabase) {
+          console.log('[AUTH] Supabase not configured');
           setLoading(false);
+          setAuthReady(true);
           return;
         }
         
+        console.log('[AUTH] Initializing Supabase session...');
         const { data: { session } } = await supabase.auth.getSession();
+        
         if (session?.user) {
+          console.log('[AUTH] Session found, building user data');
           const userData = await buildUserData(session.user);
           setUser(userData);
           setEmailVerified(!!session.user.email_confirmed_at);
+        } else {
+          console.log('[AUTH] No active session');
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error('[AUTH] Initialization error:', error);
       } finally {
         setLoading(false);
+        // CRITICAL: Mark auth as ready AFTER initial session check
+        setAuthReady(true);
       }
     };
 
@@ -103,17 +115,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     if (supabase) {
+      console.log('[AUTH] Setting up auth state listener');
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('[AUTH] Auth state changed:', event);
+        
         if (event === 'SIGNED_OUT') {
+          console.log('[AUTH] User signed out');
           setUser(null);
           setEmailVerified(false);
           return;
         }
         
-        if (session?.user) {
-          const userData = await buildUserData(session.user);
-          setUser(userData);
-          setEmailVerified(!!session.user.email_confirmed_at);
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            console.log('[AUTH] Building user data after state change');
+            const userData = await buildUserData(session.user);
+            setUser(userData);
+            setEmailVerified(!!session.user.email_confirmed_at);
+          }
         }
       });
 
@@ -132,13 +151,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!email || !password) throw new Error('Please enter both email and password');
     if (!supabase) throw new Error('Authentication service unavailable. Please try again later.');
     
+    console.log('[AUTH] Login attempt for:', email);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
     if (error) {
+      console.error('[AUTH] Login error:', error.message);
       if (error.message.includes('Invalid login credentials')) {
         throw new Error('Invalid email or password. Please check your credentials and try again.');
       }
       throw error;
     }
+    
+    console.log('[AUTH] Login successful, fetching role...');
     
     // Handle session persistence based on rememberMe preference
     // If rememberMe is false, we'll clear session on tab/browser close
@@ -151,6 +175,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     if (data.user) {
       const role = await fetchUserRole(data.user.id);
+      console.log('[AUTH] Login completed with role:', role);
       return role;
     }
     return 'renter';
@@ -301,13 +326,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      console.log('[AUTH] Logout initiated');
       if (supabase) {
         await supabase.auth.signOut();
       }
       setUser(null);
       setEmailVerified(false);
+      console.log('[AUTH] Logout completed');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('[AUTH] Logout error:', error);
       setUser(null);
       setEmailVerified(false);
     }
@@ -324,7 +351,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       resendVerificationEmail,
       updateUserRole,
       isLoggedIn: !!user, 
-      isLoading: loading,
+      isLoading: !authReady,
       isEmailVerified: emailVerified
     }}>
       {children}
