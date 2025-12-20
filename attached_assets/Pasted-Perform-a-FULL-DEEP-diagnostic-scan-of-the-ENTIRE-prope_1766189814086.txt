@@ -1,0 +1,119 @@
+Perform a FULL, DEEP diagnostic scan of the ENTIRE property posting flow,
+with special focus on photo uploads.
+
+DO NOT apply fixes yet.
+This is a READ-ONLY investigation.
+
+CONTEXT:
+- Property creation succeeds WITHOUT photos
+- Property creation FAILS WHEN photos are included
+- Error appears only when images are attached
+
+GOAL:
+Identify EXACTLY where and why photo-based property creation fails.
+
+==================================================
+1) TRACE THE FULL PROPERTY POSTING FLOW
+==================================================
+From UI → Backend → Image storage → Database
+
+Include:
+- Frontend form component(s)
+- Image upload logic (ImageKit or any uploader)
+- Property creation hook
+- Backend route
+- Backend service
+- Backend repository
+- Database insert
+
+==================================================
+2) IMAGE UPLOAD PIPELINE ANALYSIS
+==================================================
+Identify and report:
+- How images are uploaded (direct to ImageKit or via backend)
+- When images are uploaded (before or after property creation)
+- What data structure is returned from ImageKit
+- How image URLs / IDs are attached to property payload
+
+Verify:
+- Are images uploaded FIRST, then property created?
+- Or property created FIRST, then images attached?
+- Are image fields required or optional?
+
+==================================================
+3) PAYLOAD INSPECTION (CRITICAL)
+==================================================
+Log and inspect the EXACT payload sent to:
+POST /api/v2/properties
+
+Specifically:
+- images field format
+- data type (array, string, object)
+- expected backend schema type (jsonb, text[], etc.)
+- any size limits or validation errors
+
+==================================================
+4) BACKEND VALIDATION CHECK
+==================================================
+Inspect:
+- insertPropertySchema validation
+- images field validation rules
+- Zod/Drizzle schema expectations
+- Any transformation applied to images before insert
+
+Confirm:
+- Does backend expect:
+  - Array of strings?
+  - Array of objects?
+  - JSON string?
+- Does frontend match that exactly?
+
+==================================================
+5) IMAGEKIT CONFIGURATION CHECK
+==================================================
+Verify:
+- Public/private keys loaded correctly
+- Upload success or partial success
+- Any CORS or permission issues
+- Any rejected uploads
+- Any bucket/folder permission mismatch
+
+==================================================
+6) ERROR CAPTURE
+==================================================
+Capture:
+- Exact error message shown in UI
+- Exact backend error response
+- Any ImageKit SDK error
+- Any Supabase error
+- HTTP status codes
+
+==================================================
+7) EDGE CASES
+==================================================
+Check for:
+- Empty image array vs undefined
+- Large image size
+- Multiple images vs single image
+- Invalid URL objects
+- Mixed image object shapes
+
+==================================================
+DELIVERABLE
+==================================================
+Provide a structured report with:
+
+- Root cause(s)
+- Where failure occurs (frontend / backend / ImageKit)
+- Exact file names + line numbers
+- Payload example (sanitized)
+- Why posting works WITHOUT photos but fails WITH photos
+- Whether issue is:
+  a) validation mismatch
+  b) data shape mismatch
+  c) ImageKit integration bug
+  d) backend schema mismatch
+  e) upload timing/order issue
+
+DO NOT FIX ANYTHING YET.
+Ask for confirmation before applying fixes.
