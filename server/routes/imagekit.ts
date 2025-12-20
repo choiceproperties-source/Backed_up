@@ -32,9 +32,8 @@ export function registerImageKitRoutes(app: Express): void {
       }
 
       const expirySeconds = 15 * 60;
-      const token = imagekit.getAuthenticationParameters(
-        String(Math.floor(Date.now() / 1000) + expirySeconds)
-      );
+      const expireTimestamp = Math.floor(Date.now() / 1000) + expirySeconds;
+      const token = imagekit.getAuthenticationParameters(expireTimestamp);
 
       return res.json(success({
         token: token.token,
