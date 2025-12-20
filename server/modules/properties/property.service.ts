@@ -3,13 +3,17 @@ import { cache, CACHE_TTL } from "../../cache";
 import { invalidateOwnershipCache } from "../../auth-middleware";
 import * as propertyRepository from "./property.repository";
 
+/* ------------------------------------------------ */
+/* Types */
+/* ------------------------------------------------ */
+
 export interface GetPropertiesParams {
   propertyType?: string;
   city?: string;
   minPrice?: string;
   maxPrice?: string;
   status?: string;
-  ownerId?: string;  // FIX 2d: Accept ownerId in service params
+  ownerId?: string;
   page?: string;
   limit?: string;
 }
@@ -26,122 +30,177 @@ export interface GetPropertiesResult {
   };
 }
 
-export async function getProperties(params: GetPropertiesParams): Promise<GetPropertiesResult> {
-  const pageNum = Math.max(1, parseInt(params.page || "1") || 1);
-  const limitNum = Math.min(100, Math.max(1, parseInt(params.limit || "20") || 20));
+export interface CreatePropertyInput {
+  body: Record<string, any>;
+  userId: string;
+}
 
-  const cacheKey = `properties:${params.propertyType || ''}:${params.city || ''}:${params.minPrice || ''}:${params.maxPrice || ''}:${params.status || 'active'}:${params.ownerId || ''}:${pageNum}:${limitNum}`;
-  const cached = cache.get<GetPropertiesResult>(cacheKey);
-  if (cached) {
-    return cached;
+/* ------------------------------------------------ */
+/* Helpers */
+/* ------------------------------------------------ */
+
+function validateImageUrls(images: unknown) {
+  if (!Array.isArray(images)) return;
+
+  if (images.length > 25) {
+    throw new Error("Maximum 25 images per property");
   }
 
-  const { data, count } = await propertyRepository.findAllProperties({
-    propertyType: params.propertyType,
-    city: params.city,
-    minPrice: params.minPrice,
-    maxPrice: params.maxPrice,
-    status: params.status,
-    ownerId: params.ownerId,  // FIX 2e: Pass ownerId to repository
-    page: pageNum,
-    limit: limitNum,
-  });
+  for (const img of images) {
+    if (typeof img !== "string") {
+      throw new Error("Images must be strings (ImageKit URLs)");
+    }
+    if (img.startsWith("data:")) {
+      throw new Error("Base64 images are not allowed. Upload to ImageKit first.");
+    }
+    if (!img.startsWith("http://") && !img.startsWith("https://")) {
+      throw new Error("Images must be valid URLs");
+    }
+  }
+}
 
-  const totalPages = Math.ceil((count || 0) / limitNum);
+/* ------------------------------------------------ */
+/* Queries */
+/* ------------------------------------------------ */
+
+export async function getProperties(
+  params: GetPropertiesParams
+): Promise<GetPropertiesResult> {
+  const page = Math.max(1, Number(params.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(params.limit) || 20));
+
+  const cacheKey = [
+    "properties",
+    params.propertyType ?? "",
+    params.city ?? "",
+    params.minPrice ?? "",
+    params.maxPrice ?? "",
+    params.status ?? "active",
+    params.ownerId ?? "",
+    page,
+    limit,
+  ].join(":");
+
+  const cached = cache.get<GetPropertiesResult>(cacheKey);
+  if (cached) return cached;
+
+  const { data = [], count = 0 } =
+    await propertyRepository.findAllProperties({
+      propertyType: params.propertyType,
+      city: params.city,
+      minPrice: params.minPrice,
+      maxPrice: params.maxPrice,
+      status: params.status,
+      ownerId: params.ownerId,
+      page,
+      limit,
+    });
+
+  const totalPages = Math.ceil(count / limit);
 
   const result: GetPropertiesResult = {
-    properties: data || [],
+    properties: data,
     pagination: {
-      page: pageNum,
-      limit: limitNum,
-      total: count || 0,
+      page,
+      limit,
+      total: count,
       totalPages,
-      hasNextPage: pageNum < totalPages,
-      hasPrevPage: pageNum > 1,
-    }
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    },
   };
 
   cache.set(cacheKey, result, CACHE_TTL.PROPERTIES_LIST);
-
   return result;
 }
 
 export async function getPropertyById(id: string): Promise<any> {
   const cacheKey = `property:${id}`;
   const cached = cache.get(cacheKey);
-  if (cached) {
-    return cached;
-  }
+  if (cached) return cached;
 
-  const data = await propertyRepository.findPropertyById(id);
+  const property = await propertyRepository.findPropertyById(id);
+  if (!property) return null;
 
-  cache.set(cacheKey, data, CACHE_TTL.PROPERTY_DETAIL);
-
-  return data;
+  cache.set(cacheKey, property, CACHE_TTL.PROPERTY_DETAIL);
+  return property;
 }
 
-export interface CreatePropertyInput {
-  body: Record<string, any>;
-  userId: string;
-}
+/* ------------------------------------------------ */
+/* Mutations */
+/* ------------------------------------------------ */
 
-export async function createProperty(input: CreatePropertyInput): Promise<{ data?: any; error?: string }> {
-  const validation = insertPropertySchema.safeParse(input.body);
-  if (!validation.success) {
-    return { error: validation.error.errors[0].message };
+export async function createProperty({
+  body,
+  userId,
+}: CreatePropertyInput): Promise<{ data?: any; error?: string }> {
+  const parsed = insertPropertySchema.safeParse(body);
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message ?? "Invalid input" };
   }
 
-  // VALIDATION: Ensure images are ImageKit URLs only (not base64)
-  const images = input.body.images || [];
-  if (Array.isArray(images)) {
-    if (images.length > 25) {
-      return { error: 'Maximum 25 images per property' };
-    }
-    for (const img of images) {
-      if (typeof img !== 'string') {
-        return { error: 'Images must be strings (ImageKit URLs)' };
-      }
-      if (img.startsWith('data:')) {
-        return { error: 'Base64 image data is not allowed. Images must be uploaded to ImageKit first.' };
-      }
-      if (!img.startsWith('http://') && !img.startsWith('https://')) {
-        return { error: 'Images must be valid URLs' };
-      }
-    }
+  try {
+    validateImageUrls(parsed.data.images);
+  } catch (err: any) {
+    return { error: err.message };
   }
 
   const propertyData = {
-    ...validation.data,
-    owner_id: input.userId,
+    ...parsed.data,
+    owner_id: userId,
   };
 
   const data = await propertyRepository.createProperty(propertyData as any);
 
   cache.invalidate("properties:");
-
   return { data };
 }
 
-export async function updateProperty(id: string, updateData: Record<string, any>, userId?: string): Promise<any> {
-  // PRIORITY 2 FIX: Ensure only owner can update (requireOwnership middleware handles this, but log for debugging)
-  if (userId) {
-    const property = await propertyRepository.findPropertyById(id);
-    if (property && property.owner_id !== userId) {
-      console.error(`[PROPERTY] Ownership mismatch: User ${userId} attempted to update property owned by ${property.owner_id}`);
-      throw new Error("Unauthorized: You do not own this property");
-    }
+export async function updateProperty(
+  id: string,
+  updateData: Record<string, any>,
+  userId?: string
+): Promise<any> {
+  const property = await propertyRepository.findPropertyById(id);
+
+  if (!property) {
+    throw new Error("Property not found");
   }
 
-  const data = await propertyRepository.updateProperty(id, updateData);
+  if (userId && property.owner_id !== userId) {
+    console.error(
+      `[PROPERTY] Unauthorized update attempt. User=${userId}, Owner=${property.owner_id}`
+    );
+    throw new Error("Unauthorized: You do not own this property");
+  }
+
+  if ("images" in updateData) {
+    validateImageUrls(updateData.images);
+  }
+
+  const updated = await propertyRepository.updateProperty(id, updateData);
 
   cache.invalidate(`property:${id}`);
   cache.invalidate("properties:");
   invalidateOwnershipCache("property", id);
 
-  return data;
+  return updated;
 }
 
-export async function deleteProperty(id: string): Promise<null> {
+export async function deleteProperty(
+  id: string,
+  userId?: string
+): Promise<null> {
+  const property = await propertyRepository.findPropertyById(id);
+
+  if (!property) {
+    throw new Error("Property not found");
+  }
+
+  if (userId && property.owner_id !== userId) {
+    throw new Error("Unauthorized: You do not own this property");
+  }
+
   await propertyRepository.deleteProperty(id);
 
   cache.invalidate(`property:${id}`);

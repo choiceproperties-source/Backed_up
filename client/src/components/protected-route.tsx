@@ -2,9 +2,16 @@ import { useAuth } from "@/lib/auth-context";
 import { Redirect } from "wouter";
 import { Loader2 } from "lucide-react";
 
+type AppRole =
+  | "renter"
+  | "landlord"
+  | "property_manager"
+  | "agent"
+  | "admin";
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRoles?: ('user' | 'agent' | 'admin' | 'renter' | 'landlord' | 'property_manager')[];
+  requiredRoles?: AppRole[];
   redirectTo?: string;
   requireEmailVerification?: boolean;
 }
@@ -13,60 +20,58 @@ export function ProtectedRoute({
   children,
   requiredRoles,
   redirectTo = "/login",
-  requireEmailVerification = true
+  requireEmailVerification = false
 }: ProtectedRouteProps) {
-  const { user, isLoggedIn, isLoading, isEmailVerified } = useAuth();
+  const { user, isLoading, isEmailVerified } = useAuth();
 
-  // CRITICAL: Wait for auth to be fully initialized before any redirects
+  /* ----------------------------------
+     1. Wait for auth initialization
+  ---------------------------------- */
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background" data-testid="loading-auth">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Verifying authentication...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  // Not logged in - redirect to login
-  if (!isLoggedIn || !user) {
-    console.log('[ROUTE] User not authenticated, redirecting to', redirectTo);
+  /* ----------------------------------
+     2. Not authenticated
+  ---------------------------------- */
+  if (!user) {
     return <Redirect to={redirectTo} />;
   }
 
-  // User logged in but role not ready - wait (this shouldn't happen with fixed auth)
+  /* ----------------------------------
+     3. Role not ready (should be rare now)
+  ---------------------------------- */
   if (!user.role) {
-    console.log('[ROUTE] User role not loaded yet, showing loading state');
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background" data-testid="loading-role">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading your profile...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  // Check if user needs to select a role (new OAuth users)
+  /* ----------------------------------
+     4. Role selection gate
+  ---------------------------------- */
   if (user.needs_role_selection) {
-    console.log('[ROUTE] User needs role selection, redirecting to select-role');
     return <Redirect to="/select-role" />;
   }
 
-  // Check email verification if required
+  /* ----------------------------------
+     5. Email verification (only when required)
+  ---------------------------------- */
   if (requireEmailVerification && !isEmailVerified) {
-    console.log('[ROUTE] Email not verified, redirecting to verify-email');
     return <Redirect to="/verify-email" />;
   }
 
-  // Check role-based access LAST - only after all async data is loaded
-  if (requiredRoles && requiredRoles.length > 0) {
-    const userRole = user.role || 'user';
-    if (!requiredRoles.includes(userRole as any)) {
-      console.log('[ROUTE] User role', userRole, 'not in allowed roles', requiredRoles, 'redirecting to home');
-      return <Redirect to="/" />;
-    }
+  /* ----------------------------------
+     6. Role authorization (LAST)
+  ---------------------------------- */
+  if (requiredRoles && !requiredRoles.includes(user.role as AppRole)) {
+    return <Redirect to="/" />;
   }
 
   return <>{children}</>;

@@ -1,5 +1,9 @@
 import { getSupabaseOrThrow } from "../../supabase";
 
+/* ------------------------------------------------ */
+/* Applications Repository */
+/* ------------------------------------------------ */
+
 export async function findApplicationById(id: string) {
   const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
@@ -53,7 +57,16 @@ export async function createApplication(applicationData: Record<string, any>) {
     .insert([applicationData])
     .select();
 
-  if (error) throw error;
+  if (error) {
+    console.error("[APPLICATION_REPOSITORY] Failed to create application:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      keys: Object.keys(applicationData),
+    });
+    throw error;
+  }
+
   return data[0];
 }
 
@@ -81,6 +94,10 @@ export async function updateApplicationStatus(id: string, updateData: Record<str
   return data[0];
 }
 
+/* ------------------------------------------------ */
+/* Properties & Users Helpers */
+/* ------------------------------------------------ */
+
 export async function getProperty(id: string) {
   const supabase = getSupabaseOrThrow();
   const { data, error } = await supabase
@@ -105,16 +122,20 @@ export async function getUser(id: string) {
   return data;
 }
 
+/* ------------------------------------------------ */
+/* Conversations Helpers */
+/* ------------------------------------------------ */
+
 export async function createConversation(conversationData: Record<string, any>) {
   const supabase = getSupabaseOrThrow();
-  const { data: conversation, error } = await supabase
+  const { data, error } = await supabase
     .from("conversations")
     .insert([conversationData])
     .select()
     .single();
 
   if (error) throw error;
-  return conversation;
+  return data;
 }
 
 export async function addConversationParticipant(conversationId: string, userId: string) {

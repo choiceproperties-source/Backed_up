@@ -1,12 +1,16 @@
 import { getSupabaseOrThrow } from "../../supabase";
 
+/* ------------------------------------------------ */
+/* Types */
+/* ------------------------------------------------ */
+
 export interface PropertyFilters {
   propertyType?: string;
   city?: string;
   minPrice?: string;
   maxPrice?: string;
   status?: string;
-  ownerId?: string;  // FIX 2b: Add ownerId filter
+  ownerId?: string;
   page: number;
   limit: number;
 }
@@ -24,7 +28,7 @@ export interface PropertyCreateData {
   square_feet?: number;
   property_type?: string;
   amenities?: any;
-  images?: any;
+  images?: string[];
   latitude?: string;
   longitude?: string;
   furnished?: boolean;
@@ -35,118 +39,188 @@ export interface PropertyCreateData {
   owner_id: string;
 }
 
+/* ------------------------------------------------ */
+/* Queries */
+/* ------------------------------------------------ */
+
 export async function findAllProperties(filters: PropertyFilters) {
-  const { propertyType, city, minPrice, maxPrice, status, ownerId, page, limit } = filters;
-  const offset = (page - 1) * limit;
+  const {
+    propertyType,
+    city,
+    minPrice,
+    maxPrice,
+    status,
+    ownerId,
+    page,
+    limit,
+  } = filters;
+
   const supabase = getSupabaseOrThrow();
+  const offset = (page - 1) * limit;
 
-  let query = supabase.from("properties").select("*", { count: "exact" });
+  let query = supabase
+    .from("properties")
+    .select("*", { count: "exact" });
 
-  // FIX 2c: Apply owner filter when provided (for landlord dashboard)
+  // Owner-specific view (Landlord / Admin dashboards)
   if (ownerId) {
     query = query.eq("owner_id", ownerId);
   }
 
+  // Public filters
   if (propertyType) query = query.eq("property_type", propertyType);
   if (city) query = query.ilike("city", `%${city}%`);
   if (minPrice) query = query.gte("price", minPrice);
   if (maxPrice) query = query.lte("price", maxPrice);
+
+  // Status handling
   if (status) {
     query = query.eq("status", status);
   } else if (!ownerId) {
-    // Only default to 'active' for public browsing (no owner filter)
+    // Default: public listings only see active properties
     query = query.eq("status", "active");
   }
 
-  query = query.order("created_at", { ascending: false })
+  const { data, error, count } = await query
+    .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  const { data, error, count } = await query;
+  if (error) {
+    console.error("[PROPERTY_REPOSITORY] findAllProperties error:", error);
+    throw error;
+  }
 
-  if (error) throw error;
-
-  return { data, count };
+  return {
+    data: data ?? [],
+    count: count ?? 0,
+  };
 }
 
 export async function findPropertyById(id: string) {
-  try {
-    const supabase = getSupabaseOrThrow();
-    const { data, error } = await supabase
-      .from("properties")
-      .select("*")
-      .eq("id", id)
-      .single();
+  const supabase = getSupabaseOrThrow();
 
-    if (error || !data) {
-      return null;
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    if (error.code !== "PGRST116") {
+      console.error("[PROPERTY_REPOSITORY] findPropertyById error:", error);
     }
-
-    return data;
-  } catch (err) {
     return null;
   }
+
+  return data;
 }
+
+/* ------------------------------------------------ */
+/* Mutations */
+/* ------------------------------------------------ */
 
 export async function createProperty(propertyData: PropertyCreateData) {
   const supabase = getSupabaseOrThrow();
+
   const { data, error } = await supabase
     .from("properties")
-    .insert([propertyData])
-    .select();
+    .insert(propertyData)
+    .select()
+    .single();
 
   if (error) {
-    console.error('[PROPERTY_REPOSITORY] Insert failed:', {
-      errorCode: error.code,
-      errorMessage: error.message,
-      errorDetails: error.details,
-      dataKeys: Object.keys(propertyData),
-      imagesLength: Array.isArray(propertyData.images) ? propertyData.images.length : 0,
+    console.error("[PROPERTY_REPOSITORY] createProperty failed:", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      ownerId: propertyData.owner_id,
+      imageCount: propertyData.images?.length ?? 0,
     });
     throw error;
   }
 
-  return data[0];
+  return data;
 }
 
-export async function updateProperty(id: string, updateData: Record<string, any>) {
+export async function updateProperty(
+  id: string,
+  updateData: Record<string, any>
+) {
   const supabase = getSupabaseOrThrow();
+
+  if (!id) {
+    throw new Error("Property ID is required for update");
+  }
+
+  const payload = {
+    ...updateData,
+    updated_at: new Date().toISOString(),
+  };
+
   const { data, error } = await supabase
     .from("properties")
-    .update({ ...updateData, updated_at: new Date().toISOString() })
+    .update(payload)
     .eq("id", id)
-    .select();
+    .select()
+    .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error("[PROPERTY_REPOSITORY] updateProperty failed:", {
+      propertyId: id,
+      error,
+      payloadKeys: Object.keys(updateData),
+    });
+    throw error;
+  }
 
-  return data[0];
+  return data;
 }
 
 export async function deleteProperty(id: string) {
   const supabase = getSupabaseOrThrow();
+
   const { error } = await supabase
     .from("properties")
     .delete()
     .eq("id", id);
 
-  if (error) throw error;
+  if (error) {
+    console.error("[PROPERTY_REPOSITORY] deleteProperty failed:", error);
+    throw error;
+  }
 
   return null;
 }
 
+/* ------------------------------------------------ */
+/* Analytics */
+/* ------------------------------------------------ */
+
 export async function incrementPropertyViews(propertyId: string) {
   const supabase = getSupabaseOrThrow();
-  const { error } = await supabase.rpc('increment_property_views', { property_id: propertyId });
-  
-  if (error) {
-    const { data: property } = await supabase
-      .from("properties")
-      .select("view_count")
-      .eq("id", propertyId)
-      .single();
-    
-    await supabase
-      .from("properties")
-      .update({ view_count: (property?.view_count || 0) + 1 })
-      .eq("id", propertyId);
-  }
+
+  const { error } = await supabase.rpc("increment_property_views", {
+    property_id: propertyId,
+  });
+
+  if (!error) return;
+
+  // Fallback if RPC is missing
+  console.warn(
+    "[PROPERTY_REPOSITORY] RPC increment failed, using fallback",
+    error
+  );
+
+  const { data } = await supabase
+    .from("properties")
+    .select("view_count")
+    .eq("id", propertyId)
+    .single();
+
+  const currentViews = data?.view_count ?? 0;
+
+  await supabase
+    .from("properties")
+    .update({ view_count: currentViews + 1 })
+    .eq("id", propertyId);
 }
