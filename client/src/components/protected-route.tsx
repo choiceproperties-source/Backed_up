@@ -2,7 +2,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Redirect } from "wouter";
 import { Loader2 } from "lucide-react";
 
-type AppRole =
+export type AppRole =
   | "renter"
   | "landlord"
   | "property_manager"
@@ -20,12 +20,12 @@ export function ProtectedRoute({
   children,
   requiredRoles,
   redirectTo = "/login",
-  requireEmailVerification = false
+  requireEmailVerification = false,
 }: ProtectedRouteProps) {
   const { user, isLoading, isEmailVerified } = useAuth();
 
   /* ----------------------------------
-     1. Auth bootstrapping
+     1. Wait for auth to initialize
   ---------------------------------- */
   if (isLoading) {
     return (
@@ -43,7 +43,7 @@ export function ProtectedRoute({
   }
 
   /* ----------------------------------
-     3. Role selection gate
+     3. Role selection required
   ---------------------------------- */
   if (user.needs_role_selection) {
     return <Redirect to="/select-role" />;
@@ -57,7 +57,7 @@ export function ProtectedRoute({
   }
 
   /* ----------------------------------
-     5. Role authorization
+     5. Role authorization (LAST)
   ---------------------------------- */
   if (requiredRoles && !requiredRoles.includes(user.role as AppRole)) {
     return <Redirect to="/" />;

@@ -1,6 +1,6 @@
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { lazy, Suspense, useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
 import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "@/lib/auth-context";
@@ -16,60 +16,48 @@ import Home from "@/pages/home";
 import Properties from "@/pages/properties";
 import PropertyDetails from "@/pages/property-details";
 import NotFound from "@/pages/not-found";
+import Login from "@/pages/login";
+import Signup from "@/pages/signup";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
+import AuthCallback from "@/pages/auth-callback";
+import VerifyEmail from "@/pages/verify-email";
+import SelectRole from "@/pages/select-role";
+import Applications from "@/pages/applications";
+import ApplicationDetail from "@/pages/application-detail";
+import Messages from "@/pages/messages";
+import RenterDashboard from "@/pages/renter-dashboard";
+import TenantProfile from "@/pages/tenant-profile";
+import TenantLeaseDashboard from "@/pages/tenant-lease-dashboard";
+import TenantPaymentsDashboard from "@/pages/tenant-payments-dashboard";
+import LandlordDashboard from "@/pages/landlord-dashboard";
+import LandlordProperties from "@/pages/landlord-properties";
+import LandlordApplications from "@/pages/landlord-applications";
+import LandlordProfile from "@/pages/landlord-profile";
+import LandlordLeaseDashboard from "@/pages/landlord-lease-dashboard";
+import LandlordPaymentsVerification from "@/pages/landlord-payments-verification";
+import LandlordPaymentHistory from "@/pages/landlord-payment-history";
+import AgentDashboard from "@/pages/agent-dashboard-new";
+import AgentProperties from "@/pages/agent-properties";
+import AgentApplications from "@/pages/agent-applications";
+import AgentProfile from "@/pages/agent-profile";
+import Admin from "@/pages/admin";
+import AdminStorageMonitor from "@/pages/admin-storage-monitor";
+import Apply from "@/pages/apply";
+import About from "@/pages/about";
+import Contact from "@/pages/contact";
+import Privacy from "@/pages/privacy";
+import Terms from "@/pages/terms";
+import FAQ from "@/pages/faq";
+import SuccessStories from "@/pages/success-stories";
+import OwnerProfile from "@/pages/owner-profile";
+import PropertyRequirements from "@/pages/property-requirements";
 
 import { StickyNav } from "@/components/sticky-nav";
 import { FloatingCTAButton } from "@/components/floating-cta-button";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
-
-/* ---------------- Lazy Pages ---------------- */
-
-const lazyPage = (path: string) =>
-  lazy(() => import(path));
-
-const Login = lazyPage("@/pages/login");
-const Signup = lazyPage("@/pages/signup");
-const ForgotPassword = lazyPage("@/pages/forgot-password");
-const ResetPassword = lazyPage("@/pages/reset-password");
-const AuthCallback = lazyPage("@/pages/auth-callback");
-const VerifyEmail = lazyPage("@/pages/verify-email");
-const SelectRole = lazyPage("@/pages/select-role");
-
-const Applications = lazyPage("@/pages/applications");
-const ApplicationDetail = lazyPage("@/pages/application-detail");
-const Messages = lazyPage("@/pages/messages");
-
-const RenterDashboard = lazyPage("@/pages/renter-dashboard");
-const TenantProfile = lazyPage("@/pages/tenant-profile");
-const TenantLeaseDashboard = lazyPage("@/pages/tenant-lease-dashboard");
-const TenantPaymentsDashboard = lazyPage("@/pages/tenant-payments-dashboard");
-
-const LandlordDashboard = lazyPage("@/pages/landlord-dashboard");
-const LandlordProperties = lazyPage("@/pages/landlord-properties");
-const LandlordApplications = lazyPage("@/pages/landlord-applications");
-const LandlordProfile = lazyPage("@/pages/landlord-profile");
-const LandlordLeaseDashboard = lazyPage("@/pages/landlord-lease-dashboard");
-const LandlordPaymentsVerification = lazyPage("@/pages/landlord-payments-verification");
-const LandlordPaymentHistory = lazyPage("@/pages/landlord-payment-history");
-
-const AgentDashboard = lazyPage("@/pages/agent-dashboard-new");
-const AgentProperties = lazyPage("@/pages/agent-properties");
-const AgentApplications = lazyPage("@/pages/agent-applications");
-const AgentProfile = lazyPage("@/pages/agent-profile");
-
-const Admin = lazyPage("@/pages/admin");
-const AdminStorageMonitor = lazyPage("@/pages/admin-storage-monitor");
-
-const Apply = lazyPage("@/pages/apply");
-const About = lazyPage("@/pages/about");
-const Contact = lazyPage("@/pages/contact");
-const Privacy = lazyPage("@/pages/privacy");
-const Terms = lazyPage("@/pages/terms");
-const FAQ = lazyPage("@/pages/faq");
-const SuccessStories = lazyPage("@/pages/success-stories");
-const OwnerProfile = lazyPage("@/pages/owner-profile");
-const PropertyRequirements = lazyPage("@/pages/property-requirements");
 
 /* ---------------- Loading ---------------- */
 
