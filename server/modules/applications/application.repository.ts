@@ -1,160 +1,247 @@
 import { getSupabaseOrThrow } from "../../supabase";
 
 /* ------------------------------------------------ */
-/* Applications Repository */
+/* Helpers */
+/* ------------------------------------------------ */
+
+function throwIfError(error: any, context: string) {
+  if (error) {
+    console.error(`[APPLICATION_REPO] ${context}`, error);
+    throw error;
+  }
+}
+
+/* ------------------------------------------------ */
+/* Applications */
 /* ------------------------------------------------ */
 
 export async function findApplicationById(id: string) {
   const supabase = getSupabaseOrThrow();
+
   const { data, error } = await supabase
     .from("applications")
     .select("*")
     .eq("id", id)
-    .single();
+    .maybeSingle(); // 👈 safer than .single()
 
-  if (error) throw error;
+  throwIfError(error, "findApplicationById");
+
   return data;
 }
 
 export async function findApplicationsByUserId(userId: string) {
   const supabase = getSupabaseOrThrow();
+
   const { data, error } = await supabase
     .from("applications")
-    .select("*, properties(*)")
-    .eq("user_id", userId);
+    .select(
+      `
+        *,
+        properties (
+          id,
+          title,
+          price,
+          address,
+          owner_id
+        )
+      `
+    )
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
 
-  if (error) throw error;
-  return data;
+  throwIfError(error, "findApplicationsByUserId");
+
+  return data ?? [];
 }
 
 export async function findApplicationsByPropertyId(propertyId: string) {
   const supabase = getSupabaseOrThrow();
+
   const { data, error } = await supabase
     .from("applications")
-    .select("*, users(id, full_name, email, phone)")
-    .eq("property_id", propertyId);
+    .select(
+      `
+        *,
+        users (
+          id,
+          full_name,
+          email,
+          phone
+        )
+      `
+    )
+    .eq("property_id", propertyId)
+    .order("created_at", { ascending: false });
 
-  if (error) throw error;
-  return data;
+  throwIfError(error, "findApplicationsByPropertyId");
+
+  return data ?? [];
 }
 
-export async function checkDuplicateApplication(userId: string, propertyId: string) {
+export async function checkDuplicateApplication(
+  userId: string,
+  propertyId: string
+) {
   const supabase = getSupabaseOrThrow();
+
   const { data, error } = await supabase
     .from("applications")
     .select("id")
     .eq("user_id", userId)
     .eq("property_id", propertyId)
-    .single();
+    .limit(1);
 
-  return { exists: !!data, error };
+  // ❗ DO NOT throw here — duplicate check must be safe
+  if (error) {
+    console.warn(
+      "[APPLICATION_REPO] duplicate check failed, allowing create",
+      error
+    );
+    return { exists: false };
+  }
+
+  return { exists: (data?.length ?? 0) > 0 };
 }
 
-export async function createApplication(applicationData: Record<string, any>) {
+export async function createApplication(
+  applicationData: Record<string, any>
+) {
   const supabase = getSupabaseOrThrow();
+
   const { data, error } = await supabase
     .from("applications")
     .insert([applicationData])
-    .select();
+    .select()
+    .single();
 
-  if (error) {
-    console.error("[APPLICATION_REPOSITORY] Failed to create application:", {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      keys: Object.keys(applicationData),
-    });
-    throw error;
-  }
+  throwIfError(error, "createApplication");
 
-  return data[0];
+  return data;
 }
 
-export async function updateApplication(id: string, updateData: Record<string, any>) {
+export async function updateApplication(
+  id: string,
+  updateData: Record<string, any>
+) {
   const supabase = getSupabaseOrThrow();
+
   const { data, error } = await supabase
     .from("applications")
-    .update({ ...updateData, updated_at: new Date().toISOString() })
+    .update({
+      ...updateData,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", id)
-    .select();
+    .select()
+    .maybeSingle();
 
-  if (error) throw error;
-  return data[0];
+  throwIfError(error, "updateApplication");
+
+  return data;
 }
 
-export async function updateApplicationStatus(id: string, updateData: Record<string, any>) {
+export async function updateApplicationStatus(
+  id: string,
+  updateData: Record<string, any>
+) {
   const supabase = getSupabaseOrThrow();
+
   const { data, error } = await supabase
     .from("applications")
     .update(updateData)
     .eq("id", id)
-    .select();
+    .select()
+    .maybeSingle();
 
-  if (error) throw error;
-  return data[0];
+  throwIfError(error, "updateApplicationStatus");
+
+  return data;
 }
 
 /* ------------------------------------------------ */
-/* Properties & Users Helpers */
+/* Property & User */
 /* ------------------------------------------------ */
 
 export async function getProperty(id: string) {
   const supabase = getSupabaseOrThrow();
+
   const { data, error } = await supabase
     .from("properties")
-    .select("owner_id, title")
+    .select("id, owner_id, title")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
-  if (error) throw error;
+  throwIfError(error, "getProperty");
+
   return data;
 }
 
 export async function getUser(id: string) {
   const supabase = getSupabaseOrThrow();
+
   const { data, error } = await supabase
     .from("users")
-    .select("email, full_name")
+    .select("id, email, full_name")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
-  if (error) throw error;
+  throwIfError(error, "getUser");
+
   return data;
 }
 
 /* ------------------------------------------------ */
-/* Conversations Helpers */
+/* Conversations */
 /* ------------------------------------------------ */
 
-export async function createConversation(conversationData: Record<string, any>) {
+export async function createConversation(
+  conversationData: Record<string, any>
+) {
   const supabase = getSupabaseOrThrow();
+
   const { data, error } = await supabase
     .from("conversations")
     .insert([conversationData])
     .select()
     .single();
 
-  if (error) throw error;
+  throwIfError(error, "createConversation");
+
   return data;
 }
 
-export async function addConversationParticipant(conversationId: string, userId: string) {
+export async function addConversationParticipant(
+  conversationId: string,
+  userId: string
+) {
   const supabase = getSupabaseOrThrow();
-  const { data, error } = await supabase
+
+  const { error } = await supabase
     .from("conversation_participants")
-    .insert([{ conversation_id: conversationId, user_id: userId }]);
+    .insert([
+      {
+        conversation_id: conversationId,
+        user_id: userId,
+      },
+    ]);
 
-  if (error) throw error;
-  return data;
+  throwIfError(error, "addConversationParticipant");
+
+  return true;
 }
 
-export async function updateApplicationConversation(applicationId: string, conversationId: string) {
+export async function updateApplicationConversation(
+  applicationId: string,
+  conversationId: string
+) {
   const supabase = getSupabaseOrThrow();
-  const { data, error } = await supabase
+
+  const { error } = await supabase
     .from("applications")
     .update({ conversation_id: conversationId })
     .eq("id", applicationId);
 
-  if (error) throw error;
-  return data;
+  throwIfError(error, "updateApplicationConversation");
+
+  return true;
 }

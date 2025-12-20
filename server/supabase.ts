@@ -1,96 +1,137 @@
 /**
  * Supabase Server Client
- * =======================
- * Creates and exports the Supabase client for server-side operations.
- * 
- * SAFETY: This module validates environment variables before initialization.
- * If Supabase is not configured, it exports null and logs a warning.
- * This prevents silent failures and guides developers to configure secrets.
+ * =====================
+ * Centralized, SAFE Supabase server client.
+ *
+ * GOALS:
+ * - Zero silent failures
+ * - Zero random auth crashes
+ * - Clear startup diagnostics
+ * - Mobile-safe behavior
  */
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+/* ------------------------------------------------ */
+/* Environment Validation */
+/* ------------------------------------------------ */
 
-let supabase: SupabaseClient | null = null;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Validate configuration and create client
-if (supabaseUrl && supabaseServiceKey) {
-  // Validate URL format
-  if (!supabaseUrl.includes('supabase.co') && !supabaseUrl.includes('supabase.in')) {
-    console.warn('[SUPABASE] Warning: SUPABASE_URL does not appear to be a valid Supabase URL');
-  }
-  
-  supabase = createClient(supabaseUrl, supabaseServiceKey);
-  console.log('[SUPABASE] Client initialized successfully');
-} else {
-  // Provide clear guidance for missing configuration
-  const missing: string[] = [];
-  if (!supabaseUrl) missing.push('SUPABASE_URL');
-  if (!supabaseServiceKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
-  
-  console.warn(
-    `[WARN] Supabase configuration incomplete. Missing: ${missing.join(', ')}\n` +
-    '[WARN] Database features will not work until Supabase is configured.\n' +
-    '[WARN] Add these variables to Replit Secrets to enable full functionality.\n' +
-    '[WARN] See SETUP.md for detailed instructions.'
+let supabaseClient: SupabaseClient | null = null;
+
+function isValidSupabaseUrl(url: string) {
+  return (
+    url.startsWith("https://") &&
+    (url.includes(".supabase.co") || url.includes(".supabase.in"))
   );
 }
 
-/**
- * Returns true if Supabase is properly configured and ready to use.
- */
-export function isSupabaseConfigured(): boolean {
-  return supabase !== null;
+/* ------------------------------------------------ */
+/* Client Initialization */
+/* ------------------------------------------------ */
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn(
+    "[SUPABASE] ❌ Supabase not configured.\n" +
+      "Missing environment variables:\n" +
+      `${!SUPABASE_URL ? "- SUPABASE_URL\n" : ""}` +
+      `${!SUPABASE_SERVICE_ROLE_KEY ? "- SUPABASE_SERVICE_ROLE_KEY\n" : ""}` +
+      "➡ Add these in Replit Secrets.\n"
+  );
+} else if (!isValidSupabaseUrl(SUPABASE_URL)) {
+  console.error(
+    "[SUPABASE] ❌ Invalid SUPABASE_URL format.\n" +
+      "Expected something like: https://xxxx.supabase.co"
+  );
+} else {
+  supabaseClient = createClient(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        persistSession: false, // 🔥 IMPORTANT: prevents random session bleed
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    }
+  );
+
+  console.log("[SUPABASE] ✅ Server client initialized");
 }
 
-/**
- * Gets the Supabase client, throwing if not configured.
- * Use this when Supabase is required for an operation.
- */
+/* ------------------------------------------------ */
+/* Public API */
+/* ------------------------------------------------ */
+
+export function isSupabaseConfigured(): boolean {
+  return supabaseClient !== null;
+}
+
 export function getSupabaseOrThrow(): SupabaseClient {
-  if (!supabase) {
+  if (!supabaseClient) {
     throw new Error(
-      'Supabase is not configured. ' +
-      'Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to Replit Secrets. ' +
-      'See SETUP.md for instructions.'
+      "[SUPABASE] Client not initialized. " +
+        "Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Replit Secrets."
     );
   }
-  return supabase;
+
+  return supabaseClient;
 }
 
 /**
- * Tests the Supabase connection by making a simple query.
- * Returns { connected: true } on success, or { connected: false, error: string } on failure.
+ * Optional: safe getter (returns null instead of throwing)
  */
-export async function testSupabaseConnection(): Promise<{ connected: boolean; error?: string }> {
-  if (!supabase) {
-    return { connected: false, error: 'Supabase client not initialized - missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY' };
+export function getSupabase(): SupabaseClient | null {
+  return supabaseClient;
+}
+
+/* ------------------------------------------------ */
+/* Diagnostics */
+/* ------------------------------------------------ */
+
+export async function testSupabaseConnection(): Promise<{
+  connected: boolean;
+  error?: string;
+}> {
+  if (!supabaseClient) {
+    return {
+      connected: false,
+      error: "Supabase client not initialized",
+    };
   }
-  
+
   try {
-    // Use a simple auth check that doesn't require any tables
-    const { error } = await supabase.auth.getSession();
+    const { error } = await supabaseClient
+      .from("users")
+      .select("id")
+      .limit(1);
+
     if (error) {
       return { connected: false, error: error.message };
     }
+
     return { connected: true };
   } catch (err: any) {
-    return { connected: false, error: err.message || 'Unknown connection error' };
+    return {
+      connected: false,
+      error: err?.message || "Unknown Supabase error",
+    };
   }
 }
 
 /**
- * Validates Supabase connection at startup (non-blocking).
+ * Non-blocking startup validation
  */
 export async function validateSupabaseConnection(): Promise<void> {
   const result = await testSupabaseConnection();
+
   if (result.connected) {
-    console.log('[SUPABASE] Connection validated - Supabase connected');
+    console.log("[SUPABASE] ✅ Connection verified");
   } else {
-    console.error(`[SUPABASE] Connection failed: ${result.error}`);
+    console.error("[SUPABASE] ❌ Connection failed:", result.error);
   }
 }
 
-export { supabase };
+export { supabaseClient as supabase };
