@@ -59,7 +59,7 @@ const propertyFormSchema = z.object({
   status: z.enum(['active', 'inactive']).default('active'),
   amenities: z.array(z.string()).default([]),
   utilitiesIncluded: z.array(z.string()).default([]),
-  images: z.array(z.string().url('Images must be valid URLs')).max(25, 'Maximum 25 images allowed').default([]),
+  images: z.array(z.string().min(1, 'Image URL required').regex(/^https?:\/\/.+/, 'Images must be valid URLs')).max(25, 'Maximum 25 images allowed').default([]),
 });
 
 type PropertyFormData = z.infer<typeof propertyFormSchema>;
@@ -565,6 +565,14 @@ export default function LandlordProperties() {
               <div>
                 <h3 className="font-semibold text-foreground mb-4">Images (up to 25)</h3>
                 <div className="space-y-4">
+                  {errors.images && (
+                    <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      {Array.isArray(errors.images) 
+                        ? errors.images.map((err, i) => err?.message).filter(Boolean).join(', ')
+                        : errors.images.message}
+                    </div>
+                  )}
                   <div className="border-2 border-dashed border-muted-foreground rounded-lg p-8 text-center">
                     <input
                       type="file"
