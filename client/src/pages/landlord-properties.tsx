@@ -7,6 +7,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { useAuth } from '@/lib/auth-context';
 import { useOwnedProperties } from '@/hooks/use-owned-properties';
+import { useImageKitUpload } from '@/hooks/use-imagekit-upload';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,7 +59,7 @@ const propertyFormSchema = z.object({
   status: z.enum(['active', 'inactive']).default('active'),
   amenities: z.array(z.string()).default([]),
   utilitiesIncluded: z.array(z.string()).default([]),
-  images: z.array(z.string()).default([]),
+  images: z.array(z.string().url('Images must be valid URLs')).max(25, 'Maximum 25 images allowed').default([]),
 });
 
 type PropertyFormData = z.infer<typeof propertyFormSchema>;
@@ -87,7 +88,7 @@ export default function LandlordProperties() {
   const [showNewPropertyForm, setShowNewPropertyForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const { uploadImage, isUploading } = useImageKitUpload({ folder: 'properties', maxSize: 5 });
   const { properties, loading, createProperty, updateProperty, deleteProperty } =
     useOwnedProperties();
 
@@ -166,37 +167,39 @@ export default function LandlordProperties() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    setUploadingImage(true);
-    const readers: Promise<string>[] = [];
-
-    for (let i = 0; i < Math.min(files.length, 5); i++) {
-      const file = files[i];
-      readers.push(
-        new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            resolve(event.target?.result as string);
-          };
-          reader.readAsDataURL(file);
-        })
-      );
+    const currentImages = images || [];
+    if (currentImages.length >= 25) {
+      toast({
+        title: 'Image Limit Reached',
+        description: 'Maximum 25 images per property',
+        variant: 'destructive',
+      });
+      return;
     }
 
-    Promise.all(readers).then((dataUrls) => {
-      const currentImages = images || [];
-      const newImages = [...currentImages, ...dataUrls].slice(0, 5);
+    const uploadPromises: Promise<string | null>[] = [];
+    const maxToUpload = Math.min(files.length, 25 - currentImages.length);
+
+    for (let i = 0; i < maxToUpload; i++) {
+      uploadPromises.push(uploadImage(files[i]).then(response => response?.url || null));
+    }
+
+    const results = await Promise.all(uploadPromises);
+    const imageKitUrls = results.filter((url): url is string => url !== null);
+
+    if (imageKitUrls.length > 0) {
+      const newImages = [...currentImages, ...imageKitUrls].slice(0, 25);
       setValue('images', newImages);
       setPreviewImages(newImages);
-      setUploadingImage(false);
       toast({
         title: 'Success',
-        description: `${dataUrls.length} image(s) added`,
+        description: `${imageKitUrls.length} image(s) uploaded`,
       });
-    });
+    }
   };
 
   const removeImage = (index: number) => {
@@ -560,7 +563,7 @@ export default function LandlordProperties() {
 
               {/* Images */}
               <div>
-                <h3 className="font-semibold text-foreground mb-4">Images (up to 5)</h3>
+                <h3 className="font-semibold text-foreground mb-4">Images (up to 25)</h3>
                 <div className="space-y-4">
                   <div className="border-2 border-dashed border-muted-foreground rounded-lg p-8 text-center">
                     <input
@@ -568,7 +571,7 @@ export default function LandlordProperties() {
                       multiple
                       accept="image/*"
                       onChange={handleImageUpload}
-                      disabled={uploadingImage || images.length >= 5}
+                      disabled={isUploading || images.length >= 25}
                       className="hidden"
                       id="image-input"
                     />
@@ -578,10 +581,10 @@ export default function LandlordProperties() {
                     >
                       <Upload className="h-8 w-8 text-muted-foreground" />
                       <span className="text-sm font-medium">
-                        {uploadingImage ? 'Uploading...' : 'Click to upload or drag and drop'}
+                        {isUploading ? 'Uploading...' : 'Click to upload or drag and drop'}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {images.length}/5 images
+                        {images.length}/25 images (max 5MB each)
                       </span>
                     </label>
                   </div>

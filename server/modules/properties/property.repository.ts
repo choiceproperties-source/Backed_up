@@ -94,7 +94,16 @@ export async function createProperty(propertyData: PropertyCreateData) {
     .insert([propertyData])
     .select();
 
-  if (error) throw error;
+  if (error) {
+    console.error('[PROPERTY_REPOSITORY] Insert failed:', {
+      errorCode: error.code,
+      errorMessage: error.message,
+      errorDetails: error.details,
+      dataKeys: Object.keys(propertyData),
+      imagesLength: Array.isArray(propertyData.images) ? propertyData.images.length : 0,
+    });
+    throw error;
+  }
 
   return data[0];
 }

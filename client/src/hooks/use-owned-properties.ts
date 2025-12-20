@@ -21,7 +21,7 @@ export interface OwnedProperty {
   furnished?: boolean;
   petsAllowed?: boolean;
   leaseTerm?: string;
-  utilitiesIncluded?: boolean;
+  utilitiesIncluded?: string[];
   amenities?: string[];
   createdAt: string;
   updatedAt?: string;
@@ -109,6 +109,16 @@ export function useOwnedProperties() {
 
     try {
       const token = await getAuthToken();
+      
+      // VALIDATION: Ensure images are ImageKit URLs only (not base64)
+      if (propertyData.images && Array.isArray(propertyData.images)) {
+        for (const img of propertyData.images) {
+          if (typeof img !== 'string' || !img.startsWith('http')) {
+            throw new Error('Invalid image format: all images must be ImageKit URLs');
+          }
+        }
+      }
+
       // FIX: Convert camelCase to snake_case for backend schema
       // Note: price and bathrooms must be strings (decimal fields in DB)
       const normalizedData = {
@@ -127,7 +137,7 @@ export function useOwnedProperties() {
         lease_term: propertyData.leaseTerm,  // camelCase → snake_case
         utilities_included: propertyData.utilitiesIncluded,  // camelCase → snake_case (array)
         amenities: propertyData.amenities,  // Array of amenity strings
-        images: propertyData.images,  // Array of image URLs
+        images: propertyData.images || [],  // Array of ImageKit URLs ONLY
         furnished: propertyData.furnished,  // Boolean
         status: propertyData.status,  // String: 'active' or 'inactive'
         owner_id: user.id,  // camelCase → snake_case

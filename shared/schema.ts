@@ -777,12 +777,16 @@ export const insertUserSchema = createInsertSchema(users).omit({
   deletedAt: true,
 });
 
-export const insertPropertySchema = createInsertSchema(properties).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true,
-});
+export const insertPropertySchema = createInsertSchema(properties)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    deletedAt: true,
+  })
+  .extend({
+    images: z.array(z.string().url()).max(25).optional(),
+  });
 
 export const insertPropertyNoteSchema = createInsertSchema(propertyNotes).omit({
   id: true,

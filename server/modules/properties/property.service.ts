@@ -91,6 +91,25 @@ export async function createProperty(input: CreatePropertyInput): Promise<{ data
     return { error: validation.error.errors[0].message };
   }
 
+  // VALIDATION: Ensure images are ImageKit URLs only (not base64)
+  const images = input.body.images || [];
+  if (Array.isArray(images)) {
+    if (images.length > 25) {
+      return { error: 'Maximum 25 images per property' };
+    }
+    for (const img of images) {
+      if (typeof img !== 'string') {
+        return { error: 'Images must be strings (ImageKit URLs)' };
+      }
+      if (img.startsWith('data:')) {
+        return { error: 'Base64 image data is not allowed. Images must be uploaded to ImageKit first.' };
+      }
+      if (!img.startsWith('http://') && !img.startsWith('https://')) {
+        return { error: 'Images must be valid URLs' };
+      }
+    }
+  }
+
   const propertyData = {
     ...validation.data,
     owner_id: input.userId,
