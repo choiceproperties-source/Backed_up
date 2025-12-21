@@ -59,7 +59,7 @@ const propertyFormSchema = z.object({
   status: z.enum(['active', 'inactive']).default('active'),
   amenities: z.array(z.string()).default([]),
   utilitiesIncluded: z.array(z.string()).default([]),
-  images: z.array(z.string().min(1, 'Image URL required').regex(/^https?:\/\/.+/, 'Images must be valid URLs')).max(25, 'Maximum 25 images allowed').default([]),
+  images: z.array(z.string().min(1, 'Image URL required')).max(25, 'Maximum 25 images allowed').default([]),
 });
 
 type PropertyFormData = z.infer<typeof propertyFormSchema>;
