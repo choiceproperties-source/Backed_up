@@ -785,7 +785,7 @@ export const insertPropertySchema = createInsertSchema(properties)
     deletedAt: true,
   })
   .extend({
-    images: z.array(z.string().url()).max(25).optional(),
+    images: z.array(z.string().min(1)).max(25).optional(),
   });
 
 export const insertPropertyNoteSchema = createInsertSchema(propertyNotes).omit({

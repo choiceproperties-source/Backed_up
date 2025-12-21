@@ -1,0 +1,69 @@
+You are acting as a senior full-stack engineer and debugger.
+
+I have a full-stack web application with:
+- Frontend (React or similar)
+- Backend (Node.js + Express)
+- Database (MongoDB or equivalent)
+- Property listing creation feature (similar to Zillow)
+
+CRITICAL ISSUE:
+The property listing creation process is failing or behaving incorrectly.
+
+YOUR TASK:
+1. Perform a COMPLETE SYSTEM SCAN of the project:
+   - Frontend components related to creating a property listing
+   - Backend API routes/controllers/services
+   - Database schema/models
+   - Middleware (auth, validation, file upload)
+   - Environment variables
+   - Network requests (request/response mismatch)
+
+2. IDENTIFY ALL ISSUES that could cause property creation to fail, including but not limited to:
+   - Missing or mismatched field names between frontend and backend
+   - Incorrect request method (POST vs PUT)
+   - Wrong endpoint paths
+   - Body parsing issues (JSON vs multipart/form-data)
+   - Image/file upload errors
+   - Schema validation failures
+   - Auth/permission issues
+   - State management or form submission bugs
+   - Async/await or error handling mistakes
+   - Database connection or save failures
+
+3. FOR EACH ISSUE FOUND:
+   - Clearly explain:
+     - Where the issue is located (file + function)
+     - Why it breaks property creation
+     - What symptom it causes (error, silent failure, wrong data, etc.)
+   - Provide a SAFE FIX with corrected code
+   - Ensure fixes do NOT break existing features
+
+4. VERIFY DATA FLOW:
+   - Trace the full flow:
+     Frontend form → API request → backend controller → database save → API response → frontend success handling
+   - Confirm that:
+     - All required fields are present
+     - Types match schema requirements
+     - Images/files are handled correctly
+     - Errors are properly returned and displayed
+
+5. IMPROVE RELIABILITY:
+   - Add missing validation
+   - Improve error messages
+   - Add logging where necessary
+   - Recommend best practices ONLY if relevant
+
+IMPORTANT RULES:
+- Do NOT guess.
+- Do NOT remove features unless necessary.
+- Do NOT rewrite the entire app.
+- Explain before fixing.
+- Use minimal, targeted changes.
+- Treat this as a production app.
+
+OUTPUT FORMAT:
+- 🔴 Critical Issues
+- 🟠 Major Issues
+- 🟡 Minor Issues
+- ✅ Verified Working Flow
+- 🛠️ Step-by-step Fix Instructions
