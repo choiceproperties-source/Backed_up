@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import type { User, AuthContextType, UserRole } from "./types";
-import { supabase } from "./supabase";
+import { getSupabaseOrThrow, isSupabaseConfigured } from "./supabase";
 
 /* ===================================================== */
 /* Context */
@@ -28,13 +28,16 @@ async function buildUser(authUser: any): Promise<User> {
   let profile: any = null;
 
   try {
-    const { data } = await supabase
-      .from("users")
-      .select("role, full_name, phone, profile_image, bio")
-      .eq("id", authUser.id)
-      .single();
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseOrThrow();
+      const { data } = await supabase
+        .from("users")
+        .select("role, full_name, phone, profile_image, bio")
+        .eq("id", authUser.id)
+        .single();
 
-    profile = data;
+      profile = data;
+    }
   } catch {
     // Non-fatal — user may not exist yet
   }
@@ -76,45 +79,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /* ---------- INITIAL LOAD ---------- */
   useEffect(() => {
-    if (!supabase) {
+    if (!isSupabaseConfigured()) {
       setIsLoading(false);
       return;
     }
 
     const init = async () => {
-      const { data } = await supabase.auth.getSession();
+      try {
+        const supabase = getSupabaseOrThrow();
+        const { data } = await supabase.auth.getSession();
 
-      if (data.session?.user) {
-        const built = await buildUser(data.session.user);
-        setUser(built);
+        if (data.session?.user) {
+          const built = await buildUser(data.session.user);
+          setUser(built);
+        }
+
+        setIsLoading(false);
+        booting.current = false;
+      } catch (error) {
+        console.error("[AUTH] Failed to initialize auth:", error);
+        setIsLoading(false);
+        booting.current = false;
       }
-
-      setIsLoading(false);
-      booting.current = false;
     };
 
     init();
 
     /* ---------- AUTH LISTENER ---------- */
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (booting.current) return;
+    try {
+      const supabase = getSupabaseOrThrow();
+      const { data: listener } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (booting.current) return;
 
-        if (event === "SIGNED_OUT") {
-          setUser(null);
-          return;
+          if (event === "SIGNED_OUT") {
+            setUser(null);
+            return;
+          }
+
+          if (session?.user) {
+            const built = await buildUser(session.user);
+            setUser(built);
+          }
         }
+      );
 
-        if (session?.user) {
-          const built = await buildUser(session.user);
-          setUser(built);
-        }
-      }
-    );
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
+      return () => {
+        listener.subscription.unsubscribe();
+      };
+    } catch (error) {
+      console.error("[AUTH] Failed to setup auth listener:", error);
+      return undefined;
+    }
   }, []);
 
   /* ===================================================== */
@@ -125,6 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password: string
   ): Promise<UserRole> => {
+    const supabase = getSupabaseOrThrow();
     const { data, error } =
       await supabase.auth.signInWithPassword({
         email,
@@ -145,6 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     phone?: string,
     role: UserRole = "renter"
   ): Promise<UserRole> => {
+    const supabase = getSupabaseOrThrow();
     const redirectBase =
       import.meta.env.VITE_APP_URL || window.location.origin;
 
@@ -179,6 +197,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateUserRole = async (role: UserRole) => {
     if (!user) throw new Error("No authenticated user");
 
+    const supabase = getSupabaseOrThrow();
     await supabase.auth.updateUser({
       data: { role },
     });
@@ -198,11 +217,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    const supabase = getSupabaseOrThrow();
     await supabase.auth.signOut();
     setUser(null);
   };
 
   const resetPassword = async (email: string) => {
+    const supabase = getSupabaseOrThrow();
     const redirectBase =
       import.meta.env.VITE_APP_URL || window.location.origin;
 
@@ -214,6 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resendVerificationEmail = async () => {
     if (!user?.email) throw new Error("No email available");
 
+    const supabase = getSupabaseOrThrow();
     const redirectBase =
       import.meta.env.VITE_APP_URL || window.location.origin;
 
@@ -224,6 +246,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailRedirectTo: `${redirectBase}/auth/callback`,
       },
     });
+  };
+
+  const sendMagicLink = async (email: string) => {
+    const supabase = getSupabaseOrThrow();
+    const redirectBase =
+      import.meta.env.VITE_APP_URL || window.location.origin;
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${redirectBase}/auth/callback`,
+      },
+    });
+
+    if (error) throw error;
   };
 
   /* ===================================================== */
@@ -238,6 +275,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updateUserRole,
         resetPassword,
         resendVerificationEmail,
+        sendMagicLink,
         isLoggedIn: Boolean(user),
         isLoading,
         isEmailVerified: Boolean(user?.email_verified),
@@ -261,6 +299,8 @@ export function useAuth(): AuthContextType {
 }
 
 export async function getAuthToken(): Promise<string | null> {
+  if (!isSupabaseConfigured()) return null;
+  const supabase = getSupabaseOrThrow();
   const { data } = await supabase.auth.getSession();
   return data.session?.access_token ?? null;
 }
