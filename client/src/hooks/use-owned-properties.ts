@@ -119,28 +119,28 @@ export function useOwnedProperties() {
         }
       }
 
-      // FIX: Convert camelCase to snake_case for backend schema
-      // Note: price and bathrooms must be strings (decimal fields in DB)
+      // Note: Schema expects camelCase field names (Drizzle generates from TypeScript property names)
+      // Price and bathrooms are kept as numbers/original types - schema validates the types
       const normalizedData = {
         title: propertyData.title,
         description: propertyData.description,
         address: propertyData.address,
         city: propertyData.city,
         state: propertyData.state,
-        zip_code: propertyData.zipCode,  // camelCase → snake_case
-        price: propertyData.price?.toString(),  // Convert to string (decimal in DB)
-        bedrooms: propertyData.bedrooms,  // Keep as number (integer in DB)
-        bathrooms: propertyData.bathrooms?.toString(),  // Convert to string (decimal in DB)
-        square_feet: propertyData.squareFeet,  // camelCase → snake_case
-        property_type: propertyData.propertyType,  // camelCase → snake_case
-        pets_allowed: propertyData.petsAllowed,  // camelCase → snake_case
-        lease_term: propertyData.leaseTerm,  // camelCase → snake_case
-        utilities_included: propertyData.utilitiesIncluded,  // camelCase → snake_case (array)
+        zipCode: propertyData.zipCode,  // camelCase for schema
+        price: propertyData.price,  // Keep as number - schema handles decimal
+        bedrooms: propertyData.bedrooms,  // Integer
+        bathrooms: propertyData.bathrooms,  // Keep as number - schema handles decimal
+        squareFeet: propertyData.squareFeet,  // camelCase for schema
+        propertyType: propertyData.propertyType,  // camelCase for schema
+        petsAllowed: propertyData.petsAllowed,  // camelCase for schema
+        leaseTerm: propertyData.leaseTerm,  // camelCase for schema
+        utilitiesIncluded: propertyData.utilitiesIncluded,  // camelCase for schema
         amenities: propertyData.amenities,  // Array of amenity strings
         images: propertyData.images || [],  // Array of ImageKit URLs ONLY
         furnished: propertyData.furnished,  // Boolean
         status: propertyData.status,  // String: 'active' or 'inactive'
-        owner_id: user.id,  // camelCase → snake_case
+        ownerId: user.id,  // camelCase for schema
       };
       
       const response = await fetch('/api/v2/properties', {
@@ -197,25 +197,24 @@ export function useOwnedProperties() {
 
     try {
       const token = await getAuthToken();
-      // FIX: Convert camelCase to snake_case for backend schema
-      // Note: price and bathrooms must be strings (decimal fields in DB)
+      // Schema expects camelCase field names (Drizzle generates from TypeScript property names)
       const normalizedData: any = {};
       
-      // Map camelCase properties to snake_case for backend
+      // Map properties using camelCase for schema validation
       if (propertyData.title !== undefined) normalizedData.title = propertyData.title;
       if (propertyData.description !== undefined) normalizedData.description = propertyData.description;
       if (propertyData.address !== undefined) normalizedData.address = propertyData.address;
       if (propertyData.city !== undefined) normalizedData.city = propertyData.city;
       if (propertyData.state !== undefined) normalizedData.state = propertyData.state;
-      if (propertyData.zipCode !== undefined) normalizedData.zip_code = propertyData.zipCode;
-      if (propertyData.price !== undefined) normalizedData.price = propertyData.price?.toString();  // Convert to string (decimal in DB)
+      if (propertyData.zipCode !== undefined) normalizedData.zipCode = propertyData.zipCode;
+      if (propertyData.price !== undefined) normalizedData.price = propertyData.price;
       if (propertyData.bedrooms !== undefined) normalizedData.bedrooms = propertyData.bedrooms;
-      if (propertyData.bathrooms !== undefined) normalizedData.bathrooms = propertyData.bathrooms?.toString();  // Convert to string (decimal in DB)
-      if (propertyData.squareFeet !== undefined) normalizedData.square_feet = propertyData.squareFeet;
-      if (propertyData.propertyType !== undefined) normalizedData.property_type = propertyData.propertyType;
-      if (propertyData.petsAllowed !== undefined) normalizedData.pets_allowed = propertyData.petsAllowed;
-      if (propertyData.leaseTerm !== undefined) normalizedData.lease_term = propertyData.leaseTerm;
-      if (propertyData.utilitiesIncluded !== undefined) normalizedData.utilities_included = propertyData.utilitiesIncluded;
+      if (propertyData.bathrooms !== undefined) normalizedData.bathrooms = propertyData.bathrooms;
+      if (propertyData.squareFeet !== undefined) normalizedData.squareFeet = propertyData.squareFeet;
+      if (propertyData.propertyType !== undefined) normalizedData.propertyType = propertyData.propertyType;
+      if (propertyData.petsAllowed !== undefined) normalizedData.petsAllowed = propertyData.petsAllowed;
+      if (propertyData.leaseTerm !== undefined) normalizedData.leaseTerm = propertyData.leaseTerm;
+      if (propertyData.utilitiesIncluded !== undefined) normalizedData.utilitiesIncluded = propertyData.utilitiesIncluded;
       if (propertyData.amenities !== undefined) normalizedData.amenities = propertyData.amenities;
       if (propertyData.images !== undefined) normalizedData.images = propertyData.images;
       if (propertyData.furnished !== undefined) normalizedData.furnished = propertyData.furnished;
