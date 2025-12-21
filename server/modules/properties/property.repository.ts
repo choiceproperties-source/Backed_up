@@ -122,9 +122,12 @@ export async function findPropertyById(id: string) {
 export async function createProperty(propertyData: PropertyCreateData) {
   const supabase = getSupabaseOrThrow();
 
+  // Remove fields that don't exist in Supabase schema
+  const { lease_term, ...cleanData } = propertyData;
+
   const { data, error } = await supabase
     .from("properties")
-    .insert(propertyData)
+    .insert(cleanData)
     .select()
     .single();
 
@@ -152,8 +155,11 @@ export async function updateProperty(
     throw new Error("Property ID is required for update");
   }
 
+  // Remove fields that don't exist in Supabase schema
+  const { lease_term, ...cleanUpdateData } = updateData;
+
   const payload = {
-    ...updateData,
+    ...cleanUpdateData,
     updated_at: new Date().toISOString(),
   };
 
@@ -168,7 +174,7 @@ export async function updateProperty(
     console.error("[PROPERTY_REPOSITORY] updateProperty failed:", {
       propertyId: id,
       error,
-      payloadKeys: Object.keys(updateData),
+      payloadKeys: Object.keys(cleanUpdateData),
     });
     throw error;
   }
