@@ -75,11 +75,20 @@ function Router() {
   return (
     <Suspense fallback={<Loading />}>
       <Switch>
+        {/* Public Pages */}
         <Route path="/" component={Home} />
         <Route path="/properties" component={Properties} />
         <Route path="/property/:id" component={PropertyDetails} />
         <Route path="/owner/:slug" component={OwnerProfile} />
+        <Route path="/about" component={About} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/faq" component={FAQ} />
+        <Route path="/success-stories" component={SuccessStories} />
+        <Route path="/property-requirements" component={PropertyRequirements} />
 
+        {/* Auth Pages */}
         <Route path="/login" component={Login} />
         <Route path="/signup" component={Signup} />
         <Route path="/forgot-password" component={ForgotPassword} />
@@ -87,6 +96,13 @@ function Router() {
         <Route path="/auth/callback" component={AuthCallback} />
         <Route path="/verify-email" component={VerifyEmail} />
         <Route path="/select-role" component={SelectRole} />
+
+        {/* Application Pages */}
+        <Route path="/apply">
+          <ProtectedRoute requireEmailVerification={false}>
+            <Apply />
+          </ProtectedRoute>
+        </Route>
 
         <Route path="/applications">
           <ProtectedRoute>
@@ -100,12 +116,14 @@ function Router() {
           </ProtectedRoute>
         </Route>
 
+        {/* Messaging */}
         <Route path="/messages">
           <ProtectedRoute requireEmailVerification={false}>
             <Messages />
           </ProtectedRoute>
         </Route>
 
+        {/* Renter/Tenant Routes */}
         <Route path="/renter-dashboard">
           <ProtectedRoute requiredRoles={["renter"]}>
             <RenterDashboard />
@@ -130,24 +148,88 @@ function Router() {
           </ProtectedRoute>
         </Route>
 
+        {/* Landlord Routes */}
         <Route path="/landlord-dashboard">
           <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
             <LandlordDashboard />
           </ProtectedRoute>
         </Route>
 
+        <Route path="/landlord-properties">
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+            <LandlordProperties />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/landlord-applications">
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+            <LandlordApplications />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/landlord-profile">
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+            <LandlordProfile />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/landlord-lease-dashboard">
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+            <LandlordLeaseDashboard />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/landlord-payments-verification">
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+            <LandlordPaymentsVerification />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/landlord-payment-history">
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+            <LandlordPaymentHistory />
+          </ProtectedRoute>
+        </Route>
+
+        {/* Agent Routes */}
         <Route path="/agent-dashboard">
           <ProtectedRoute requiredRoles={["agent", "admin"]}>
             <AgentDashboard />
           </ProtectedRoute>
         </Route>
 
+        <Route path="/agent-properties">
+          <ProtectedRoute requiredRoles={["agent", "admin"]}>
+            <AgentProperties />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/agent-applications">
+          <ProtectedRoute requiredRoles={["agent", "admin"]}>
+            <AgentApplications />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/agent-profile">
+          <ProtectedRoute requiredRoles={["agent", "admin"]}>
+            <AgentProfile />
+          </ProtectedRoute>
+        </Route>
+
+        {/* Admin Routes */}
         <Route path="/admin">
           <ProtectedRoute requiredRoles={["admin"]}>
             <Admin />
           </ProtectedRoute>
         </Route>
 
+        <Route path="/admin-storage-monitor">
+          <ProtectedRoute requiredRoles={["admin"]}>
+            <AdminStorageMonitor />
+          </ProtectedRoute>
+        </Route>
+
+        {/* 404 */}
         <Route component={NotFound} />
       </Switch>
     </Suspense>
