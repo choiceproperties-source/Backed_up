@@ -80,6 +80,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerAdminModuleRoutes(app);
   registerAuthModuleRoutes(app);
 
+  // Config endpoint for frontend to fetch Supabase credentials
+  app.get("/api/config", (req, res) => {
+    res.json({
+      supabaseUrl: process.env.SUPABASE_URL,
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+    });
+  });
+
   // Legacy routes control: Set ENABLE_LEGACY_ROUTES=true to enable legacy routes
   // Default: disabled (only module routes are active)
   const enableLegacyRoutes = process.env.ENABLE_LEGACY_ROUTES === 'true';

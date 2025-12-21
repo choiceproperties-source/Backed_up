@@ -10,25 +10,44 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+let supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+let supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 let supabase: SupabaseClient | null = null;
 
-// Validate configuration and create client
+// Function to initialize Supabase client
+function initializeSupabase(url: string, key: string) {
+  if (url && key) {
+    supabase = createClient(url, key);
+  }
+}
+
+// Try to initialize with env vars first
 if (supabaseUrl && supabaseKey) {
-  supabase = createClient(supabaseUrl, supabaseKey);
+  initializeSupabase(supabaseUrl, supabaseKey);
 } else {
-  // Log clear guidance for missing configuration
-  const missing: string[] = [];
-  if (!supabaseUrl) missing.push('VITE_SUPABASE_URL');
-  if (!supabaseKey) missing.push('VITE_SUPABASE_ANON_KEY');
-  
-  console.error(
-    `[SUPABASE] Configuration incomplete. Missing: ${missing.join(', ')}\n` +
-    'Authentication and database features will not work.\n' +
-    'Add these variables to Replit Secrets. See SETUP.md for instructions.'
-  );
+  // If env vars aren't available, fetch from backend config endpoint
+  fetch('/api/config')
+    .then(res => res.json())
+    .then(config => {
+      if (config.supabaseUrl && config.supabaseAnonKey) {
+        supabaseUrl = config.supabaseUrl;
+        supabaseKey = config.supabaseAnonKey;
+        initializeSupabase(supabaseUrl, supabaseKey);
+      } else {
+        console.error(
+          '[SUPABASE] Configuration incomplete. Supabase URL and anon key not available.\n' +
+          'Authentication and database features will not work.\n' +
+          'Add SUPABASE_URL and SUPABASE_ANON_KEY to Replit Secrets. See SETUP.md for instructions.'
+        );
+      }
+    })
+    .catch(() => {
+      console.error(
+        '[SUPABASE] Failed to fetch config from backend.\n' +
+        'Authentication and database features will not work.'
+      );
+    });
 }
 
 /**
@@ -46,7 +65,7 @@ export function getSupabaseOrThrow(): SupabaseClient {
   if (!supabase) {
     throw new Error(
       'Supabase is not configured. ' +
-      'Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to Replit Secrets.'
+      'Add SUPABASE_URL and SUPABASE_ANON_KEY to Replit Secrets.'
     );
   }
   return supabase;
