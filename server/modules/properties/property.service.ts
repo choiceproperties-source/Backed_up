@@ -39,24 +39,82 @@ export interface CreatePropertyInput {
 /* Helpers */
 /* ------------------------------------------------ */
 
-function validateImageUrls(images: unknown) {
-  if (!Array.isArray(images)) return;
+/**
+ * Normalize image input from frontend / ImageKit
+ * Accepts:
+ * - string URLs
+ * - { url: string }
+ * - { fileUrl: string }
+ */
+function normalizeImages(images: unknown): string[] {
+  if (!Array.isArray(images)) return [];
 
-  if (images.length > 25) {
+  const urls: string[] = [];
+
+  for (const img of images) {
+    if (typeof img === "string") {
+      urls.push(img);
+      continue;
+    }
+
+    if (typeof img === "object" && img !== null) {
+      const url =
+        (img as any).url ||
+        (img as any).fileUrl ||
+        (img as any).imageUrl;
+
+      if (typeof url === "string") {
+        urls.push(url);
+        continue;
+      }
+    }
+
+    throw new Error("Invalid image format. Upload images via ImageKit only.");
+  }
+
+  if (urls.length > 25) {
     throw new Error("Maximum 25 images per property");
   }
 
-  for (const img of images) {
-    if (typeof img !== "string") {
-      throw new Error("Images must be strings (ImageKit URLs)");
+  for (const url of urls) {
+    if (url.startsWith("data:")) {
+      throw new Error("Base64 images are not allowed");
     }
-    if (img.startsWith("data:")) {
-      throw new Error("Base64 images are not allowed. Upload to ImageKit first.");
-    }
-    if (!img.startsWith("http://") && !img.startsWith("https://")) {
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
       throw new Error("Images must be valid URLs");
     }
   }
+
+  return urls;
+}
+
+/**
+ * Convert numeric frontend values into schema-safe strings
+ */
+function normalizePropertyInput(body: Record<string, any>) {
+  const numericFields = [
+    "price",
+    "bedrooms",
+    "bathrooms",
+    "square_feet",
+    "year_built",
+    "deposit",
+    "hoa_fee",
+  ];
+
+  const normalized = { ...body };
+
+  for (const field of numericFields) {
+    if (field in normalized && typeof normalized[field] === "number") {
+      normalized[field] = String(normalized[field]);
+    }
+  }
+
+  if ("images" in normalized) {
+    normalized.images = normalizeImages(normalized.images);
+  }
+
+  return normalized;
 }
 
 /* ------------------------------------------------ */
@@ -134,15 +192,17 @@ export async function createProperty({
   body,
   userId,
 }: CreatePropertyInput): Promise<{ data?: any; error?: string }> {
-  const parsed = insertPropertySchema.safeParse(body);
-  if (!parsed.success) {
-    return { error: parsed.error.errors[0]?.message ?? "Invalid input" };
-  }
+  let normalized;
 
   try {
-    validateImageUrls(parsed.data.images);
+    normalized = normalizePropertyInput(body);
   } catch (err: any) {
     return { error: err.message };
+  }
+
+  const parsed = insertPropertySchema.safeParse(normalized);
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message ?? "Invalid input" };
   }
 
   const propertyData = {
@@ -168,17 +228,12 @@ export async function updateProperty(
   }
 
   if (userId && property.owner_id !== userId) {
-    console.error(
-      `[PROPERTY] Unauthorized update attempt. User=${userId}, Owner=${property.owner_id}`
-    );
     throw new Error("Unauthorized: You do not own this property");
   }
 
-  if ("images" in updateData) {
-    validateImageUrls(updateData.images);
-  }
+  const normalized = normalizePropertyInput(updateData);
 
-  const updated = await propertyRepository.updateProperty(id, updateData);
+  const updated = await propertyRepository.updateProperty(id, normalized);
 
   cache.invalidate(`property:${id}`);
   cache.invalidate("properties:");
