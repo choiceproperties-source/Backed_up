@@ -5,11 +5,19 @@
  * 
  * The client is initialized asynchronously by fetching config from the backend.
  * This ensures we always have valid credentials before creating the client.
+ * 
+ * IMPORTANT: Other modules should wait for initPromise before using supabase.
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 let supabase: SupabaseClient | null = null;
+
+// Promise that resolves when Supabase is fully initialized
+let initResolve: (() => void) | null = null;
+export const initPromise = new Promise<void>((resolve) => {
+  initResolve = resolve;
+});
 
 // Initialize Supabase by fetching config from backend
 async function initializeSupabase() {
@@ -28,6 +36,9 @@ async function initializeSupabase() {
     }
   } catch (error) {
     console.error('[SUPABASE] Failed to fetch config from backend:', error);
+  } finally {
+    // Always resolve, even if there was an error (allows app to continue)
+    if (initResolve) initResolve();
   }
 }
 

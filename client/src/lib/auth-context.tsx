@@ -6,7 +6,7 @@ import {
   useState
 } from "react";
 import type { User, AuthContextType, UserRole } from "./types";
-import { supabase } from "./supabase";
+import { supabase, initPromise } from "./supabase";
 
 /* ------------------------------------------------ */
 /* Context */
@@ -84,12 +84,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /* ---------- INITIAL SESSION LOAD ---------- */
   useEffect(() => {
-    if (!supabase) {
-      setAuthReady(true);
-      return;
-    }
+    let unsubscribe: (() => void) | null = null;
 
     const init = async () => {
+      // Wait for Supabase to initialize before using it
+      await initPromise;
+      
+      if (!supabase) {
+        setAuthReady(true);
+        return;
+      }
+
       const { data } = await supabase.auth.getSession();
 
       if (data.session?.user) {
@@ -100,31 +105,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setAuthReady(true);
       initializing.current = false;
+
+      /* ---------- AUTH STATE CHANGES ---------- */
+      const { data: listener } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (initializing.current) return;
+
+          if (event === "SIGNED_OUT") {
+            setUser(null);
+            setAuthRedirect(null);
+            return;
+          }
+
+          if (session?.user) {
+            const builtUser = await buildUserFromAuth(session.user);
+            setUser(builtUser);
+            setAuthRedirect(getDefaultRedirectForRole(builtUser.role));
+          }
+        }
+      );
+
+      unsubscribe = () => {
+        listener.subscription.unsubscribe();
+      };
     };
 
     init();
 
-    /* ---------- AUTH STATE CHANGES ---------- */
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (initializing.current) return;
-
-        if (event === "SIGNED_OUT") {
-          setUser(null);
-          setAuthRedirect(null);
-          return;
-        }
-
-        if (session?.user) {
-          const builtUser = await buildUserFromAuth(session.user);
-          setUser(builtUser);
-          setAuthRedirect(getDefaultRedirectForRole(builtUser.role));
-        }
-      }
-    );
-
     return () => {
-      listener.subscription.unsubscribe();
+      if (unsubscribe) unsubscribe();
     };
   }, []);
 
@@ -133,6 +142,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /* ------------------------------------------------ */
 
   const login = async (email: string, password: string): Promise<UserRole | null> => {
+    await initPromise;
+    if (!supabase) throw new Error("Supabase not configured");
+    
     const { data, error } =
       await supabase.auth.signInWithPassword({ email, password });
 
@@ -148,6 +160,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     phone?: string,
     role: UserRole = "renter"
   ): Promise<UserRole> => {
+    await initPromise;
+    if (!supabase) throw new Error("Supabase not configured");
+    
     const redirectTo =
       import.meta.env.VITE_APP_URL || window.location.origin;
 
@@ -176,6 +191,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateUserRole = async (role: UserRole) => {
+    await initPromise;
+    if (!supabase) throw new Error("Supabase not configured");
     if (!user) throw new Error("No user");
 
     await supabase.auth.updateUser({ data: { role } });
@@ -198,12 +215,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    await initPromise;
+    if (!supabase) throw new Error("Supabase not configured");
     await supabase.auth.signOut();
     setUser(null);
     setAuthRedirect(null);
   };
 
   const resetPassword = async (email: string) => {
+    await initPromise;
+    if (!supabase) throw new Error("Supabase not configured");
+    
     const redirectTo =
       import.meta.env.VITE_APP_URL || window.location.origin;
 
@@ -213,6 +235,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resendVerificationEmail = async () => {
+    await initPromise;
+    if (!supabase) throw new Error("Supabase not configured");
     if (!user?.email) throw new Error("No email");
 
     const redirectTo =
