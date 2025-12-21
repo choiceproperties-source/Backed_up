@@ -48,9 +48,9 @@ const propertyFormSchema = z.object({
   state: z.string().min(2, 'State is required'),
   zipCode: z.string().optional(),
   price: z.number().min(0, 'Price must be positive'),
-  bedrooms: z.number().min(0, 'Bedrooms must be positive'),
+  bedrooms: z.number().min(0, 'Bedrooms must be positive').int('Bedrooms must be a whole number'),
   bathrooms: z.number().min(0, 'Bathrooms must be positive'),
-  squareFeet: z.number().min(0, 'Square feet must be positive').optional(),
+  squareFeet: z.number().min(0, 'Square feet must be positive').optional().nullable().transform(v => v ?? undefined),
   propertyType: z.string().optional(),
   description: z.string().optional(),
   furnished: z.boolean().default(false),
@@ -59,7 +59,7 @@ const propertyFormSchema = z.object({
   status: z.enum(['active', 'inactive']).default('active'),
   amenities: z.array(z.string()).default([]),
   utilitiesIncluded: z.array(z.string()).default([]),
-  images: z.array(z.string().min(1, 'Image URL required')).max(25, 'Maximum 25 images allowed').default([]),
+  images: z.array(z.string()).max(25, 'Maximum 25 images allowed').default([]), // Images validated after upload
 });
 
 type PropertyFormData = z.infer<typeof propertyFormSchema>;

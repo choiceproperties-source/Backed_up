@@ -785,7 +785,9 @@ export const insertPropertySchema = createInsertSchema(properties)
     deletedAt: true,
   })
   .extend({
-    images: z.array(z.string().min(1)).max(25).optional(),
+    price: z.number().or(z.string()).optional().transform(v => v ? String(v) : undefined),
+    bathrooms: z.number().or(z.string()).optional().transform(v => v ? String(v) : undefined),
+    images: z.array(z.string()).max(25).optional(), // Images validated AFTER upload, not on format
   });
 
 export const insertPropertyNoteSchema = createInsertSchema(propertyNotes).omit({

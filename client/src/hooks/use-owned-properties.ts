@@ -110,7 +110,7 @@ export function useOwnedProperties() {
     try {
       const token = await getAuthToken();
       
-      // VALIDATION: Ensure images are ImageKit URLs only (not base64)
+      // VALIDATION: Ensure images are ImageKit URLs only (not base64) - validates AFTER upload
       if (propertyData.images && Array.isArray(propertyData.images)) {
         for (const img of propertyData.images) {
           if (typeof img !== 'string' || !img.startsWith('http')) {
@@ -120,7 +120,7 @@ export function useOwnedProperties() {
       }
 
       // Note: Schema expects camelCase field names (Drizzle generates from TypeScript property names)
-      // Price and bathrooms are kept as numbers/original types - schema validates the types
+      // Numbers coerced to strings for decimal fields by schema
       const normalizedData = {
         title: propertyData.title,
         description: propertyData.description,
@@ -128,16 +128,16 @@ export function useOwnedProperties() {
         city: propertyData.city,
         state: propertyData.state,
         zipCode: propertyData.zipCode,  // camelCase for schema
-        price: propertyData.price,  // Keep as number - schema handles decimal
+        price: propertyData.price,  // Number - schema coerces to string for decimal
         bedrooms: propertyData.bedrooms,  // Integer
-        bathrooms: propertyData.bathrooms,  // Keep as number - schema handles decimal
-        squareFeet: propertyData.squareFeet,  // camelCase for schema
+        bathrooms: propertyData.bathrooms,  // Number - schema coerces to string for decimal
+        squareFeet: propertyData.squareFeet,  // camelCase for schema (optional)
         propertyType: propertyData.propertyType,  // camelCase for schema
         petsAllowed: propertyData.petsAllowed,  // camelCase for schema
         leaseTerm: propertyData.leaseTerm,  // camelCase for schema
-        utilitiesIncluded: propertyData.utilitiesIncluded,  // camelCase for schema
+        utilitiesIncluded: propertyData.utilitiesIncluded,  // camelCase for schema (array)
         amenities: propertyData.amenities,  // Array of amenity strings
-        images: propertyData.images || [],  // Array of ImageKit URLs ONLY
+        images: propertyData.images || [],  // Array of ImageKit URLs (validated before sending)
         furnished: propertyData.furnished,  // Boolean
         status: propertyData.status,  // String: 'active' or 'inactive'
         ownerId: user.id,  // camelCase for schema
