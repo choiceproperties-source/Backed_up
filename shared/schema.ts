@@ -785,9 +785,10 @@ export const insertPropertySchema = createInsertSchema(properties)
     deletedAt: true,
   })
   .extend({
-    price: z.number().or(z.string()).optional().transform(v => v ? String(v) : undefined),
-    bathrooms: z.number().or(z.string()).optional().transform(v => v ? String(v) : undefined),
-    images: z.array(z.string()).max(25).optional(), // Images validated AFTER upload, not on format
+    bedrooms: z.number().or(z.string()).optional().transform(v => v !== undefined && v !== "" ? Number(v) : undefined),
+    price: z.number().or(z.string()).optional().transform(v => v !== undefined && v !== "" ? Number(v) : undefined),
+    bathrooms: z.number().or(z.string()).optional().transform(v => v !== undefined && v !== "" ? Number(v) : undefined),
+    images: z.array(z.string()).max(25).optional(), // Optional, validated AFTER upload only
   });
 
 export const insertPropertyNoteSchema = createInsertSchema(propertyNotes).omit({
