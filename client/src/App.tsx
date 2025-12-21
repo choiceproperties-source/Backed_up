@@ -178,4 +178,131 @@ export default function App() {
       </ErrorBoundary>
     </AuthProvider>
   );
+}import { Switch, Route, useLocation } from "wouter";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { lazy, Suspense, useEffect } from "react";
+
+import { queryClient } from "./lib/queryClient";
+import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { ProtectedRoute } from "@/components/protected-route";
+
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { FavoritesProvider } from "@/hooks/use-favorites";
+
+import Home from "@/pages/home";
+import Properties from "@/pages/properties";
+import PropertyDetails from "@/pages/property-details";
+import NotFound from "@/pages/not-found";
+
+import { StickyNav } from "@/components/sticky-nav";
+import { FloatingCTAButton } from "@/components/floating-cta-button";
+
+import AOS from "aos";
+import "aos/dist/aos.css";
+
+/* ---------------- Lazy Pages ---------------- */
+
+const Login = lazy(() => import("@/pages/login"));
+const Signup = lazy(() => import("@/pages/signup"));
+const AuthCallback = lazy(() => import("@/pages/auth-callback"));
+const SelectRole = lazy(() => import("@/pages/select-role"));
+
+/* ---------------- Loading ---------------- */
+
+function Loading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+/* ---------------- Router ---------------- */
+
+function Router() {
+  return (
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/properties" component={Properties} />
+      <Route path="/property/:id" component={PropertyDetails} />
+
+      <Route path="/login"><Suspense fallback={<Loading />}><Login /></Suspense></Route>
+      <Route path="/signup"><Suspense fallback={<Loading />}><Signup /></Suspense></Route>
+      <Route path="/auth/callback"><Suspense fallback={<Loading />}><AuthCallback /></Suspense></Route>
+      <Route path="/select-role"><Suspense fallback={<Loading />}><SelectRole /></Suspense></Route>
+
+      <Route path="/renter-dashboard">
+        <ProtectedRoute requiredRoles={["renter"]}>
+          <div>Renter Dashboard</div>
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/landlord-dashboard">
+        <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+          <div>Landlord Dashboard</div>
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/agent-dashboard">
+        <ProtectedRoute requiredRoles={["agent", "admin"]}>
+          <div>Agent Dashboard</div>
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/admin">
+        <ProtectedRoute requiredRoles={["admin"]}>
+          <div>Admin</div>
+        </ProtectedRoute>
+      </Route>
+
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+/* ---------------- App Root ---------------- */
+
+function AppInner() {
+  const { authRedirect, clearAuthRedirect } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (authRedirect) {
+      setLocation(authRedirect);
+      clearAuthRedirect();
+    }
+  }, [authRedirect]);
+
+  return (
+    <>
+      <StickyNav />
+      <FloatingCTAButton />
+      <Router />
+    </>
+  );
+}
+
+export default function App() {
+  useEffect(() => {
+    AOS.init({ duration: 800, once: true });
+  }, []);
+
+  return (
+    <AuthProvider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <FavoritesProvider>
+              <Toaster />
+              <SonnerToaster position="top-right" richColors />
+              <AppInner />
+            </FavoritesProvider>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </AuthProvider>
+  );
 }
