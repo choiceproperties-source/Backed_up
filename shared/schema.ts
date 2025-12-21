@@ -777,18 +777,105 @@ export const insertUserSchema = createInsertSchema(users).omit({
   deletedAt: true,
 });
 
+// UPDATED PROPERTY INSERT SCHEMA WITH COMPREHENSIVE VALIDATION
 export const insertPropertySchema = createInsertSchema(properties)
   .omit({
     id: true,
     createdAt: true,
     updatedAt: true,
     deletedAt: true,
+    listedAt: true,
+    soldAt: true,
+    soldPrice: true,
+    priceHistory: true,
+    viewCount: true,
+    saveCount: true,
+    applicationCount: true,
   })
   .extend({
-    bedrooms: z.number().or(z.string()).optional().transform(v => v !== undefined && v !== "" ? Number(v) : undefined),
-    price: z.number().or(z.string()).optional().transform(v => v !== undefined && v !== "" ? Number(v) : undefined),
-    bathrooms: z.number().or(z.string()).optional().transform(v => v !== undefined && v !== "" ? Number(v) : undefined),
-    images: z.array(z.string()).max(25).optional(), // Optional, validated AFTER upload only
+    title: z.string()
+      .min(5, "Title must be at least 5 characters")
+      .max(200, "Title must not exceed 200 characters"),
+    description: z.string()
+      .min(10, "Description must be at least 10 characters")
+      .max(5000, "Description must not exceed 5000 characters")
+      .optional()
+      .or(z.literal("")),
+    address: z.string()
+      .min(5, "Address must be at least 5 characters")
+      .max(500, "Address must not exceed 500 characters"),
+    city: z.string()
+      .min(2, "City must be at least 2 characters")
+      .max(100, "City must not exceed 100 characters")
+      .optional()
+      .or(z.literal("")),
+    state: z.string()
+      .length(2, "State must be a 2-letter code (e.g., CA, NY)")
+      .optional()
+      .or(z.literal("")),
+    zipCode: z.string()
+      .regex(/^\d{5}(-\d{4})?$/, "ZIP code must be in format 12345 or 12345-6789")
+      .optional()
+      .or(z.literal("")),
+    price: z.coerce.number()
+      .positive("Price must be greater than 0")
+      .max(99999999.99, "Price must not exceed $99,999,999.99")
+      .optional(),
+    bedrooms: z.coerce.number()
+      .int("Bedrooms must be a whole number")
+      .min(0, "Bedrooms cannot be negative")
+      .max(20, "Bedrooms must not exceed 20")
+      .optional(),
+    bathrooms: z.coerce.number()
+      .min(0, "Bathrooms cannot be negative")
+      .max(99.9, "Bathrooms must not exceed 99.9")
+      .optional(),
+    squareFeet: z.coerce.number()
+      .int("Square feet must be a whole number")
+      .min(0, "Square feet cannot be negative")
+      .max(1000000, "Square feet must not exceed 1,000,000")
+      .optional(),
+    propertyType: z.string()
+      .min(1, "Property type is required")
+      .optional(),
+    amenities: z.array(z.string())
+      .max(50, "Cannot exceed 50 amenities")
+      .optional(),
+    images: z.array(z.string().url("Image must be a valid URL"))
+      .max(25, "Cannot exceed 25 images")
+      .optional(),
+    latitude: z.coerce.number()
+      .min(-90, "Latitude must be between -90 and 90")
+      .max(90, "Latitude must be between -90 and 90")
+      .optional(),
+    longitude: z.coerce.number()
+      .min(-180, "Longitude must be between -180 and 180")
+      .max(180, "Longitude must be between -180 and 180")
+      .optional(),
+    furnished: z.boolean().optional(),
+    petsAllowed: z.boolean().optional(),
+    leaseTerm: z.string()
+      .min(1, "Lease term is required")
+      .optional()
+      .or(z.literal("")),
+    utilitiesIncluded: z.array(z.string())
+      .max(20, "Cannot exceed 20 utilities")
+      .optional(),
+    listingStatus: z.enum([...PROPERTY_LISTING_STATUSES] as [string, ...string[]]).optional(),
+    visibility: z.enum([...PROPERTY_VISIBILITY] as [string, ...string[]]).optional(),
+    expiresAt: z.string().datetime().optional().nullable(),
+    autoUnpublish: z.boolean().optional(),
+    expirationDays: z.coerce.number()
+      .int("Expiration days must be a whole number")
+      .min(1, "Expiration days must be at least 1")
+      .max(365, "Expiration days must not exceed 365")
+      .optional(),
+    scheduledPublishAt: z.string().datetime().optional().nullable(),
+    addressVerified: z.boolean().optional(),
+    applicationFee: z.coerce.number()
+      .min(0, "Application fee cannot be negative")
+      .max(999999.99, "Application fee must not exceed $999,999.99")
+      .optional(),
   });
 
 export const insertPropertyNoteSchema = createInsertSchema(propertyNotes).omit({
