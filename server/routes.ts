@@ -91,14 +91,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup endpoint to create property-images bucket
   app.post("/api/setup/create-bucket", async (req, res) => {
     try {
+      if (!supabase) {
+        return res.status(500).json({ error: "Supabase not initialized" });
+      }
+
       // Create the bucket if it doesn't exist
       const { data: buckets, error: listError } = await supabase.storage.listBuckets();
       
       if (listError) {
+        console.error('[BUCKET] List error:', listError);
         return res.status(500).json({ error: "Failed to list buckets", details: listError });
       }
 
-      const bucketExists = buckets?.some(b => b.name === 'property-images');
+      const bucketExists = buckets?.some((b: any) => b.name === 'property-images');
       
       if (!bucketExists) {
         const { data: bucket, error: createError } = await supabase.storage.createBucket('property-images', {
@@ -106,10 +111,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         if (createError) {
+          console.error('[BUCKET] Create error:', createError);
           return res.status(500).json({ error: "Failed to create bucket", details: createError });
         }
 
         console.log('[BUCKET] Created property-images bucket');
+      } else {
+        console.log('[BUCKET] Bucket already exists');
       }
 
       res.json({ success: true, message: 'Bucket ready for uploads' });

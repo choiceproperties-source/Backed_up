@@ -48,9 +48,6 @@ export function useSupabaseStorageUpload(options: UseSupabaseStorageUploadOption
     setUploadProgress(0);
 
     try {
-      // Setup bucket on backend (creates if doesn't exist)
-      await fetch('/api/setup/create-bucket', { method: 'POST' });
-
       // Get Supabase config from backend
       const configResponse = await fetch('/api/config');
       const config = await configResponse.json();
@@ -61,6 +58,13 @@ export function useSupabaseStorageUpload(options: UseSupabaseStorageUploadOption
 
       // Initialize Supabase client
       const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
+      
+      // Ensure bucket exists by attempting to create (silently fails if already exists)
+      try {
+        await supabase.storage.createBucket('property-images', { public: true });
+      } catch (e) {
+        // Bucket likely already exists, continue
+      }
 
       // Generate unique file path
       const timestamp = Date.now();
