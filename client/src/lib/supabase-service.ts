@@ -1,6 +1,56 @@
 import { supabase } from './supabase';
 import type { Property, Review } from './types';
 
+// Define proper return types for API calls
+interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  errors?: Array<{ field: string; message: string }>;
+}
+
+// Helper function for API calls
+async function apiCall<T = any>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T>> {
+  try {
+    // Get the session token for authentication
+    const session = await supabase?.auth.getSession();
+    const token = session?.data?.session?.access_token;
+
+    const response = await fetch(`/api/v2${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '',
+        ...options.headers,
+      },
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: result.error || `HTTP ${response.status}: ${response.statusText}`,
+        errors: result.errors,
+      };
+    }
+
+    return {
+      success: true,
+      data: result.data,
+    };
+  } catch (error: any) {
+    console.error(`API call failed for ${endpoint}:`, error);
+    return {
+      success: false,
+      error: error.message || 'Network error occurred',
+    };
+  }
+}
+
 // ===================== PROPERTIES =====================
 export async function getProperties(): Promise<Property[]> {
   if (!supabase) return [];
@@ -30,18 +80,32 @@ export async function getPropertyById(id: string): Promise<Property | null> {
   }
 }
 
-export async function createProperty(property: Omit<Property, 'id'>): Promise<Property | null> {
-  if (!supabase) return null;
+// UPDATED: Use backend API endpoint instead of direct Supabase call
+export async function createProperty(property: Omit<Property, 'id'>): Promise<ApiResponse<Property>> {
   try {
-    const { data, error } = await supabase
-      .from('properties')
-      .insert([property])
-      .select()
-      .single();
-    if (error) throw error;
-    return data || null;
-  } catch (err) {
-    return null;
+    const result = await apiCall<Property>('/properties', {
+      method: 'POST',
+      body: JSON.stringify(property),
+    });
+
+    if (result.success && result.data) {
+      return {
+        success: true,
+        data: result.data,
+      };
+    }
+
+    return {
+      success: false,
+      error: result.error || 'Failed to create property',
+      errors: result.errors,
+    };
+  } catch (error: any) {
+    console.error('createProperty error:', error);
+    return {
+      success: false,
+      error: error.message || 'An unexpected error occurred',
+    };
   }
 }
 
@@ -269,7 +333,7 @@ export async function getCurrentUserProfile() {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
-    
+
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -334,17 +398,17 @@ export async function uploadPropertyImage(file: File, propertyId: string): Promi
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${propertyId}/${Date.now()}.${fileExt}`;
-    
+
     const { error: uploadError } = await supabase.storage
       .from('property-images')
       .upload(fileName, file);
-    
+
     if (uploadError) throw uploadError;
-    
+
     const { data } = supabase.storage
       .from('property-images')
       .getPublicUrl(fileName);
-    
+
     return data.publicUrl;
   } catch (err) {
     return null;
@@ -356,17 +420,17 @@ export async function uploadProfileImage(file: File, userId: string): Promise<st
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/profile.${fileExt}`;
-    
+
     const { error: uploadError } = await supabase.storage
       .from('profile-images')
       .upload(fileName, file, { upsert: true });
-    
+
     if (uploadError) throw uploadError;
-    
+
     const { data } = supabase.storage
       .from('profile-images')
       .getPublicUrl(fileName);
-    
+
     return data.publicUrl;
   } catch (err) {
     return null;
@@ -378,13 +442,13 @@ export async function uploadDocument(file: File, userId: string, applicationId: 
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${applicationId}/${Date.now()}_${file.name}`;
-    
+
     const { error: uploadError } = await supabase.storage
       .from('documents')
       .upload(fileName, file);
-    
+
     if (uploadError) throw uploadError;
-    
+
     return fileName;
   } catch (err) {
     return null;
@@ -397,7 +461,7 @@ export async function getDocumentUrl(filePath: string): Promise<string | null> {
     const { data, error } = await supabase.storage
       .from('documents')
       .createSignedUrl(filePath, 3600);
-    
+
     if (error) throw error;
     return data.signedUrl;
   } catch (err) {
@@ -411,12 +475,12 @@ export async function deletePropertyImages(propertyId: string): Promise<boolean>
     const { data: files } = await supabase.storage
       .from('property-images')
       .list(propertyId);
-    
+
     if (files && files.length > 0) {
       const filePaths = files.map(f => `${propertyId}/${f.name}`);
       await supabase.storage.from('property-images').remove(filePaths);
     }
-    
+
     return true;
   } catch (err) {
     return false;
@@ -527,7 +591,7 @@ export async function getAdminStats() {
       supabase.from('reviews').select('id, rating', { count: 'exact' }),
       supabase.from('inquiries').select('id, status', { count: 'exact' })
     ]);
-    
+
     return {
       totalProperties: properties.count || 0,
       totalUsers: users.count || 0,
@@ -1013,7 +1077,7 @@ export async function updateDocumentVerification(id: string, updates: {
     };
     if (updates.rejectionReason) updateData.rejection_reason = updates.rejectionReason;
     if (updates.notes) updateData.notes = updates.notes;
-    
+
     if (updates.status === 'verified' || updates.status === 'rejected') {
       updateData.verified_at = new Date().toISOString();
       const { data: session } = await supabase.auth.getSession();

@@ -777,7 +777,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
   deletedAt: true,
 });
 
-// UPDATED PROPERTY INSERT SCHEMA WITH COMPREHENSIVE VALIDATION
+// FIXED: COMPREHENSIVE PROPERTY INSERT SCHEMA WITH CONSISTENT VALIDATION
 export const insertPropertySchema = createInsertSchema(properties)
   .omit({
     id: true,
@@ -791,92 +791,202 @@ export const insertPropertySchema = createInsertSchema(properties)
     viewCount: true,
     saveCount: true,
     applicationCount: true,
+    ownerId: true,
+    listingAgentId: true,
+    agencyId: true,
+    addressVerified: true,
   })
   .extend({
     title: z.string()
       .min(5, "Title must be at least 5 characters")
       .max(200, "Title must not exceed 200 characters"),
-    description: z.string()
-      .min(10, "Description must be at least 10 characters")
-      .max(5000, "Description must not exceed 5000 characters")
-      .optional()
-      .or(z.literal("")),
     address: z.string()
       .min(5, "Address must be at least 5 characters")
       .max(500, "Address must not exceed 500 characters"),
     city: z.string()
       .min(2, "City must be at least 2 characters")
       .max(100, "City must not exceed 100 characters")
-      .optional()
-      .or(z.literal("")),
+      .optional(),
     state: z.string()
       .length(2, "State must be a 2-letter code (e.g., CA, NY)")
-      .optional()
-      .or(z.literal("")),
-    zipCode: z.string()
-      .regex(/^\d{5}(-\d{4})?$/, "ZIP code must be in format 12345 or 12345-6789")
-      .optional()
-      .or(z.literal("")),
+      .transform((val) => val.toUpperCase())
+      .optional(),
     price: z.coerce.number()
       .positive("Price must be greater than 0")
       .max(99999999.99, "Price must not exceed $99,999,999.99")
       .optional(),
+    propertyType: z.string()
+      .min(1, "Property type is required")
+      .optional(),
+    description: z.string()
+      .min(10, "Description must be at least 10 characters if provided")
+      .max(5000, "Description must not exceed 5000 characters")
+      .optional()
+      .default(""),
+    zipCode: z.string()
+      .regex(/^\d{5}(-\d{4})?$/, "ZIP code must be in format 12345 or 12345-6789")
+      .optional()
+      .default(""),
     bedrooms: z.coerce.number()
       .int("Bedrooms must be a whole number")
       .min(0, "Bedrooms cannot be negative")
       .max(20, "Bedrooms must not exceed 20")
-      .optional(),
+      .optional()
+      .nullable(),
     bathrooms: z.coerce.number()
       .min(0, "Bathrooms cannot be negative")
       .max(99.9, "Bathrooms must not exceed 99.9")
-      .optional(),
+      .optional()
+      .nullable(),
     squareFeet: z.coerce.number()
       .int("Square feet must be a whole number")
       .min(0, "Square feet cannot be negative")
       .max(1000000, "Square feet must not exceed 1,000,000")
-      .optional(),
-    propertyType: z.string()
-      .min(1, "Property type is required")
-      .optional(),
+      .optional()
+      .nullable(),
     amenities: z.array(z.string())
       .max(50, "Cannot exceed 50 amenities")
-      .optional(),
+      .optional()
+      .default([]),
     images: z.array(z.string().url("Image must be a valid URL"))
       .max(25, "Cannot exceed 25 images")
-      .optional(),
+      .optional()
+      .default([]),
+    furnished: z.boolean()
+      .optional()
+      .default(false),
+    petsAllowed: z.boolean()
+      .optional()
+      .default(false),
     latitude: z.coerce.number()
       .min(-90, "Latitude must be between -90 and 90")
       .max(90, "Latitude must be between -90 and 90")
-      .optional(),
+      .optional()
+      .nullable(),
     longitude: z.coerce.number()
       .min(-180, "Longitude must be between -180 and 180")
       .max(180, "Longitude must be between -180 and 180")
-      .optional(),
-    furnished: z.boolean().optional(),
-    petsAllowed: z.boolean().optional(),
+      .optional()
+      .nullable(),
     leaseTerm: z.string()
       .min(1, "Lease term is required")
       .optional()
-      .or(z.literal("")),
+      .default(""),
     utilitiesIncluded: z.array(z.string())
       .max(20, "Cannot exceed 20 utilities")
-      .optional(),
-    listingStatus: z.enum([...PROPERTY_LISTING_STATUSES] as [string, ...string[]]).optional(),
-    visibility: z.enum([...PROPERTY_VISIBILITY] as [string, ...string[]]).optional(),
-    expiresAt: z.string().datetime().optional().nullable(),
-    autoUnpublish: z.boolean().optional(),
+      .optional()
+      .default([]),
+    status: z.enum(['active', 'inactive'] as const)
+      .optional()
+      .default('active'),
+    listingStatus: z.enum([...PROPERTY_LISTING_STATUSES] as [string, ...string[]])
+      .optional()
+      .default('draft'),
+    visibility: z.enum([...PROPERTY_VISIBILITY] as [string, ...string[]])
+      .optional()
+      .default('public'),
+    expiresAt: z.string()
+      .datetime()
+      .optional()
+      .nullable(),
+    scheduledPublishAt: z.string()
+      .datetime()
+      .optional()
+      .nullable(),
+    deposit: z.coerce.number()
+      .min(0, "Deposit cannot be negative")
+      .max(9999999.99, "Deposit must not exceed $9,999,999.99")
+      .optional()
+      .nullable(),
+    hoaFee: z.coerce.number()
+      .min(0, "HOA fee cannot be negative")
+      .max(999999.99, "HOA fee must not exceed $999,999.99")
+      .optional()
+      .nullable(),
+    yearBuilt: z.coerce.number()
+      .int("Year built must be a whole number")
+      .min(1800, "Year built must be after 1800")
+      .max(new Date().getFullYear() + 1, `Year built cannot be after ${new Date().getFullYear() + 1}`)
+      .optional()
+      .nullable(),
+    applicationFee: z.coerce.number()
+      .min(0, "Application fee cannot be negative")
+      .max(999999.99, "Application fee must not exceed $999,999.99")
+      .optional()
+      .nullable(),
+    autoUnpublish: z.boolean()
+      .optional()
+      .default(true),
     expirationDays: z.coerce.number()
       .int("Expiration days must be a whole number")
       .min(1, "Expiration days must be at least 1")
       .max(365, "Expiration days must not exceed 365")
-      .optional(),
-    scheduledPublishAt: z.string().datetime().optional().nullable(),
-    addressVerified: z.boolean().optional(),
-    applicationFee: z.coerce.number()
-      .min(0, "Application fee cannot be negative")
-      .max(999999.99, "Application fee must not exceed $999,999.99")
-      .optional(),
-  });
+      .optional()
+      .default(90),
+  })
+  .refine(
+    (data) => {
+      if (data.price !== undefined && data.price !== null) {
+        return !isNaN(data.price) && data.price > 0;
+      }
+      return true;
+    },
+    {
+      message: "Price must be a valid number greater than 0",
+      path: ["price"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.bedrooms !== undefined && data.bedrooms !== null) {
+        return Number.isInteger(data.bedrooms) && data.bedrooms >= 0;
+      }
+      return true;
+    },
+    {
+      message: "Bedrooms must be a valid whole number",
+      path: ["bedrooms"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.bathrooms !== undefined && data.bathrooms !== null) {
+        const decimalPlaces = data.bathrooms.toString().split('.')[1]?.length || 0;
+        return decimalPlaces <= 1;
+      }
+      return true;
+    },
+    {
+      message: "Bathrooms can only have up to 1 decimal place (e.g., 2.5)",
+      path: ["bathrooms"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.state && data.state.length !== 2) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "State must be a 2-letter code",
+      path: ["state"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.images && data.images.length > 0) {
+        return data.images.every(img => 
+          img.startsWith('http://') || img.startsWith('https://')
+        );
+      }
+      return true;
+    },
+    {
+      message: "All images must be valid URLs starting with http:// or https://",
+      path: ["images"],
+    }
+  );
 
 export const insertPropertyNoteSchema = createInsertSchema(propertyNotes).omit({
   id: true,
@@ -1106,16 +1216,12 @@ export type Message = typeof messages.$inferSelect;
 
 export const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
-  // Password requirements: 8+ characters, at least one uppercase letter, at least one number
-  // These same requirements are displayed as hints on the login form for consistency
   password: z.string()
     .min(8, "Password must be at least 8 characters")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[0-9]/, "Password must contain at least one number"),
   fullName: z.string().min(1, "Full name is required"),
   phone: z.string()
-    // Accepts international phone numbers with optional + prefix, country code, and flexible formatting
-    // Examples: +1 555-123-4567, 555.123.4567, (555) 123-4567, +44 20 7946 0958, +81-90-1234-5678
     .regex(/^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/, "Please enter a valid phone number")
     .optional()
     .or(z.literal("")),
@@ -1124,9 +1230,6 @@ export const signupSchema = z.object({
 
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
-  // Note: Login schema only validates that password is not empty.
-  // Password format requirements are enforced at signup and displayed as a UX hint on login form.
-  // The actual password validation happens server-side via Supabase auth.
   password: z.string().min(1, "Password is required"),
 });
 

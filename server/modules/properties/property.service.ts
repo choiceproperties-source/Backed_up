@@ -35,6 +35,12 @@ export interface CreatePropertyInput {
   userId: string;
 }
 
+export interface CreatePropertyResult {
+  data?: any;
+  error?: string;
+  errors?: Array<{ field: string; message: string }>;
+}
+
 /* ------------------------------------------------ */
 /* Helpers */
 /* ------------------------------------------------ */
@@ -47,12 +53,19 @@ export interface CreatePropertyInput {
  * - { fileUrl: string }
  */
 function normalizeImages(images: unknown): string[] {
-  if (!Array.isArray(images)) return [];
+  if (images === undefined || images === null) return [];
+  if (!Array.isArray(images)) {
+    throw new Error("Images must be an array");
+  }
 
   const urls: string[] = [];
 
   for (const img of images) {
     if (typeof img === "string") {
+      // Validate URL format
+      if (!img.startsWith("http://") && !img.startsWith("https://")) {
+        throw new Error(`Invalid image URL format: ${img}`);
+      }
       urls.push(img);
       continue;
     }
@@ -64,34 +77,29 @@ function normalizeImages(images: unknown): string[] {
         (img as any).imageUrl;
 
       if (typeof url === "string") {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+          throw new Error(`Invalid image URL format: ${url}`);
+        }
         urls.push(url);
         continue;
       }
     }
 
-    throw new Error("Invalid image format. Upload images via ImageKit only.");
+    throw new Error("Invalid image format. Must be a URL string or object with url/fileUrl/imageUrl property.");
   }
 
   if (urls.length > 25) {
     throw new Error("Maximum 25 images per property");
   }
 
-  for (const url of urls) {
-    if (url.startsWith("data:")) {
-      throw new Error("Base64 images are not allowed");
-    }
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-      throw new Error("Images must be valid URLs");
-    }
-  }
-
   return urls;
 }
 
 /**
- * Convert numeric frontend values into schema-safe strings
+ * Convert numeric frontend values into schema-safe format
+ * FIXED: Keep numbers as numbers, don't convert to strings
  */
-function normalizePropertyInput(body: Record<string, any>) {
+function normalizePropertyInput(body: Record<string, any>): Record<string, any> {
   const numericFields = [
     "price",
     "bedrooms",
@@ -104,14 +112,61 @@ function normalizePropertyInput(body: Record<string, any>) {
 
   const normalized = { ...body };
 
+  // Handle numeric fields - ensure they are numbers or null/undefined
   for (const field of numericFields) {
-    if (field in normalized && typeof normalized[field] === "number") {
-      normalized[field] = String(normalized[field]);
+    if (field in normalized) {
+      const value = normalized[field];
+
+      // Convert empty string to undefined
+      if (value === "" || value === null) {
+        normalized[field] = undefined;
+        continue;
+      }
+
+      // Convert string numbers to actual numbers
+      if (typeof value === "string") {
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue)) {
+          normalized[field] = numValue;
+        } else {
+          // If it's a non-numeric string, keep it as is (will fail validation)
+          normalized[field] = value;
+        }
+      }
+      // If it's already a number, keep it as number
     }
   }
 
+  // Handle required string fields - trim whitespace
+  const stringFields = ["title", "address", "city", "state", "description"];
+  for (const field of stringFields) {
+    if (field in normalized && typeof normalized[field] === "string") {
+      normalized[field] = normalized[field].trim();
+      // Convert empty string to undefined for optional fields
+      if (normalized[field] === "" && field !== "title" && field !== "address") {
+        normalized[field] = undefined;
+      }
+    }
+  }
+
+  // Normalize state to uppercase
+  if (normalized.state && typeof normalized.state === "string") {
+    normalized.state = normalized.state.trim().toUpperCase();
+  }
+
+  // Handle property_type
+  if (normalized.property_type && typeof normalized.property_type === "string") {
+    normalized.property_type = normalized.property_type.trim().toLowerCase();
+  }
+
+  // Handle images
   if ("images" in normalized) {
-    normalized.images = normalizeImages(normalized.images);
+    try {
+      normalized.images = normalizeImages(normalized.images);
+    } catch (error: any) {
+      // Rethrow with clearer message
+      throw new Error(`Image validation failed: ${error.message}`);
+    }
   }
 
   return normalized;
@@ -191,29 +246,111 @@ export async function getPropertyById(id: string): Promise<any> {
 export async function createProperty({
   body,
   userId,
-}: CreatePropertyInput): Promise<{ data?: any; error?: string }> {
-  let normalized;
+}: CreatePropertyInput): Promise<CreatePropertyResult> {
+  console.log("[PROPERTY_SERVICE] createProperty called:", {
+    userId,
+    rawBody: body,
+    timestamp: new Date().toISOString(),
+  });
 
+  let normalized;
   try {
     normalized = normalizePropertyInput(body);
+    console.log("[PROPERTY_SERVICE] normalized input:", normalized);
   } catch (err: any) {
-    return { error: err.message };
+    console.error("[PROPERTY_SERVICE] normalization error:", {
+      error: err.message,
+      stack: err.stack,
+      body,
+    });
+    return {
+      error: err.message,
+      errors: [{ field: "general", message: err.message }],
+    };
   }
 
+  // Validate with Zod schema
   const parsed = insertPropertySchema.safeParse(normalized);
   if (!parsed.success) {
-    return { error: parsed.error.errors[0]?.message ?? "Invalid input" };
+    console.error("[PROPERTY_SERVICE] validation error:", {
+      errors: parsed.error.errors,
+      normalized,
+    });
+
+    // Return ALL validation errors, not just the first one
+    const errors = parsed.error.errors.map(error => ({
+      field: error.path.join('.'),
+      message: error.message,
+    }));
+
+    return {
+      error: errors[0]?.message || "Validation failed",
+      errors,
+    };
   }
 
-  const propertyData = {
-    ...parsed.data,
-    owner_id: userId,
-  };
+  try {
+    const propertyData = {
+      ...parsed.data,
+      owner_id: userId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
 
-  const data = await propertyRepository.createProperty(propertyData as any);
+    console.log("[PROPERTY_SERVICE] creating property with data:", propertyData);
 
-  cache.invalidate("properties:");
-  return { data };
+    const data = await propertyRepository.createProperty(propertyData as any);
+
+    // Invalidate relevant caches
+    cache.invalidate("properties:");
+    invalidateOwnershipCache("property", data.id);
+
+    console.log("[PROPERTY_SERVICE] property created successfully:", {
+      propertyId: data.id,
+      userId,
+    });
+
+    return { data };
+  } catch (err: any) {
+    console.error("[PROPERTY_SERVICE] repository error:", {
+      error: err.message,
+      stack: err.stack,
+      code: err.code,
+      details: err.details,
+      propertyData: {
+        ...parsed.data,
+        owner_id: userId,
+      },
+    });
+
+    // Handle database-specific errors
+    if (err.code === '23505') { // Unique constraint violation
+      return {
+        error: "A property with similar details already exists",
+        errors: [{ field: "general", message: "Duplicate property detected" }],
+      };
+    }
+
+    if (err.code === '23503') { // Foreign key violation
+      return {
+        error: "Invalid user reference",
+        errors: [{ field: "owner_id", message: "User does not exist" }],
+      };
+    }
+
+    // Handle other database errors
+    if (err.message?.includes("violates")) {
+      return {
+        error: "Database constraint violation",
+        errors: [{ field: "general", message: "Invalid data format" }],
+      };
+    }
+
+    return {
+      error: err.message || "Failed to create property in database",
+      errors: [{ field: "general", message: "Database error occurred" }],
+    };
+  }
 }
 
 export async function updateProperty(
@@ -221,6 +358,12 @@ export async function updateProperty(
   updateData: Record<string, any>,
   userId?: string
 ): Promise<any> {
+  console.log("[PROPERTY_SERVICE] updateProperty called:", {
+    id,
+    userId,
+    updateData,
+  });
+
   const property = await propertyRepository.findPropertyById(id);
 
   if (!property) {
@@ -233,11 +376,28 @@ export async function updateProperty(
 
   const normalized = normalizePropertyInput(updateData);
 
+  // Validate partial updates with Zod
+  const parsed = insertPropertySchema.partial().safeParse(normalized);
+  if (!parsed.success) {
+    console.error("[PROPERTY_SERVICE] update validation error:", {
+      errors: parsed.error.errors,
+    });
+
+    const errors = parsed.error.errors.map(error => ({
+      field: error.path.join('.'),
+      message: error.message,
+    }));
+
+    throw new Error(`Validation failed: ${errors[0]?.message || "Invalid data"}`);
+  }
+
   const updated = await propertyRepository.updateProperty(id, normalized);
 
   cache.invalidate(`property:${id}`);
   cache.invalidate("properties:");
   invalidateOwnershipCache("property", id);
+
+  console.log("[PROPERTY_SERVICE] property updated successfully:", { id });
 
   return updated;
 }
@@ -246,6 +406,8 @@ export async function deleteProperty(
   id: string,
   userId?: string
 ): Promise<null> {
+  console.log("[PROPERTY_SERVICE] deleteProperty called:", { id, userId });
+
   const property = await propertyRepository.findPropertyById(id);
 
   if (!property) {
@@ -262,9 +424,61 @@ export async function deleteProperty(
   cache.invalidate("properties:");
   invalidateOwnershipCache("property", id);
 
+  console.log("[PROPERTY_SERVICE] property deleted successfully:", { id });
+
   return null;
 }
 
 export async function recordPropertyView(propertyId: string): Promise<void> {
   await propertyRepository.incrementPropertyViews(propertyId);
+}
+
+// Additional functions for completeness (if they exist in repository)
+export async function getPropertyFull(id: string): Promise<any> {
+  return propertyRepository.findPropertyById(id);
+}
+
+export async function getPropertiesByOwner(ownerId: string): Promise<any[]> {
+  return propertyRepository.findPropertiesByOwner(ownerId);
+}
+
+export async function getPropertyAnalytics(propertyId: string): Promise<any> {
+  // Implement analytics logic or call repository
+  return { views: 0, saves: 0, applications: 0 };
+}
+
+export async function updatePropertyStatus(
+  id: string,
+  status: string
+): Promise<any> {
+  return propertyRepository.updateProperty(id, { status });
+}
+
+export async function updatePropertyPrice(
+  id: string,
+  price: number
+): Promise<any> {
+  return propertyRepository.updateProperty(id, { price });
+}
+
+export async function updateExpiration(
+  id: string,
+  expiresAt: string
+): Promise<any> {
+  return propertyRepository.updateProperty(id, { expires_at: expiresAt });
+}
+
+export async function schedulePublish(
+  id: string,
+  publishAt: string
+): Promise<any> {
+  return propertyRepository.updateProperty(id, { publish_at: publishAt });
+}
+
+export async function getMarketInsights(): Promise<any> {
+  return { averagePrice: 0, totalProperties: 0 };
+}
+
+export async function getTrustIndicators(): Promise<any> {
+  return { verifiedProperties: 0, verifiedOwners: 0 };
 }

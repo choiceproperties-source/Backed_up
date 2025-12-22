@@ -37,7 +37,7 @@ import {
   Trash2, Edit2, Plus, Home, Users, Star, FileText, MessageSquare, Shield, 
   Check, X, LogOut, LayoutDashboard, Search, BarChart3, Menu, Eye, Filter,
   CheckCircle, XCircle, Clock, Mail, Phone, Calendar, DollarSign, MapPin,
-  AlertTriangle, Flag, FileCheck, Scale
+  AlertTriangle, Flag, FileCheck, Scale, Loader2
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
@@ -148,6 +148,33 @@ interface DocumentVerification {
   verifier?: { id: string; full_name: string };
 }
 
+// Interface for new property form data
+interface NewPropertyFormData {
+  title: string;
+  price: number | null;
+  address: string;
+  city: string;
+  state: string;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  property_type: string;
+  description: string;
+}
+
+// Interface for form validation errors
+interface FormErrors {
+  title?: string;
+  price?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  bedrooms?: string;
+  bathrooms?: string;
+  property_type?: string;
+  description?: string;
+  [key: string]: string | undefined;
+}
+
 export default function Admin() {
   const { user, logout } = useAuth();
   const { toast } = useToast();
@@ -155,7 +182,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  
+
   const [properties, setProperties] = useState<Property[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -208,14 +235,27 @@ export default function Admin() {
   const [userRoleFilter, setUserRoleFilter] = useState('all');
   const [inquiryFilter, setInquiryFilter] = useState('all');
 
-  // Form states
-  const [newProperty, setNewProperty] = useState({
-    title: '', price: '', address: '', city: '', state: '',
-    bedrooms: '', bathrooms: '', property_type: 'house', description: '',
+  // Form states - FIXED: Numeric fields as numbers/null instead of strings
+  const [newProperty, setNewProperty] = useState<NewPropertyFormData>({
+    title: '',
+    price: null,
+    address: '',
+    city: '',
+    state: '',
+    bedrooms: null,
+    bathrooms: null,
+    property_type: 'house',
+    description: '',
   });
+
   const [newUser, setNewUser] = useState({ email: '', full_name: '', role: 'user' });
   const [editPropertyData, setEditPropertyData] = useState<Partial<Property>>({});
   const [editUserData, setEditUserData] = useState<Partial<User>>({});
+
+  // Loading and validation states
+  const [isCreatingProperty, setIsCreatingProperty] = useState(false);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [backendError, setBackendError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -246,178 +286,256 @@ export default function Admin() {
     }
   };
 
-  if (!user || user.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <Card className="p-8 max-w-md w-full text-center">
-          <Shield className="h-12 w-12 mx-auto text-destructive mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-          <p className="text-muted-foreground mb-4">You don't have permission to access the admin panel.</p>
-          <p className="text-sm text-muted-foreground mb-6">Admin access requires the 'admin' role.</p>
-          <Link href="/">
-            <Button className="w-full" data-testid="button-go-home">Go to Home</Button>
-          </Link>
-        </Card>
-      </div>
-    );
-  }
+  // Client-side validation function
+  const validatePropertyForm = (): boolean => {
+    const errors: FormErrors = {};
 
-  // Stats calculations
-  const scoredApplications = applications.filter(a => a.score !== undefined && a.score !== null);
-  const highScoreApplications = scoredApplications.filter(a => (a.score || 0) >= 70);
-  const pendingHighScore = applications.filter(a => a.status === 'pending' && (a.score || 0) >= 70);
-  const underReviewApplications = applications.filter(a => a.status === 'under_review');
-  
-  const stats = {
-    totalProperties: properties.length,
-    activeProperties: properties.filter(p => p.status === 'active').length,
-    totalUsers: users.length,
-    renters: users.filter(u => u.role === 'renter' || u.role === 'user').length,
-    owners: users.filter(u => u.role === 'owner').length,
-    agents: users.filter(u => u.role === 'agent').length,
-    admins: users.filter(u => u.role === 'admin').length,
-    totalReviews: reviews.length,
-    avgRating: reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : '0',
-    totalApplications: applications.length,
-    pendingApplications: applications.filter(a => a.status === 'pending').length,
-    underReviewApplications: underReviewApplications.length,
-    approvedApplications: applications.filter(a => a.status === 'approved').length,
-    rejectedApplications: applications.filter(a => a.status === 'rejected').length,
-    scoredApplications: scoredApplications.length,
-    avgScore: scoredApplications.length > 0 ? Math.round(scoredApplications.reduce((sum, a) => sum + (a.score || 0), 0) / scoredApplications.length) : 0,
-    highScoreCount: highScoreApplications.length,
-    pendingHighScoreCount: pendingHighScore.length,
-    totalInquiries: inquiries.length,
-    pendingInquiries: inquiries.filter(i => i.status === 'pending').length,
-    totalSavedSearches: savedSearches.length,
+    // Required field validation
+    if (!newProperty.title.trim()) errors.title = 'Title is required';
+    else if (newProperty.title.length < 5) errors.title = 'Title must be at least 5 characters';
+    else if (newProperty.title.length > 200) errors.title = 'Title must not exceed 200 characters';
+
+    if (!newProperty.address.trim()) errors.address = 'Address is required';
+
+    if (!newProperty.city.trim()) errors.city = 'City is required';
+    else if (newProperty.city.length < 2) errors.city = 'City must be at least 2 characters';
+
+    if (!newProperty.state.trim()) errors.state = 'State is required';
+    else if (newProperty.state.length !== 2) errors.state = 'State must be a 2-letter code';
+
+    // Numeric field validation
+    if (newProperty.price === null || newProperty.price === undefined) {
+      errors.price = 'Price is required';
+    } else if (isNaN(newProperty.price)) {
+      errors.price = 'Price must be a valid number';
+    } else if (newProperty.price <= 0) {
+      errors.price = 'Price must be greater than 0';
+    }
+
+    if (newProperty.bedrooms === null || newProperty.bedrooms === undefined) {
+      errors.bedrooms = 'Bedrooms is required';
+    } else if (isNaN(newProperty.bedrooms)) {
+      errors.bedrooms = 'Bedrooms must be a valid number';
+    } else if (newProperty.bedrooms < 0) {
+      errors.bedrooms = 'Bedrooms cannot be negative';
+    } else if (newProperty.bedrooms > 20) {
+      errors.bedrooms = 'Bedrooms must not exceed 20';
+    } else if (!Number.isInteger(newProperty.bedrooms)) {
+      errors.bedrooms = 'Bedrooms must be a whole number';
+    }
+
+    if (newProperty.bathrooms === null || newProperty.bathrooms === undefined) {
+      errors.bathrooms = 'Bathrooms is required';
+    } else if (isNaN(newProperty.bathrooms)) {
+      errors.bathrooms = 'Bathrooms must be a valid number';
+    } else if (newProperty.bathrooms < 0) {
+      errors.bathrooms = 'Bathrooms cannot be negative';
+    } else if (newProperty.bathrooms > 99.9) {
+      errors.bathrooms = 'Bathrooms must not exceed 99.9';
+    }
+
+    // Optional field validation
+    if (newProperty.description && newProperty.description.length < 10) {
+      errors.description = 'Description must be at least 10 characters if provided';
+    }
+
+    setFormErrors(errors);
+    setBackendError(null); // Clear any previous backend errors
+
+    return Object.keys(errors).length === 0;
   };
 
-  // Filtered data
-  const filteredProperties = useMemo(() => {
-    return properties.filter(p => {
-      if (propertyFilter.status !== 'all' && p.status !== propertyFilter.status) return false;
-      if (propertyFilter.city && !p.city?.toLowerCase().includes(propertyFilter.city.toLowerCase())) return false;
-      if (propertyFilter.minPrice && p.price < parseFloat(propertyFilter.minPrice)) return false;
-      if (propertyFilter.maxPrice && p.price > parseFloat(propertyFilter.maxPrice)) return false;
-      return true;
-    });
-  }, [properties, propertyFilter]);
+  // Handle numeric input changes
+  const handleNumericChange = (field: keyof NewPropertyFormData, value: string) => {
+    const numValue = value === '' ? null : Number(value);
 
-  const filteredApplications = useMemo(() => {
-    let filtered = applications;
-    
-    // Filter by status
-    if (applicationFilter !== 'all') {
-      filtered = filtered.filter(a => a.status === applicationFilter);
-    }
-    
-    // Filter by search term (applicant name or property title)
-    if (applicationSearch.trim()) {
-      const search = applicationSearch.toLowerCase().trim();
-      filtered = filtered.filter(a => 
-        a.users?.full_name?.toLowerCase().includes(search) ||
-        a.properties?.title?.toLowerCase().includes(search) ||
-        a.id.toLowerCase().includes(search)
-      );
-    }
-    
-    // Sort applications
-    return [...filtered].sort((a, b) => {
-      switch (applicationSort) {
-        case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        default:
-          return 0;
+    // Validate immediately for better UX
+    if (numValue !== null) {
+      const errors = { ...formErrors };
+
+      if (field === 'price' && numValue <= 0) {
+        errors.price = 'Price must be greater than 0';
+      } else if (field === 'price' && isNaN(numValue)) {
+        errors.price = 'Price must be a valid number';
+      } else {
+        delete errors.price;
       }
-    });
-  }, [applications, applicationFilter, applicationSearch, applicationSort]);
 
-  const filteredUsers = useMemo(() => {
-    if (userRoleFilter === 'all') return users;
-    return users.filter(u => u.role === userRoleFilter);
-  }, [users, userRoleFilter]);
+      if (field === 'bedrooms' && numValue < 0) {
+        errors.bedrooms = 'Bedrooms cannot be negative';
+      } else if (field === 'bedrooms' && numValue > 20) {
+        errors.bedrooms = 'Bedrooms must not exceed 20';
+      } else if (field === 'bedrooms' && !Number.isInteger(numValue)) {
+        errors.bedrooms = 'Bedrooms must be a whole number';
+      } else if (field === 'bedrooms' && isNaN(numValue)) {
+        errors.bedrooms = 'Bedrooms must be a valid number';
+      } else {
+        delete errors.bedrooms;
+      }
 
-  const filteredInquiries = useMemo(() => {
-    if (inquiryFilter === 'all') return inquiries;
-    return inquiries.filter(i => i.status === inquiryFilter);
-  }, [inquiries, inquiryFilter]);
+      if (field === 'bathrooms' && numValue < 0) {
+        errors.bathrooms = 'Bathrooms cannot be negative';
+      } else if (field === 'bathrooms' && numValue > 99.9) {
+        errors.bathrooms = 'Bathrooms must not exceed 99.9';
+      } else if (field === 'bathrooms' && isNaN(numValue)) {
+        errors.bathrooms = 'Bathrooms must be a valid number';
+      } else {
+        delete errors.bathrooms;
+      }
 
-  // Chart data
-  const userRoleData = [
-    { name: 'Renters', value: stats.renters, fill: 'hsl(var(--primary))' },
-    { name: 'Owners', value: stats.owners, fill: 'hsl(var(--chart-2))' },
-    { name: 'Agents', value: stats.agents, fill: 'hsl(var(--chart-3))' },
-    { name: 'Admins', value: stats.admins, fill: 'hsl(var(--chart-4))' },
-  ].filter(d => d.value > 0);
-
-  const applicationStatusData = [
-    { name: 'Pending', value: stats.pendingApplications, fill: 'hsl(45 93% 47%)' },
-    { name: 'Approved', value: stats.approvedApplications, fill: 'hsl(142 76% 36%)' },
-    { name: 'Rejected', value: stats.rejectedApplications, fill: 'hsl(0 84% 60%)' },
-  ].filter(d => d.value > 0);
-
-  // Applications per property
-  const applicationsPerProperty = useMemo(() => {
-    const countMap: Record<string, number> = {};
-    applications.forEach(app => {
-      const propId = app.property_id || 'Unknown';
-      countMap[propId] = (countMap[propId] || 0) + 1;
-    });
-    return properties.slice(0, 10).map(p => ({
-      name: p.title?.substring(0, 15) || 'Unknown',
-      applications: countMap[p.id] || 0
-    }));
-  }, [applications, properties]);
-
-  // Inquiries over time (last 7 days)
-  const inquiriesOverTime = useMemo(() => {
-    const days: { date: string; count: number }[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      const count = inquiries.filter(inq => inq.created_at?.startsWith(dateStr)).length;
-      days.push({ date: date.toLocaleDateString('en-US', { weekday: 'short' }), count });
+      setFormErrors(errors);
     }
-    return days;
-  }, [inquiries]);
 
-  // Handlers
+    setNewProperty(prev => ({ ...prev, [field]: numValue }));
+  };
+
+  // Handle text input changes
+  const handleTextChange = (field: keyof NewPropertyFormData, value: string) => {
+    const errors = { ...formErrors };
+
+    // Validate immediately for better UX
+    if (field === 'title') {
+      if (!value.trim()) {
+        errors.title = 'Title is required';
+      } else if (value.length < 5) {
+        errors.title = 'Title must be at least 5 characters';
+      } else if (value.length > 200) {
+        errors.title = 'Title must not exceed 200 characters';
+      } else {
+        delete errors.title;
+      }
+    }
+
+    if (field === 'address' && !value.trim()) {
+      errors.address = 'Address is required';
+    } else if (field === 'address') {
+      delete errors.address;
+    }
+
+    if (field === 'city') {
+      if (!value.trim()) {
+        errors.city = 'City is required';
+      } else if (value.length < 2) {
+        errors.city = 'City must be at least 2 characters';
+      } else {
+        delete errors.city;
+      }
+    }
+
+    if (field === 'state') {
+      if (!value.trim()) {
+        errors.state = 'State is required';
+      } else if (value.length !== 2) {
+        errors.state = 'State must be a 2-letter code';
+      } else {
+        delete errors.state;
+      }
+    }
+
+    if (field === 'description' && value && value.length < 10) {
+      errors.description = 'Description must be at least 10 characters if provided';
+    } else if (field === 'description') {
+      delete errors.description;
+    }
+
+    setFormErrors(errors);
+    setNewProperty(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Reset form state
+  const resetPropertyForm = () => {
+    setNewProperty({
+      title: '',
+      price: null,
+      address: '',
+      city: '',
+      state: '',
+      bedrooms: null,
+      bathrooms: null,
+      property_type: 'house',
+      description: '',
+    });
+    setFormErrors({});
+    setBackendError(null);
+  };
+
   const handleCreateProperty = async () => {
-    if (!user?.id || !newProperty.title || !newProperty.address) {
-      toast({ title: 'Please fill in required fields', variant: 'destructive' });
+    // Validate form
+    if (!validatePropertyForm()) {
+      toast({ 
+        title: 'Please fix form errors', 
+        description: 'Some fields have validation errors',
+        variant: 'destructive' 
+      });
       return;
     }
-    
-    const propertyData = {
-      owner_id: user.id,
-      title: newProperty.title,
-      description: newProperty.description,
-      address: newProperty.address,
-      city: newProperty.city,
-      state: newProperty.state,
-      price: parseFloat(newProperty.price) || 0,
-      bedrooms: parseInt(newProperty.bedrooms) || 0,
-      bathrooms: parseFloat(newProperty.bathrooms) || 0,
-      property_type: newProperty.property_type,
-      status: 'active',
-    };
 
-    const result = await createProperty(propertyData as any);
-    if (result) {
-      toast({ title: 'Property created successfully' });
-      setShowAddProperty(false);
-      setNewProperty({ title: '', price: '', address: '', city: '', state: '', bedrooms: '', bathrooms: '', property_type: 'house', description: '' });
-      loadData();
-    } else {
-      toast({ title: 'Failed to create property', variant: 'destructive' });
+    if (!user?.id) {
+      toast({ 
+        title: 'Authentication required', 
+        description: 'Please log in again',
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    setIsCreatingProperty(true);
+    setBackendError(null);
+
+    try {
+      const propertyData = {
+        owner_id: user.id,
+        title: newProperty.title.trim(),
+        description: newProperty.description.trim() || undefined,
+        address: newProperty.address.trim(),
+        city: newProperty.city.trim(),
+        state: newProperty.state.trim().toUpperCase(),
+        price: newProperty.price!,
+        bedrooms: newProperty.bedrooms!,
+        bathrooms: newProperty.bathrooms!,
+        property_type: newProperty.property_type,
+        status: 'active',
+      };
+
+      const result = await createProperty(propertyData as any);
+
+      if (result.success && result.data) {
+        toast({ 
+          title: 'Property created successfully',
+          description: 'Your property has been listed.'
+        });
+        setShowAddProperty(false);
+        resetPropertyForm();
+        loadData();
+      } else {
+        // Handle backend validation errors
+        const errorMessage = result?.error || 'Failed to create property';
+        setBackendError(errorMessage);
+
+        toast({ 
+          title: 'Failed to create property', 
+          description: errorMessage,
+          variant: 'destructive' 
+        });
+      }
+    } catch (error: any) {
+      console.error('Create property error:', error);
+      const errorMessage = error?.message || 'An unexpected error occurred';
+      setBackendError(errorMessage);
+
+      toast({ 
+        title: 'Failed to create property', 
+        description: errorMessage,
+        variant: 'destructive' 
+      });
+    } finally {
+      setIsCreatingProperty(false);
     }
   };
 
   const handleUpdateProperty = async () => {
     if (!selectedProperty?.id) return;
+
     // Filter out undefined/null values to avoid Supabase constraint violations
     const cleanedData: Record<string, any> = {};
     for (const [key, value] of Object.entries(editPropertyData)) {
@@ -425,10 +543,12 @@ export default function Admin() {
         cleanedData[key] = value;
       }
     }
+
     if (Object.keys(cleanedData).length === 0) {
       toast({ title: 'No changes to update', variant: 'destructive' });
       return;
     }
+
     const result = await updateProperty(selectedProperty.id, cleanedData);
     if (result) {
       toast({ title: 'Property updated successfully' });
@@ -530,6 +650,144 @@ export default function Admin() {
       toast({ title: 'Logout failed', variant: 'destructive' });
     }
   };
+
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <Card className="p-8 max-w-md w-full text-center">
+          <Shield className="h-12 w-12 mx-auto text-destructive mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
+          <p className="text-muted-foreground mb-4">You don't have permission to access the admin panel.</p>
+          <p className="text-sm text-muted-foreground mb-6">Admin access requires the 'admin' role.</p>
+          <Link href="/">
+            <Button className="w-full" data-testid="button-go-home">Go to Home</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  // Stats calculations
+  const scoredApplications = applications.filter(a => a.score !== undefined && a.score !== null);
+  const highScoreApplications = scoredApplications.filter(a => (a.score || 0) >= 70);
+  const pendingHighScore = applications.filter(a => a.status === 'pending' && (a.score || 0) >= 70);
+  const underReviewApplications = applications.filter(a => a.status === 'under_review');
+
+  const stats = {
+    totalProperties: properties.length,
+    activeProperties: properties.filter(p => p.status === 'active').length,
+    totalUsers: users.length,
+    renters: users.filter(u => u.role === 'renter' || u.role === 'user').length,
+    owners: users.filter(u => u.role === 'owner').length,
+    agents: users.filter(u => u.role === 'agent').length,
+    admins: users.filter(u => u.role === 'admin').length,
+    totalReviews: reviews.length,
+    avgRating: reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : '0',
+    totalApplications: applications.length,
+    pendingApplications: applications.filter(a => a.status === 'pending').length,
+    underReviewApplications: underReviewApplications.length,
+    approvedApplications: applications.filter(a => a.status === 'approved').length,
+    rejectedApplications: applications.filter(a => a.status === 'rejected').length,
+    scoredApplications: scoredApplications.length,
+    avgScore: scoredApplications.length > 0 ? Math.round(scoredApplications.reduce((sum, a) => sum + (a.score || 0), 0) / scoredApplications.length) : 0,
+    highScoreCount: highScoreApplications.length,
+    pendingHighScoreCount: pendingHighScore.length,
+    totalInquiries: inquiries.length,
+    pendingInquiries: inquiries.filter(i => i.status === 'pending').length,
+    totalSavedSearches: savedSearches.length,
+  };
+
+  // Filtered data
+  const filteredProperties = useMemo(() => {
+    return properties.filter(p => {
+      if (propertyFilter.status !== 'all' && p.status !== propertyFilter.status) return false;
+      if (propertyFilter.city && !p.city?.toLowerCase().includes(propertyFilter.city.toLowerCase())) return false;
+      if (propertyFilter.minPrice && p.price < parseFloat(propertyFilter.minPrice)) return false;
+      if (propertyFilter.maxPrice && p.price > parseFloat(propertyFilter.maxPrice)) return false;
+      return true;
+    });
+  }, [properties, propertyFilter]);
+
+  const filteredApplications = useMemo(() => {
+    let filtered = applications;
+
+    // Filter by status
+    if (applicationFilter !== 'all') {
+      filtered = filtered.filter(a => a.status === applicationFilter);
+    }
+
+    // Filter by search term (applicant name or property title)
+    if (applicationSearch.trim()) {
+      const search = applicationSearch.toLowerCase().trim();
+      filtered = filtered.filter(a => 
+        a.users?.full_name?.toLowerCase().includes(search) ||
+        a.properties?.title?.toLowerCase().includes(search) ||
+        a.id.toLowerCase().includes(search)
+      );
+    }
+
+    // Sort applications
+    return [...filtered].sort((a, b) => {
+      switch (applicationSort) {
+        case 'newest':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'oldest':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        default:
+          return 0;
+      }
+    });
+  }, [applications, applicationFilter, applicationSearch, applicationSort]);
+
+  const filteredUsers = useMemo(() => {
+    if (userRoleFilter === 'all') return users;
+    return users.filter(u => u.role === userRoleFilter);
+  }, [users, userRoleFilter]);
+
+  const filteredInquiries = useMemo(() => {
+    if (inquiryFilter === 'all') return inquiries;
+    return inquiries.filter(i => i.status === inquiryFilter);
+  }, [inquiries, inquiryFilter]);
+
+  // Chart data
+  const userRoleData = [
+    { name: 'Renters', value: stats.renters, fill: 'hsl(var(--primary))' },
+    { name: 'Owners', value: stats.owners, fill: 'hsl(var(--chart-2))' },
+    { name: 'Agents', value: stats.agents, fill: 'hsl(var(--chart-3))' },
+    { name: 'Admins', value: stats.admins, fill: 'hsl(var(--chart-4))' },
+  ].filter(d => d.value > 0);
+
+  const applicationStatusData = [
+    { name: 'Pending', value: stats.pendingApplications, fill: 'hsl(45 93% 47%)' },
+    { name: 'Approved', value: stats.approvedApplications, fill: 'hsl(142 76% 36%)' },
+    { name: 'Rejected', value: stats.rejectedApplications, fill: 'hsl(0 84% 60%)' },
+  ].filter(d => d.value > 0);
+
+  // Applications per property
+  const applicationsPerProperty = useMemo(() => {
+    const countMap: Record<string, number> = {};
+    applications.forEach(app => {
+      const propId = app.property_id || 'Unknown';
+      countMap[propId] = (countMap[propId] || 0) + 1;
+    });
+    return properties.slice(0, 10).map(p => ({
+      name: p.title?.substring(0, 15) || 'Unknown',
+      applications: countMap[p.id] || 0
+    }));
+  }, [applications, properties]);
+
+  // Inquiries over time (last 7 days)
+  const inquiriesOverTime = useMemo(() => {
+    const days: { date: string; count: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const count = inquiries.filter(inq => inq.created_at?.startsWith(dateStr)).length;
+      days.push({ date: date.toLocaleDateString('en-US', { weekday: 'short' }), count });
+    }
+    return days;
+  }, [inquiries]);
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -844,98 +1102,6 @@ export default function Admin() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
-
-          {/* Users Section */}
-          {activeSection === 'users' && !loading && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap justify-between items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xl font-semibold">All Users ({filteredUsers.length})</h3>
-                  <div className="flex gap-2 text-xs">
-                    <Badge variant="secondary">{stats.renters} renters</Badge>
-                    <Badge variant="secondary">{stats.owners} owners</Badge>
-                    <Badge variant="secondary">{stats.agents} agents</Badge>
-                    <Badge variant="secondary">{stats.admins} admins</Badge>
-                  </div>
-                </div>
-                <div className="flex gap-2 items-center">
-                  <Select value={userRoleFilter} onValueChange={setUserRoleFilter}>
-                    <SelectTrigger className="w-32" data-testid="filter-user-role">
-                      <Filter className="h-4 w-4 mr-1" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Roles</SelectItem>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="renter">Renter</SelectItem>
-                      <SelectItem value="owner">Owner</SelectItem>
-                      <SelectItem value="agent">Agent</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={() => setShowAddUser(true)} size="sm" data-testid="button-add-user">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add User
-                  </Button>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="px-4 py-3 text-left">Name</th>
-                      <th className="px-4 py-3 text-left">Email</th>
-                      <th className="px-4 py-3 text-left">Role</th>
-                      <th className="px-4 py-3 text-left">Joined</th>
-                      <th className="px-4 py-3 text-left">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((u) => (
-                      <tr key={u.id} className="border-t" data-testid={`row-user-${u.id}`}>
-                        <td className="px-4 py-3 font-medium">{u.full_name || 'N/A'}</td>
-                        <td className="px-4 py-3">{u.email}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant={u.role === 'admin' ? 'default' : u.role === 'agent' ? 'secondary' : 'outline'}>
-                            {u.role}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground text-xs">
-                          {new Date(u.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <Select value={u.role} onValueChange={(newRole) => handleUpdateUserRole(u.id, newRole)}>
-                              <SelectTrigger className="w-24 h-8" data-testid={`select-role-${u.id}`}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="user">User</SelectItem>
-                                <SelectItem value="renter">Renter</SelectItem>
-                                <SelectItem value="owner">Owner</SelectItem>
-                                <SelectItem value="agent">Agent</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => setDeleteConfirm({ type: 'user', id: u.id, name: u.full_name || u.email })}
-                              data-testid={`button-delete-user-${u.id}`}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {filteredUsers.length === 0 && <p className="text-muted-foreground text-center py-8">No users found</p>}
-              </div>
             </div>
           )}
 
@@ -1611,27 +1777,79 @@ export default function Admin() {
         </div>
       </main>
 
-      {/* Add Property Modal */}
-      <Dialog open={showAddProperty} onOpenChange={setShowAddProperty}>
+      {/* Add Property Modal - UPDATED WITH VALIDATION */}
+      <Dialog open={showAddProperty} onOpenChange={(open) => {
+        if (!open) {
+          resetPropertyForm();
+        }
+        setShowAddProperty(open);
+      }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Add New Property</DialogTitle>
-            <DialogDescription>Create a new property listing</DialogDescription>
+            <DialogDescription>Create a new property listing. All fields marked with * are required.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label>Title</Label>
-              <Input value={newProperty.title} onChange={(e) => setNewProperty({ ...newProperty, title: e.target.value })} data-testid="input-property-title" />
+
+          {/* Backend Error Display */}
+          {backendError && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+              <p className="text-sm text-destructive font-medium">Server Error:</p>
+              <p className="text-xs text-destructive">{backendError}</p>
             </div>
+          )}
+
+          <div className="grid gap-4 py-4">
+            {/* Title */}
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="title">Title *</Label>
+                {formErrors.title && <span className="text-xs text-destructive">{formErrors.title}</span>}
+              </div>
+              <Input 
+                id="title"
+                value={newProperty.title} 
+                onChange={(e) => handleTextChange('title', e.target.value)} 
+                data-testid="input-property-title"
+                className={formErrors.title ? "border-destructive" : ""}
+                placeholder="Beautiful 3-bedroom apartment"
+              />
+            </div>
+
+            {/* Price and Type */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label>Price</Label>
-                <Input type="number" value={newProperty.price} onChange={(e) => setNewProperty({ ...newProperty, price: e.target.value })} data-testid="input-property-price" />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="price">Price *</Label>
+                  {formErrors.price && <span className="text-xs text-destructive">{formErrors.price}</span>}
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                  <Input 
+                    id="price"
+                    type="number" 
+                    value={newProperty.price === null ? '' : newProperty.price} 
+                    onChange={(e) => handleNumericChange('price', e.target.value)} 
+                    data-testid="input-property-price"
+                    className={`pl-8 ${formErrors.price ? "border-destructive" : ""}`}
+                    placeholder="1500"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
               </div>
               <div className="grid gap-2">
-                <Label>Type</Label>
-                <Select value={newProperty.property_type} onValueChange={(v) => setNewProperty({ ...newProperty, property_type: v })}>
-                  <SelectTrigger data-testid="select-property-type">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="property_type">Type *</Label>
+                  {formErrors.property_type && <span className="text-xs text-destructive">{formErrors.property_type}</span>}
+                </div>
+                <Select 
+                  value={newProperty.property_type} 
+                  onValueChange={(v) => setNewProperty({ ...newProperty, property_type: v })}
+                >
+                  <SelectTrigger 
+                    data-testid="select-property-type"
+                    className={formErrors.property_type ? "border-destructive" : ""}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1639,42 +1857,149 @@ export default function Admin() {
                     <SelectItem value="apartment">Apartment</SelectItem>
                     <SelectItem value="condo">Condo</SelectItem>
                     <SelectItem value="townhouse">Townhouse</SelectItem>
+                    <SelectItem value="studio">Studio</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+
+            {/* Address */}
             <div className="grid gap-2">
-              <Label>Address</Label>
-              <Input value={newProperty.address} onChange={(e) => setNewProperty({ ...newProperty, address: e.target.value })} data-testid="input-property-address" />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="address">Address *</Label>
+                {formErrors.address && <span className="text-xs text-destructive">{formErrors.address}</span>}
+              </div>
+              <Input 
+                id="address"
+                value={newProperty.address} 
+                onChange={(e) => handleTextChange('address', e.target.value)} 
+                data-testid="input-property-address"
+                className={formErrors.address ? "border-destructive" : ""}
+                placeholder="123 Main Street"
+              />
             </div>
+
+            {/* City and State */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label>City</Label>
-                <Input value={newProperty.city} onChange={(e) => setNewProperty({ ...newProperty, city: e.target.value })} data-testid="input-property-city" />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="city">City *</Label>
+                  {formErrors.city && <span className="text-xs text-destructive">{formErrors.city}</span>}
+                </div>
+                <Input 
+                  id="city"
+                  value={newProperty.city} 
+                  onChange={(e) => handleTextChange('city', e.target.value)} 
+                  data-testid="input-property-city"
+                  className={formErrors.city ? "border-destructive" : ""}
+                  placeholder="New York"
+                />
               </div>
               <div className="grid gap-2">
-                <Label>State</Label>
-                <Input value={newProperty.state} onChange={(e) => setNewProperty({ ...newProperty, state: e.target.value })} data-testid="input-property-state" />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="state">State *</Label>
+                  {formErrors.state && <span className="text-xs text-destructive">{formErrors.state}</span>}
+                </div>
+                <Input 
+                  id="state"
+                  value={newProperty.state} 
+                  onChange={(e) => handleTextChange('state', e.target.value.toUpperCase())} 
+                  data-testid="input-property-state"
+                  className={formErrors.state ? "border-destructive" : ""}
+                  placeholder="NY"
+                  maxLength={2}
+                />
+                <p className="text-xs text-muted-foreground">2-letter state code</p>
               </div>
             </div>
+
+            {/* Bedrooms and Bathrooms */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label>Bedrooms</Label>
-                <Input type="number" value={newProperty.bedrooms} onChange={(e) => setNewProperty({ ...newProperty, bedrooms: e.target.value })} data-testid="input-property-bedrooms" />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="bedrooms">Bedrooms *</Label>
+                  {formErrors.bedrooms && <span className="text-xs text-destructive">{formErrors.bedrooms}</span>}
+                </div>
+                <Input 
+                  id="bedrooms"
+                  type="number" 
+                  value={newProperty.bedrooms === null ? '' : newProperty.bedrooms} 
+                  onChange={(e) => handleNumericChange('bedrooms', e.target.value)} 
+                  data-testid="input-property-bedrooms"
+                  className={formErrors.bedrooms ? "border-destructive" : ""}
+                  placeholder="3"
+                  min="0"
+                  max="20"
+                  step="1"
+                />
+                <p className="text-xs text-muted-foreground">Max 20 bedrooms</p>
               </div>
               <div className="grid gap-2">
-                <Label>Bathrooms</Label>
-                <Input type="number" value={newProperty.bathrooms} onChange={(e) => setNewProperty({ ...newProperty, bathrooms: e.target.value })} data-testid="input-property-bathrooms" />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="bathrooms">Bathrooms *</Label>
+                  {formErrors.bathrooms && <span className="text-xs text-destructive">{formErrors.bathrooms}</span>}
+                </div>
+                <Input 
+                  id="bathrooms"
+                  type="number" 
+                  value={newProperty.bathrooms === null ? '' : newProperty.bathrooms} 
+                  onChange={(e) => handleNumericChange('bathrooms', e.target.value)} 
+                  data-testid="input-property-bathrooms"
+                  className={formErrors.bathrooms ? "border-destructive" : ""}
+                  placeholder="2.5"
+                  min="0"
+                  max="99.9"
+                  step="0.1"
+                />
+                <p className="text-xs text-muted-foreground">Max 99.9 (e.g., 2.5)</p>
               </div>
             </div>
+
+            {/* Description */}
             <div className="grid gap-2">
-              <Label>Description</Label>
-              <Textarea value={newProperty.description} onChange={(e) => setNewProperty({ ...newProperty, description: e.target.value })} data-testid="input-property-description" />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description">Description</Label>
+                {formErrors.description && <span className="text-xs text-destructive">{formErrors.description}</span>}
+              </div>
+              <Textarea 
+                id="description"
+                value={newProperty.description} 
+                onChange={(e) => handleTextChange('description', e.target.value)} 
+                data-testid="input-property-description"
+                className={formErrors.description ? "border-destructive min-h-[100px]" : "min-h-[100px]"}
+                placeholder="Describe the property features, amenities, and neighborhood..."
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional. If provided, must be at least 10 characters.
+              </p>
             </div>
           </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddProperty(false)}>Cancel</Button>
-            <Button onClick={handleCreateProperty} data-testid="button-save-property">Create Property</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                resetPropertyForm();
+                setShowAddProperty(false);
+              }}
+              disabled={isCreatingProperty}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateProperty} 
+              data-testid="button-save-property"
+              disabled={isCreatingProperty || Object.keys(formErrors).length > 0}
+            >
+              {isCreatingProperty ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Property'
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1841,7 +2166,7 @@ export default function Admin() {
                   </Badge>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Applicant</p>
@@ -1876,7 +2201,7 @@ export default function Admin() {
                       {selectedApplication.score}/100
                     </Badge>
                   </div>
-                  
+
                   {selectedApplication.score_breakdown && (
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
@@ -1926,7 +2251,7 @@ export default function Admin() {
                   <p className="text-sm">{selectedApplication.message}</p>
                 </div>
               )}
-              
+
               {(selectedApplication.status === 'pending' || selectedApplication.status === 'under_review') && (
                 <div className="flex gap-2 pt-4">
                   <Button onClick={() => handleUpdateApplicationStatus(selectedApplication.id, 'approved')} className="flex-1" data-testid="button-approve-application">

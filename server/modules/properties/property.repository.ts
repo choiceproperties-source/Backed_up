@@ -22,9 +22,9 @@ export interface PropertyCreateData {
   city?: string;
   state?: string;
   zip_code?: string;
-  price?: string;
+  price?: number; // Changed from string to number
   bedrooms?: number;
-  bathrooms?: string;
+  bathrooms?: number; // Changed from string to number
   square_feet?: number;
   property_type?: string;
   amenities?: any;
@@ -37,6 +37,8 @@ export interface PropertyCreateData {
   utilities_included?: any;
   status?: string;
   owner_id: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 /* ------------------------------------------------ */
@@ -86,7 +88,13 @@ export async function findAllProperties(filters: PropertyFilters) {
     .range(offset, offset + limit - 1);
 
   if (error) {
-    console.error("[PROPERTY_REPOSITORY] findAllProperties error:", error);
+    console.error("[PROPERTY_REPOSITORY] findAllProperties error:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      filters,
+    });
     throw error;
   }
 
@@ -106,13 +114,39 @@ export async function findPropertyById(id: string) {
     .single();
 
   if (error) {
-    if (error.code !== "PGRST116") {
-      console.error("[PROPERTY_REPOSITORY] findPropertyById error:", error);
+    if (error.code !== "PGRST116") { // PGRST116 = "No rows returned"
+      console.error("[PROPERTY_REPOSITORY] findPropertyById error:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        propertyId: id,
+      });
     }
     return null;
   }
 
   return data;
+}
+
+export async function findPropertiesByOwner(ownerId: string) {
+  const supabase = getSupabaseOrThrow();
+
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[PROPERTY_REPOSITORY] findPropertiesByOwner error:", {
+      message: error.message,
+      code: error.code,
+      ownerId,
+    });
+    throw error;
+  }
+
+  return data ?? [];
 }
 
 /* ------------------------------------------------ */
@@ -122,27 +156,123 @@ export async function findPropertyById(id: string) {
 export async function createProperty(propertyData: PropertyCreateData) {
   const supabase = getSupabaseOrThrow();
 
-  // Remove fields that don't exist in Supabase schema
-  const { lease_term, ...cleanData } = propertyData;
+  console.log("[PROPERTY_REPOSITORY] createProperty received:", {
+    dataKeys: Object.keys(propertyData),
+    hasLeaseTerm: 'lease_term' in propertyData,
+    price: propertyData.price,
+    priceType: typeof propertyData.price,
+    bedrooms: propertyData.bedrooms,
+    bedroomsType: typeof propertyData.bedrooms,
+    bathrooms: propertyData.bathrooms,
+    bathroomsType: typeof propertyData.bathrooms,
+  });
 
-  const { data, error } = await supabase
-    .from("properties")
-    .insert(cleanData)
-    .select()
-    .single();
+  // Create a clean copy of the data
+  const cleanData: Record<string, any> = {};
 
-  if (error) {
-    console.error("[PROPERTY_REPOSITORY] createProperty failed:", {
-      code: error.code,
+  // Only include fields that exist in the database schema
+  const validFields = [
+    'title', 'description', 'address', 'city', 'state', 'zip_code',
+    'price', 'bedrooms', 'bathrooms', 'square_feet', 'property_type',
+    'amenities', 'images', 'latitude', 'longitude', 'furnished',
+    'pets_allowed', 'utilities_included', 'status', 'owner_id',
+    'created_at', 'updated_at', 'view_count', 'deposit', 'hoa_fee',
+    'year_built', 'expires_at', 'publish_at'
+  ];
+
+  for (const [key, value] of Object.entries(propertyData)) {
+    // Skip undefined values
+    if (value === undefined) continue;
+
+    // Only include valid fields
+    if (validFields.includes(key)) {
+      // Convert numeric fields to proper types if needed
+      if (['price', 'bedrooms', 'bathrooms', 'square_feet', 'deposit', 'hoa_fee', 'year_built', 'view_count'].includes(key)) {
+        if (value !== null && value !== undefined) {
+          cleanData[key] = Number(value);
+        } else {
+          cleanData[key] = null;
+        }
+      } else {
+        cleanData[key] = value;
+      }
+    } else {
+      console.warn(`[PROPERTY_REPOSITORY] Skipping invalid field: ${key}`);
+    }
+  }
+
+  // Ensure required fields are present
+  if (!cleanData.title || !cleanData.address || !cleanData.owner_id) {
+    const missing = [];
+    if (!cleanData.title) missing.push('title');
+    if (!cleanData.address) missing.push('address');
+    if (!cleanData.owner_id) missing.push('owner_id');
+
+    console.error("[PROPERTY_REPOSITORY] Missing required fields:", missing);
+    throw new Error(`Missing required fields: ${missing.join(', ')}`);
+  }
+
+  // Set timestamps if not provided
+  const now = new Date().toISOString();
+  if (!cleanData.created_at) cleanData.created_at = now;
+  if (!cleanData.updated_at) cleanData.updated_at = now;
+
+  // Set default status if not provided
+  if (!cleanData.status) cleanData.status = 'active';
+
+  console.log("[PROPERTY_REPOSITORY] Creating property with data:", {
+    cleanDataKeys: Object.keys(cleanData),
+    title: cleanData.title,
+    price: cleanData.price,
+    bedrooms: cleanData.bedrooms,
+    bathrooms: cleanData.bathrooms,
+    ownerId: cleanData.owner_id,
+  });
+
+  try {
+    const { data, error } = await supabase
+      .from("properties")
+      .insert(cleanData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[PROPERTY_REPOSITORY] createProperty failed:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        ownerId: propertyData.owner_id,
+        imageCount: propertyData.images?.length ?? 0,
+        fieldCount: Object.keys(cleanData).length,
+        fieldTypes: Object.entries(cleanData).map(([k, v]) => ({ 
+          key: k, 
+          type: typeof v, 
+          value: v 
+        })),
+      });
+      throw error;
+    }
+
+    console.log("[PROPERTY_REPOSITORY] createProperty success:", {
+      propertyId: data?.id,
+      title: data?.title,
+    });
+
+    return data;
+  } catch (error: any) {
+    console.error("[PROPERTY_REPOSITORY] createProperty exception:", {
       message: error.message,
-      details: error.details,
-      ownerId: propertyData.owner_id,
-      imageCount: propertyData.images?.length ?? 0,
+      stack: error.stack,
+      code: error.code,
+      originalData: {
+        title: propertyData.title,
+        price: propertyData.price,
+        ownerId: propertyData.owner_id,
+      },
     });
     throw error;
   }
-
-  return data;
 }
 
 export async function updateProperty(
@@ -155,17 +285,60 @@ export async function updateProperty(
     throw new Error("Property ID is required for update");
   }
 
-  // Remove fields that don't exist in Supabase schema
-  const { lease_term, ...cleanUpdateData } = updateData;
+  console.log("[PROPERTY_REPOSITORY] updateProperty called:", {
+    id,
+    updateDataKeys: Object.keys(updateData),
+    updateDataTypes: Object.entries(updateData).map(([k, v]) => ({ 
+      key: k, 
+      type: typeof v, 
+      value: v 
+    })),
+  });
 
-  const payload = {
-    ...cleanUpdateData,
-    updated_at: new Date().toISOString(),
-  };
+  // Create a clean copy of the update data
+  const cleanUpdateData: Record<string, any> = {};
+
+  // Only include valid fields and handle numeric conversions
+  const validFields = [
+    'title', 'description', 'address', 'city', 'state', 'zip_code',
+    'price', 'bedrooms', 'bathrooms', 'square_feet', 'property_type',
+    'amenities', 'images', 'latitude', 'longitude', 'furnished',
+    'pets_allowed', 'utilities_included', 'status', 'view_count',
+    'deposit', 'hoa_fee', 'year_built', 'expires_at', 'publish_at'
+  ];
+
+  for (const [key, value] of Object.entries(updateData)) {
+    // Skip undefined values
+    if (value === undefined) continue;
+
+    // Only include valid fields
+    if (validFields.includes(key)) {
+      // Convert numeric fields
+      if (['price', 'bedrooms', 'bathrooms', 'square_feet', 'deposit', 'hoa_fee', 'year_built', 'view_count'].includes(key)) {
+        if (value !== null && value !== undefined && value !== '') {
+          cleanUpdateData[key] = Number(value);
+        } else {
+          cleanUpdateData[key] = null;
+        }
+      } else {
+        cleanUpdateData[key] = value;
+      }
+    } else {
+      console.warn(`[PROPERTY_REPOSITORY] Skipping invalid field in update: ${key}`);
+    }
+  }
+
+  // Always update the timestamp
+  cleanUpdateData.updated_at = new Date().toISOString();
+
+  console.log("[PROPERTY_REPOSITORY] Updating property with:", {
+    cleanUpdateDataKeys: Object.keys(cleanUpdateData),
+    id,
+  });
 
   const { data, error } = await supabase
     .from("properties")
-    .update(payload)
+    .update(cleanUpdateData)
     .eq("id", id)
     .select()
     .single();
@@ -173,11 +346,20 @@ export async function updateProperty(
   if (error) {
     console.error("[PROPERTY_REPOSITORY] updateProperty failed:", {
       propertyId: id,
-      error,
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
       payloadKeys: Object.keys(cleanUpdateData),
+      payloadValues: cleanUpdateData,
     });
     throw error;
   }
+
+  console.log("[PROPERTY_REPOSITORY] updateProperty success:", {
+    propertyId: id,
+    updatedFields: Object.keys(cleanUpdateData),
+  });
 
   return data;
 }
@@ -185,15 +367,24 @@ export async function updateProperty(
 export async function deleteProperty(id: string) {
   const supabase = getSupabaseOrThrow();
 
+  console.log("[PROPERTY_REPOSITORY] deleteProperty called:", { id });
+
   const { error } = await supabase
     .from("properties")
     .delete()
     .eq("id", id);
 
   if (error) {
-    console.error("[PROPERTY_REPOSITORY] deleteProperty failed:", error);
+    console.error("[PROPERTY_REPOSITORY] deleteProperty failed:", {
+      propertyId: id,
+      code: error.code,
+      message: error.message,
+      details: error.details,
+    });
     throw error;
   }
+
+  console.log("[PROPERTY_REPOSITORY] deleteProperty success:", { id });
 
   return null;
 }
@@ -205,11 +396,16 @@ export async function deleteProperty(id: string) {
 export async function incrementPropertyViews(propertyId: string) {
   const supabase = getSupabaseOrThrow();
 
+  console.log("[PROPERTY_REPOSITORY] incrementPropertyViews called:", { propertyId });
+
   const { error } = await supabase.rpc("increment_property_views", {
     property_id: propertyId,
   });
 
-  if (!error) return;
+  if (!error) {
+    console.log("[PROPERTY_REPOSITORY] incrementPropertyViews RPC success:", { propertyId });
+    return;
+  }
 
   // Fallback if RPC is missing
   console.warn(
@@ -229,4 +425,9 @@ export async function incrementPropertyViews(propertyId: string) {
     .from("properties")
     .update({ view_count: currentViews + 1 })
     .eq("id", propertyId);
+
+  console.log("[PROPERTY_REPOSITORY] incrementPropertyViews fallback success:", {
+    propertyId,
+    newCount: currentViews + 1,
+  });
 }

@@ -41,7 +41,12 @@ router.get("/", async (req, res) => {
     });
 
     return res.json(success(result, "Properties fetched successfully"));
-  } catch {
+  } catch (error: any) {
+    console.error("[PROPERTY_ROUTES] GET / error:", {
+      message: error.message,
+      stack: error.stack,
+      query: req.query,
+    });
     return res.status(500).json(errorResponse("Failed to fetch properties"));
   }
 });
@@ -56,7 +61,12 @@ router.get("/:id/full", async (req, res) => {
       return res.status(404).json(errorResponse("Property not found"));
     }
     return res.json(success(data, "Property fetched successfully"));
-  } catch {
+  } catch (error: any) {
+    console.error("[PROPERTY_ROUTES] GET /:id/full error:", {
+      message: error.message,
+      stack: error.stack,
+      propertyId: req.params.id,
+    });
     return res.status(500).json(errorResponse("Failed to fetch property"));
   }
 });
@@ -71,7 +81,12 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json(errorResponse("Property not found"));
     }
     return res.json(success(data, "Property fetched successfully"));
-  } catch {
+  } catch (error: any) {
+    console.error("[PROPERTY_ROUTES] GET /:id error:", {
+      message: error.message,
+      stack: error.stack,
+      propertyId: req.params.id,
+    });
     return res.status(500).json(errorResponse("Failed to fetch property"));
   }
 });
@@ -83,7 +98,13 @@ router.get("/:id/analytics", authenticateToken, async (req, res) => {
   try {
     const analytics = await propertyService.getPropertyAnalytics(req.params.id);
     return res.json(success(analytics, "Analytics fetched"));
-  } catch {
+  } catch (error: any) {
+    console.error("[PROPERTY_ROUTES] GET /:id/analytics error:", {
+      message: error.message,
+      stack: error.stack,
+      propertyId: req.params.id,
+      userId: req.user?.id,
+    });
     return res.status(500).json(errorResponse("Failed to fetch analytics"));
   }
 });
@@ -95,7 +116,13 @@ router.get("/user/:userId", authenticateToken, async (req, res) => {
   try {
     const data = await propertyService.getPropertiesByOwner(req.params.userId);
     return res.json(success(data, "Owner properties fetched"));
-  } catch {
+  } catch (error: any) {
+    console.error("[PROPERTY_ROUTES] GET /user/:userId error:", {
+      message: error.message,
+      stack: error.stack,
+      userId: req.params.userId,
+      requesterId: req.user?.id,
+    });
     return res.status(500).json(errorResponse("Failed to fetch owner properties"));
   }
 });
@@ -108,18 +135,84 @@ router.get("/user/:userId", authenticateToken, async (req, res) => {
 
 router.post("/", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
+    console.log("[PROPERTY_ROUTES] POST / request received:", {
+      userId: req.user?.id,
+      body: req.body,
+      timestamp: new Date().toISOString(),
+    });
+
     const result = await propertyService.createProperty({
       body: req.body,
       userId: req.user!.id,
     });
 
     if (result.error) {
-      return res.status(400).json(errorResponse(result.error));
+      console.log("[PROPERTY_ROUTES] POST / validation error:", {
+        error: result.error,
+        errors: result.errors,
+        userId: req.user?.id,
+      });
+
+      return res.status(400).json({
+        success: false,
+        error: result.error,
+        errors: result.errors,
+        message: result.error,
+      });
     }
 
-    return res.json(success(result.data, "Property created successfully"));
-  } catch {
-    return res.status(500).json(errorResponse("Failed to create property"));
+    console.log("[PROPERTY_ROUTES] POST / success:", {
+      propertyId: result.data?.id,
+      userId: req.user?.id,
+    });
+
+    return res.json({
+      success: true,
+      data: result.data,
+      message: "Property created successfully",
+    });
+  } catch (error: any) {
+    console.error("[PROPERTY_ROUTES] POST / error:", {
+      message: error.message,
+      stack: error.stack,
+      userId: req.user?.id,
+      body: req.body,
+      errorName: error.name,
+      errorCode: error.code,
+      errorDetails: error.details,
+    });
+
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: error.message,
+        message: error.message,
+      });
+    }
+
+    if (error.code === '23505') { // PostgreSQL unique violation
+      return res.status(409).json({
+        success: false,
+        error: "Property with similar details already exists",
+        message: "Property with similar details already exists",
+      });
+    }
+
+    if (error.code === '23503') { // PostgreSQL foreign key violation
+      return res.status(400).json({
+        success: false,
+        error: "Invalid user reference",
+        message: "Invalid user reference",
+      });
+    }
+
+    // Generic error response with more details
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Failed to create property",
+      message: error.message || "Failed to create property",
+    });
   }
 });
 
@@ -142,6 +235,15 @@ router.patch(
       if (err.message?.includes("Unauthorized")) {
         return res.status(403).json(errorResponse(err.message));
       }
+
+      console.error("[PROPERTY_ROUTES] PATCH /:id error:", {
+        message: err.message,
+        stack: err.stack,
+        propertyId: req.params.id,
+        userId: req.user?.id,
+        body: req.body,
+      });
+
       return res.status(500).json(errorResponse("Failed to update property"));
     }
   }
@@ -161,7 +263,13 @@ router.patch(
         req.body.status
       );
       return res.json(success(data, "Status updated"));
-    } catch {
+    } catch (error: any) {
+      console.error("[PROPERTY_ROUTES] PATCH /:id/status error:", {
+        message: error.message,
+        stack: error.stack,
+        propertyId: req.params.id,
+        status: req.body.status,
+      });
       return res.status(500).json(errorResponse("Failed to update status"));
     }
   }
@@ -181,7 +289,13 @@ router.patch(
         req.body.price
       );
       return res.json(success(data, "Price updated"));
-    } catch {
+    } catch (error: any) {
+      console.error("[PROPERTY_ROUTES] PATCH /:id/price error:", {
+        message: error.message,
+        stack: error.stack,
+        propertyId: req.params.id,
+        price: req.body.price,
+      });
       return res.status(500).json(errorResponse("Failed to update price"));
     }
   }
@@ -201,7 +315,13 @@ router.patch(
         req.body.expiresAt
       );
       return res.json(success(data, "Expiration updated"));
-    } catch {
+    } catch (error: any) {
+      console.error("[PROPERTY_ROUTES] PATCH /:id/expiration error:", {
+        message: error.message,
+        stack: error.stack,
+        propertyId: req.params.id,
+        expiresAt: req.body.expiresAt,
+      });
       return res.status(500).json(errorResponse("Failed to update expiration"));
     }
   }
@@ -221,7 +341,13 @@ router.patch(
         req.body.publishAt
       );
       return res.json(success(data, "Publish scheduled"));
-    } catch {
+    } catch (error: any) {
+      console.error("[PROPERTY_ROUTES] PATCH /:id/schedule-publish error:", {
+        message: error.message,
+        stack: error.stack,
+        propertyId: req.params.id,
+        publishAt: req.body.publishAt,
+      });
       return res.status(500).json(errorResponse("Failed to schedule publish"));
     }
   }
@@ -238,7 +364,13 @@ router.delete(
     try {
       await propertyService.deleteProperty(req.params.id);
       return res.json(success(null, "Property deleted successfully"));
-    } catch {
+    } catch (error: any) {
+      console.error("[PROPERTY_ROUTES] DELETE /:id error:", {
+        message: error.message,
+        stack: error.stack,
+        propertyId: req.params.id,
+        userId: req.user?.id,
+      });
       return res.status(500).json(errorResponse("Failed to delete property"));
     }
   }
@@ -254,7 +386,12 @@ router.post("/:id/view", viewLimiter, async (req, res) => {
   try {
     await propertyService.recordPropertyView(req.params.id);
     return res.json(success(null, "View recorded"));
-  } catch {
+  } catch (error: any) {
+    console.error("[PROPERTY_ROUTES] POST /:id/view error:", {
+      message: error.message,
+      stack: error.stack,
+      propertyId: req.params.id,
+    });
     return res.status(500).json(errorResponse("Failed to record view"));
   }
 });
@@ -266,7 +403,11 @@ router.get("/stats/market-insights", async (_req, res) => {
   try {
     const stats = await propertyService.getMarketInsights();
     return res.json(success(stats, "Market insights fetched"));
-  } catch {
+  } catch (error: any) {
+    console.error("[PROPERTY_ROUTES] GET /stats/market-insights error:", {
+      message: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json(errorResponse("Failed to fetch market insights"));
   }
 });
@@ -278,7 +419,11 @@ router.get("/stats/trust-indicators", async (_req, res) => {
   try {
     const stats = await propertyService.getTrustIndicators();
     return res.json(success(stats, "Trust indicators fetched"));
-  } catch {
+  } catch (error: any) {
+    console.error("[PROPERTY_ROUTES] GET /stats/trust-indicators error:", {
+      message: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json(errorResponse("Failed to fetch trust indicators"));
   }
 });
