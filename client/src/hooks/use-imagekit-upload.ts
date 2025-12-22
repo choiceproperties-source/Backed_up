@@ -152,9 +152,14 @@ export function useImageKitUpload(options: UseImageKitUploadOptions = {}) {
       return result;
     } catch (error: any) {
       console.error('ImageKit upload error:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        errorType: error?.constructor?.name,
+      });
       toast({
         title: 'Upload Failed',
-        description: error.message || 'Failed to upload image',
+        description: error?.message || 'Failed to upload image',
         variant: 'destructive',
       });
       return null;
