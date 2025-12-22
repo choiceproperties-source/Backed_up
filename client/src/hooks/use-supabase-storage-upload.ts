@@ -52,12 +52,12 @@ export function useSupabaseStorageUpload(options: UseSupabaseStorageUploadOption
       const configResponse = await fetch('/api/config');
       const config = await configResponse.json();
       
-      if (!config.supabaseUrl || !config.anonKey) {
+      if (!config.supabaseUrl || !config.supabaseAnonKey) {
         throw new Error('Failed to get Supabase configuration');
       }
 
       // Initialize Supabase client
-      const supabase = createClient(config.supabaseUrl, config.anonKey);
+      const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
 
       // Generate unique file path
       const timestamp = Date.now();
