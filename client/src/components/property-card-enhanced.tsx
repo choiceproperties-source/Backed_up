@@ -50,7 +50,7 @@ export function EnhancedPropertyCard({
   const [primaryPhoto, setPrimaryPhoto] = useState<PropertyPhoto | null>(null);
   const [photoCount, setPhotoCount] = useState(0);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(true);
-  const fallbackImage = property.images?.[0] ? (imageMap[property.images[0]] || placeholderExterior) : placeholderExterior;
+  const fallbackImage = property.images?.[0] ? (imageMap[property.images[0]] || property.images[0]) : placeholderExterior;
   const mainImage = primaryPhoto?.imageUrls.thumbnail || fallbackImage;
   const { toggleFavorite: toggleFav, isFavorited } = useFavorites();
   const [isHovered, setIsHovered] = useState(false);

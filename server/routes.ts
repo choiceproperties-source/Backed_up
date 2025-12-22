@@ -7434,11 +7434,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(success([], "Property not found"));
       }
 
-      // Return direct Supabase URLs from property.images array
+      // Map direct Supabase URLs to the expected PropertyPhoto format
       const imageUrls = (property.images || []).map((url: string, index: number) => ({
         id: `${property.id}-${index}`,
         url: url,
         index: index,
+        category: 'property',
+        isPrivate: false,
+        imageUrls: {
+          thumbnail: url,
+          gallery: url,
+          original: url,
+        },
       }));
 
       return res.json(success(imageUrls, "Property images fetched successfully"));
