@@ -7,7 +7,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { useAuth } from '@/lib/auth-context';
 import { useOwnedProperties } from '@/hooks/use-owned-properties';
-import { useImageKitUpload } from '@/hooks/use-imagekit-upload';
+import { useSupabaseStorageUpload } from '@/hooks/use-supabase-storage-upload';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -88,7 +88,7 @@ export default function LandlordProperties() {
   const [showNewPropertyForm, setShowNewPropertyForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
-  const { uploadImage, isUploading } = useImageKitUpload({ folder: 'properties', maxSize: 5 });
+  const { uploadImage, isUploading } = useSupabaseStorageUpload({ folder: 'properties', maxSize: 5 });
   const { properties, loading, createProperty, updateProperty, deleteProperty } =
     useOwnedProperties();
 
@@ -189,15 +189,15 @@ export default function LandlordProperties() {
     }
 
     const results = await Promise.all(uploadPromises);
-    const imageKitUrls = results.filter((url): url is string => url !== null);
+    const uploadedUrls = results.filter((url): url is string => url !== null);
 
-    if (imageKitUrls.length > 0) {
-      const newImages = [...currentImages, ...imageKitUrls].slice(0, 25);
+    if (uploadedUrls.length > 0) {
+      const newImages = [...currentImages, ...uploadedUrls].slice(0, 25);
       setValue('images', newImages);
       setPreviewImages(newImages);
       toast({
         title: 'Success',
-        description: `${imageKitUrls.length} image(s) uploaded`,
+        description: `${uploadedUrls.length} image(s) uploaded`,
       });
     }
   };
