@@ -40,7 +40,7 @@ export function registerImageKitRoutes(app: Express): void {
         signature: token.signature,
         expire: token.expire,
         publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
-        urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+        urlEndpoint: "https://upload.imagekit.io",
         category
       }, "Upload token generated successfully"));
     } catch (err: any) {
