@@ -129,7 +129,7 @@ export default function PropertyDetails() {
   const allImages = property && photosData && photosData.length > 0
     ? photosData.map(photo => photo.imageUrls.gallery)
     : property && (property.images || []).length > 0 
-      ? property.images!.map(img => imageMap[img] || placeholderExterior)
+      ? property.images!.map(img => imageMap[img] || img)
       : [placeholderExterior, placeholderLiving, placeholderKitchen, placeholderBedroom];
 
   // Keyboard navigation and touch swipe support - must be before conditional returns
