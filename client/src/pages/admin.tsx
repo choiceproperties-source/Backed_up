@@ -507,14 +507,14 @@ export default function Admin() {
         setShowAddProperty(false);
         resetPropertyForm();
         loadData();
-      } else {
-        // Handle backend validation errors
-        const errorMessage = result?.error || 'Failed to create property';
-        setBackendError(errorMessage);
+      }
 
+      if (result.error) {
+        setBackendError(result.error);
+        
         toast({ 
           title: 'Failed to create property', 
-          description: errorMessage,
+          description: result.error,
           variant: 'destructive' 
         });
       }
