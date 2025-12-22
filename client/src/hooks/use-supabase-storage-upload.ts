@@ -48,48 +48,40 @@ export function useSupabaseStorageUpload(options: UseSupabaseStorageUploadOption
     setUploadProgress(0);
 
     try {
-      // Get Supabase config from backend
-      const configResponse = await fetch('/api/config');
-      const config = await configResponse.json();
+      // Read file as base64
+      const reader = new FileReader();
       
-      if (!config.supabaseUrl || !config.supabaseAnonKey) {
-        throw new Error('Failed to get Supabase configuration');
+      const fileData = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]); // Extract base64 part
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      // Upload via backend endpoint (uses service role key)
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          file: {
+            name: file.name,
+            type: file.type,
+            data: fileData,
+          },
+          folder,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
       }
 
-      // Initialize Supabase client
-      const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
-      
-      // Ensure bucket exists by attempting to create (silently fails if already exists)
-      try {
-        await supabase.storage.createBucket('property-images', { public: true });
-      } catch (e) {
-        // Bucket likely already exists, continue
-      }
+      const result = await response.json();
 
-      // Generate unique file path
-      const timestamp = Date.now();
-      const randomId = Math.random().toString(36).substring(7);
-      const fileName = `${timestamp}-${randomId}-${file.name}`;
-      const filePath = `${folder}/${fileName}`;
-
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (error) {
-        throw new Error(error.message || 'Upload failed');
-      }
-
-      // Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
-
-      if (!publicUrlData?.publicUrl) {
+      if (!result.url) {
         throw new Error('Failed to get public URL');
       }
 
@@ -100,9 +92,9 @@ export function useSupabaseStorageUpload(options: UseSupabaseStorageUploadOption
       });
 
       return {
-        url: publicUrlData.publicUrl,
-        path: filePath,
-        fullPath: `${bucket}/${filePath}`,
+        url: result.url,
+        path: result.path,
+        fullPath: `${bucket}/${result.path}`,
       };
     } catch (error: any) {
       console.error('[SUPABASE STORAGE] Upload error:', error);
