@@ -88,6 +88,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Setup endpoint to create property-images bucket
+  app.post("/api/setup/create-bucket", async (req, res) => {
+    try {
+      // Create the bucket if it doesn't exist
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      
+      if (listError) {
+        return res.status(500).json({ error: "Failed to list buckets", details: listError });
+      }
+
+      const bucketExists = buckets?.some(b => b.name === 'property-images');
+      
+      if (!bucketExists) {
+        const { data: bucket, error: createError } = await supabase.storage.createBucket('property-images', {
+          public: true,
+        });
+
+        if (createError) {
+          return res.status(500).json({ error: "Failed to create bucket", details: createError });
+        }
+
+        console.log('[BUCKET] Created property-images bucket');
+      }
+
+      res.json({ success: true, message: 'Bucket ready for uploads' });
+    } catch (err: any) {
+      console.error('[BUCKET] Error:', err);
+      res.status(500).json({ error: "Bucket setup failed", details: err.message });
+    }
+  });
+
   // Legacy routes control: Set ENABLE_LEGACY_ROUTES=true to enable legacy routes
   // Default: disabled (only module routes are active)
   const enableLegacyRoutes = process.env.ENABLE_LEGACY_ROUTES === 'true';

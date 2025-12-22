@@ -48,6 +48,9 @@ export function useSupabaseStorageUpload(options: UseSupabaseStorageUploadOption
     setUploadProgress(0);
 
     try {
+      // Setup bucket on backend (creates if doesn't exist)
+      await fetch('/api/setup/create-bucket', { method: 'POST' });
+
       // Get Supabase config from backend
       const configResponse = await fetch('/api/config');
       const config = await configResponse.json();
