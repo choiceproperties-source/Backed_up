@@ -52,7 +52,6 @@ import {
   getDisputes, updateDispute, addDisputeMessage, getDisputeMessages,
   getDocumentVerifications, updateDocumentVerification,
   flagPropertyListing,
-  uploadPropertyImages
 } from '@/lib/supabase-service';
 import { UserCog, Settings } from 'lucide-react';
 
