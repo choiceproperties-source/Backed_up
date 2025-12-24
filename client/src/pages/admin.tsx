@@ -37,7 +37,7 @@ import {
   Trash2, Edit2, Plus, Home, Users, Star, FileText, MessageSquare, Shield, 
   Check, X, LogOut, LayoutDashboard, Search, BarChart3, Menu, Eye, Filter,
   CheckCircle, XCircle, Clock, Mail, Phone, Calendar, DollarSign, MapPin,
-  AlertTriangle, Flag, FileCheck, Scale, Loader2
+  AlertTriangle, Flag, FileCheck, Scale, Loader2, Upload, CheckSquare, Square
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
@@ -51,14 +51,32 @@ import {
   getContentReports, updateContentReport,
   getDisputes, updateDispute, addDisputeMessage, getDisputeMessages,
   getDocumentVerifications, updateDocumentVerification,
-  flagPropertyListing
+  flagPropertyListing,
+  uploadPropertyImages
 } from '@/lib/supabase-service';
 import { UserCog, Settings } from 'lucide-react';
 
+// UPDATED: Complete Property Interface with all fields
 interface Property {
-  id: string; title: string; address: string; city: string; state: string;
-  price: number; bedrooms: number; bathrooms: number; property_type: string;
-  status: string; created_at: string; owner_id?: string; description?: string;
+  id: string;
+  title: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  price: number;
+  bedrooms: number;
+  bathrooms: number;
+  square_feet: number | null;
+  property_type: string;
+  status: string;
+  created_at: string;
+  owner_id?: string;
+  description?: string;
+  furnished: boolean;
+  pets_allowed: boolean;
+  amenities: string[];
+  images: string[];
 }
 
 interface User {
@@ -148,32 +166,47 @@ interface DocumentVerification {
   verifier?: { id: string; full_name: string };
 }
 
-// Interface for new property form data
+// COMPLETE: New property form data with ALL fields
 interface NewPropertyFormData {
   title: string;
   price: number | null;
   address: string;
   city: string;
   state: string;
+  zip_code: string;
   bedrooms: number | null;
   bathrooms: number | null;
+  square_feet: number | null;
   property_type: string;
   description: string;
+  furnished: boolean;
+  pets_allowed: boolean;
+  amenities: string[];
 }
 
-// Interface for form validation errors
 interface FormErrors {
   title?: string;
   price?: string;
   address?: string;
   city?: string;
   state?: string;
+  zip_code?: string;
   bedrooms?: string;
   bathrooms?: string;
+  square_feet?: string;
   property_type?: string;
   description?: string;
   [key: string]: string | undefined;
 }
+
+// Common amenities for checklist
+const COMMON_AMENITIES = [
+  'Parking', 'Swimming Pool', 'Gym', 'Laundry Facilities', 'Air Conditioning',
+  'Heating', 'Balcony', 'Storage', 'Elevator', 'Doorman', 'Garden/Yard',
+  'Pet Friendly', 'Hardwood Floors', 'Dishwasher', 'Microwave', 'Refrigerator',
+  'Oven', 'Washer/Dryer', 'Central Air', 'Fireplace', 'Garage', 'Patio/Deck',
+  'Fenced Yard', 'Walk-in Closet', 'Cable Ready', 'High Speed Internet'
+];
 
 export default function Admin() {
   const { user, logout } = useAuth();
@@ -235,17 +268,22 @@ export default function Admin() {
   const [userRoleFilter, setUserRoleFilter] = useState('all');
   const [inquiryFilter, setInquiryFilter] = useState('all');
 
-  // Form states - FIXED: Numeric fields as numbers/null instead of strings
+  // COMPLETE: Form states with all fields
   const [newProperty, setNewProperty] = useState<NewPropertyFormData>({
     title: '',
     price: null,
     address: '',
     city: '',
     state: '',
+    zip_code: '',
     bedrooms: null,
     bathrooms: null,
+    square_feet: null,
     property_type: 'house',
     description: '',
+    furnished: false,
+    pets_allowed: false,
+    amenities: [],
   });
 
   const [newUser, setNewUser] = useState({ email: '', full_name: '', role: 'user' });
@@ -256,6 +294,8 @@ export default function Admin() {
   const [isCreatingProperty, setIsCreatingProperty] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [backendError, setBackendError] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -286,7 +326,7 @@ export default function Admin() {
     }
   };
 
-  // Client-side validation function
+  // COMPLETE: Client-side validation for all fields
   const validatePropertyForm = (): boolean => {
     const errors: FormErrors = {};
 
@@ -302,6 +342,9 @@ export default function Admin() {
 
     if (!newProperty.state.trim()) errors.state = 'State is required';
     else if (newProperty.state.length !== 2) errors.state = 'State must be a 2-letter code';
+
+    if (!newProperty.zip_code.trim()) errors.zip_code = 'Zip code is required';
+    else if (!/^\d{5}$/.test(newProperty.zip_code)) errors.zip_code = 'Zip code must be 5 digits';
 
     // Numeric field validation
     if (newProperty.price === null || newProperty.price === undefined) {
@@ -334,13 +377,27 @@ export default function Admin() {
       errors.bathrooms = 'Bathrooms must not exceed 99.9';
     }
 
+    // Square feet validation
+    if (newProperty.square_feet !== null && newProperty.square_feet !== undefined) {
+      if (isNaN(newProperty.square_feet)) {
+        errors.square_feet = 'Square feet must be a valid number';
+      } else if (newProperty.square_feet < 0) {
+        errors.square_feet = 'Square feet cannot be negative';
+      }
+    }
+
+    // Property type validation
+    if (!newProperty.property_type) {
+      errors.property_type = 'Property type is required';
+    }
+
     // Optional field validation
     if (newProperty.description && newProperty.description.length < 10) {
       errors.description = 'Description must be at least 10 characters if provided';
     }
 
     setFormErrors(errors);
-    setBackendError(null); // Clear any previous backend errors
+    setBackendError(null);
 
     return Object.keys(errors).length === 0;
   };
@@ -348,11 +405,9 @@ export default function Admin() {
   // Handle numeric input changes
   const handleNumericChange = (field: keyof NewPropertyFormData, value: string) => {
     const numValue = value === '' ? null : Number(value);
+    const errors = { ...formErrors };
 
-    // Validate immediately for better UX
     if (numValue !== null) {
-      const errors = { ...formErrors };
-
       if (field === 'price' && numValue <= 0) {
         errors.price = 'Price must be greater than 0';
       } else if (field === 'price' && isNaN(numValue)) {
@@ -383,9 +438,16 @@ export default function Admin() {
         delete errors.bathrooms;
       }
 
-      setFormErrors(errors);
+      if (field === 'square_feet' && numValue < 0) {
+        errors.square_feet = 'Square feet cannot be negative';
+      } else if (field === 'square_feet' && isNaN(numValue)) {
+        errors.square_feet = 'Square feet must be a valid number';
+      } else {
+        delete errors.square_feet;
+      }
     }
 
+    setFormErrors(errors);
     setNewProperty(prev => ({ ...prev, [field]: numValue }));
   };
 
@@ -393,7 +455,6 @@ export default function Admin() {
   const handleTextChange = (field: keyof NewPropertyFormData, value: string) => {
     const errors = { ...formErrors };
 
-    // Validate immediately for better UX
     if (field === 'title') {
       if (!value.trim()) {
         errors.title = 'Title is required';
@@ -432,6 +493,19 @@ export default function Admin() {
       }
     }
 
+    if (field === 'zip_code') {
+      const numericValue = value.replace(/\D/g, '').substring(0, 5);
+      if (!numericValue) {
+        errors.zip_code = 'Zip code is required';
+      } else if (numericValue.length !== 5) {
+        errors.zip_code = 'Zip code must be 5 digits';
+      } else {
+        delete errors.zip_code;
+      }
+      setNewProperty(prev => ({ ...prev, [field]: numericValue }));
+      return;
+    }
+
     if (field === 'description' && value && value.length < 10) {
       errors.description = 'Description must be at least 10 characters if provided';
     } else if (field === 'description') {
@@ -442,6 +516,16 @@ export default function Admin() {
     setNewProperty(prev => ({ ...prev, [field]: value }));
   };
 
+  // Toggle amenity
+  const toggleAmenity = (amenity: string) => {
+    setNewProperty(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenity)
+        ? prev.amenities.filter(a => a !== amenity)
+        : [...prev.amenities, amenity]
+    }));
+  };
+
   // Reset form state
   const resetPropertyForm = () => {
     setNewProperty({
@@ -450,15 +534,22 @@ export default function Admin() {
       address: '',
       city: '',
       state: '',
+      zip_code: '',
       bedrooms: null,
       bathrooms: null,
+      square_feet: null,
       property_type: 'house',
       description: '',
+      furnished: false,
+      pets_allowed: false,
+      amenities: [],
     });
+    setUploadedImages([]);
     setFormErrors({});
     setBackendError(null);
   };
 
+  // COMPLETE: Handle property creation with image uploads
   const handleCreateProperty = async () => {
     // Validate form
     if (!validatePropertyForm()) {
@@ -483,41 +574,67 @@ export default function Admin() {
     setBackendError(null);
 
     try {
+      // Prepare property data
       const propertyData = {
         owner_id: user.id,
         title: newProperty.title.trim(),
-        description: newProperty.description.trim() || undefined,
+        description: newProperty.description.trim() || null,
         address: newProperty.address.trim(),
         city: newProperty.city.trim(),
         state: newProperty.state.trim().toUpperCase(),
+        zip_code: newProperty.zip_code.trim(),
         price: newProperty.price!,
         bedrooms: newProperty.bedrooms!,
         bathrooms: newProperty.bathrooms!,
+        square_feet: newProperty.square_feet,
         property_type: newProperty.property_type,
+        furnished: newProperty.furnished,
+        pets_allowed: newProperty.pets_allowed,
+        amenities: newProperty.amenities,
         status: 'active',
       };
 
+      // Step 1: Create the property
       const result = await createProperty(propertyData as any);
 
-      if (result.success && result.data) {
-        toast({ 
-          title: 'Property created successfully',
-          description: 'Your property has been listed.'
-        });
-        setShowAddProperty(false);
-        resetPropertyForm();
-        loadData();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create property');
       }
 
-      if (result.error) {
-        setBackendError(result.error);
-        
-        toast({ 
-          title: 'Failed to create property', 
-          description: result.error,
-          variant: 'destructive' 
-        });
+      const propertyId = result.data?.id;
+      if (!propertyId) {
+        throw new Error('Property created but no ID returned');
       }
+
+      // Step 2: Upload images if any
+      let imageUrls: string[] = [];
+      if (uploadedImages.length > 0) {
+        setIsUploadingImages(true);
+        try {
+          imageUrls = await uploadPropertyImages(uploadedImages, propertyId);
+
+          // Step 3: Update property with image URLs
+          if (imageUrls.length > 0) {
+            await updateProperty(propertyId, { images: imageUrls });
+          }
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          // Property is still created, just images failed
+        } finally {
+          setIsUploadingImages(false);
+        }
+      }
+
+      toast({ 
+        title: 'Property created successfully',
+        description: uploadedImages.length > 0 
+          ? `Property listed with ${imageUrls.length} image(s)` 
+          : 'Your property has been listed.'
+      });
+
+      setShowAddProperty(false);
+      resetPropertyForm();
+      loadData();
     } catch (error: any) {
       console.error('Create property error:', error);
       const errorMessage = error?.message || 'An unexpected error occurred';
@@ -536,7 +653,6 @@ export default function Admin() {
   const handleUpdateProperty = async () => {
     if (!selectedProperty?.id) return;
 
-    // Filter out undefined/null values to avoid Supabase constraint violations
     const cleanedData: Record<string, any> = {};
     for (const [key, value] of Object.entries(editPropertyData)) {
       if (value !== undefined && value !== null && value !== '') {
@@ -711,12 +827,10 @@ export default function Admin() {
   const filteredApplications = useMemo(() => {
     let filtered = applications;
 
-    // Filter by status
     if (applicationFilter !== 'all') {
       filtered = filtered.filter(a => a.status === applicationFilter);
     }
 
-    // Filter by search term (applicant name or property title)
     if (applicationSearch.trim()) {
       const search = applicationSearch.toLowerCase().trim();
       filtered = filtered.filter(a => 
@@ -726,7 +840,6 @@ export default function Admin() {
       );
     }
 
-    // Sort applications
     return [...filtered].sort((a, b) => {
       switch (applicationSort) {
         case 'newest':
@@ -1129,6 +1242,9 @@ export default function Admin() {
                         <SelectItem value="all">All</SelectItem>
                         <SelectItem value="active">Active</SelectItem>
                         <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="sold">Sold</SelectItem>
+                        <SelectItem value="rented">Rented</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1183,12 +1299,17 @@ export default function Admin() {
                         <p className="font-semibold truncate">{prop.title}</p>
                         <p className="text-sm text-muted-foreground flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
-                          {prop.address}, {prop.city}
+                          {prop.address}, {prop.city}, {prop.state} {prop.zip_code}
                         </p>
                         <div className="flex gap-2 mt-2 flex-wrap items-center">
                           <Badge variant="secondary">{prop.property_type}</Badge>
                           <Badge variant={prop.status === 'active' ? 'default' : 'secondary'}>{prop.status}</Badge>
                           <span className="text-sm font-medium text-primary">${prop.price?.toLocaleString()}</span>
+                          {prop.bedrooms && <span className="text-sm">{prop.bedrooms}bd</span>}
+                          {prop.bathrooms && <span className="text-sm">{prop.bathrooms}ba</span>}
+                          {prop.square_feet && <span className="text-sm">{prop.square_feet?.toLocaleString()} sqft</span>}
+                          {prop.furnished && <Badge variant="outline" className="text-xs">Furnished</Badge>}
+                          {prop.pets_allowed && <Badge variant="outline" className="text-xs">Pets OK</Badge>}
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -1224,6 +1345,10 @@ export default function Admin() {
                   <Card className="p-8 text-center">
                     <Home className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                     <p className="text-muted-foreground">No properties found</p>
+                    <Button onClick={() => setShowAddProperty(true)} className="mt-4">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Your First Property
+                    </Button>
                   </Card>
                 )}
               </div>
@@ -1777,20 +1902,19 @@ export default function Admin() {
         </div>
       </main>
 
-      {/* Add Property Modal - UPDATED WITH VALIDATION */}
+      {/* Add Property Modal - COMPLETE WITH ALL FIELDS */}
       <Dialog open={showAddProperty} onOpenChange={(open) => {
         if (!open) {
           resetPropertyForm();
         }
         setShowAddProperty(open);
       }}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Property</DialogTitle>
             <DialogDescription>Create a new property listing. All fields marked with * are required.</DialogDescription>
           </DialogHeader>
 
-          {/* Backend Error Display */}
           {backendError && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
               <p className="text-sm text-destructive font-medium">Server Error:</p>
@@ -1799,179 +1923,252 @@ export default function Admin() {
           )}
 
           <div className="grid gap-4 py-4">
-            {/* Title */}
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="title">Title *</Label>
-                {formErrors.title && <span className="text-xs text-destructive">{formErrors.title}</span>}
-              </div>
-              <Input 
-                id="title"
-                value={newProperty.title} 
-                onChange={(e) => handleTextChange('title', e.target.value)} 
-                data-testid="input-property-title"
-                className={formErrors.title ? "border-destructive" : ""}
-                placeholder="Beautiful 3-bedroom apartment"
-              />
-            </div>
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <h3 className="font-semibold">Basic Information</h3>
 
-            {/* Price and Type */}
-            <div className="grid grid-cols-2 gap-4">
+              {/* Title */}
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="price">Price *</Label>
-                  {formErrors.price && <span className="text-xs text-destructive">{formErrors.price}</span>}
+                  <Label htmlFor="title">Title *</Label>
+                  {formErrors.title && <span className="text-xs text-destructive">{formErrors.title}</span>}
                 </div>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                <Input 
+                  id="title"
+                  value={newProperty.title} 
+                  onChange={(e) => handleTextChange('title', e.target.value)} 
+                  placeholder="Beautiful 3-bedroom apartment in downtown"
+                />
+              </div>
+
+              {/* Price and Type */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="price">Price *</Label>
+                    {formErrors.price && <span className="text-xs text-destructive">{formErrors.price}</span>}
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                    <Input 
+                      id="price"
+                      type="number" 
+                      value={newProperty.price === null ? '' : newProperty.price} 
+                      onChange={(e) => handleNumericChange('price', e.target.value)} 
+                      className="pl-8"
+                      placeholder="1500"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="property_type">Property Type *</Label>
+                  <Select 
+                    value={newProperty.property_type} 
+                    onValueChange={(v) => setNewProperty({ ...newProperty, property_type: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="house">House</SelectItem>
+                      <SelectItem value="apartment">Apartment</SelectItem>
+                      <SelectItem value="condo">Condo</SelectItem>
+                      <SelectItem value="townhouse">Townhouse</SelectItem>
+                      <SelectItem value="studio">Studio</SelectItem>
+                      <SelectItem value="loft">Loft</SelectItem>
+                      <SelectItem value="duplex">Duplex</SelectItem>
+                      <SelectItem value="multi_family">Multi-Family</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Address Information */}
+              <div className="space-y-4">
+                <h3 className="font-semibold">Location Details</h3>
+
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="address">Full Address *</Label>
+                    {formErrors.address && <span className="text-xs text-destructive">{formErrors.address}</span>}
+                  </div>
                   <Input 
-                    id="price"
-                    type="number" 
-                    value={newProperty.price === null ? '' : newProperty.price} 
-                    onChange={(e) => handleNumericChange('price', e.target.value)} 
-                    data-testid="input-property-price"
-                    className={`pl-8 ${formErrors.price ? "border-destructive" : ""}`}
-                    placeholder="1500"
-                    min="0"
-                    step="0.01"
+                    id="address"
+                    value={newProperty.address} 
+                    onChange={(e) => handleTextChange('address', e.target.value)} 
+                    placeholder="123 Main Street"
                   />
                 </div>
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="property_type">Type *</Label>
-                  {formErrors.property_type && <span className="text-xs text-destructive">{formErrors.property_type}</span>}
-                </div>
-                <Select 
-                  value={newProperty.property_type} 
-                  onValueChange={(v) => setNewProperty({ ...newProperty, property_type: v })}
-                >
-                  <SelectTrigger 
-                    data-testid="select-property-type"
-                    className={formErrors.property_type ? "border-destructive" : ""}
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="house">House</SelectItem>
-                    <SelectItem value="apartment">Apartment</SelectItem>
-                    <SelectItem value="condo">Condo</SelectItem>
-                    <SelectItem value="townhouse">Townhouse</SelectItem>
-                    <SelectItem value="studio">Studio</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
 
-            {/* Address */}
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="address">Address *</Label>
-                {formErrors.address && <span className="text-xs text-destructive">{formErrors.address}</span>}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="city">City *</Label>
+                      {formErrors.city && <span className="text-xs text-destructive">{formErrors.city}</span>}
+                    </div>
+                    <Input 
+                      id="city"
+                      value={newProperty.city} 
+                      onChange={(e) => handleTextChange('city', e.target.value)} 
+                      placeholder="New York"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="state">State *</Label>
+                      {formErrors.state && <span className="text-xs text-destructive">{formErrors.state}</span>}
+                    </div>
+                    <Input 
+                      id="state"
+                      value={newProperty.state} 
+                      onChange={(e) => handleTextChange('state', e.target.value.toUpperCase())} 
+                      placeholder="NY"
+                      maxLength={2}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="zip_code">Zip Code *</Label>
+                      {formErrors.zip_code && <span className="text-xs text-destructive">{formErrors.zip_code}</span>}
+                    </div>
+                    <Input 
+                      id="zip_code"
+                      value={newProperty.zip_code} 
+                      onChange={(e) => handleTextChange('zip_code', e.target.value)} 
+                      placeholder="10001"
+                      maxLength={5}
+                    />
+                  </div>
+                </div>
               </div>
-              <Input 
-                id="address"
-                value={newProperty.address} 
-                onChange={(e) => handleTextChange('address', e.target.value)} 
-                data-testid="input-property-address"
-                className={formErrors.address ? "border-destructive" : ""}
-                placeholder="123 Main Street"
-              />
-            </div>
 
-            {/* City and State */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="city">City *</Label>
-                  {formErrors.city && <span className="text-xs text-destructive">{formErrors.city}</span>}
-                </div>
-                <Input 
-                  id="city"
-                  value={newProperty.city} 
-                  onChange={(e) => handleTextChange('city', e.target.value)} 
-                  data-testid="input-property-city"
-                  className={formErrors.city ? "border-destructive" : ""}
-                  placeholder="New York"
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="state">State *</Label>
-                  {formErrors.state && <span className="text-xs text-destructive">{formErrors.state}</span>}
-                </div>
-                <Input 
-                  id="state"
-                  value={newProperty.state} 
-                  onChange={(e) => handleTextChange('state', e.target.value.toUpperCase())} 
-                  data-testid="input-property-state"
-                  className={formErrors.state ? "border-destructive" : ""}
-                  placeholder="NY"
-                  maxLength={2}
-                />
-                <p className="text-xs text-muted-foreground">2-letter state code</p>
-              </div>
-            </div>
+              {/* Property Details */}
+              <div className="space-y-4">
+                <h3 className="font-semibold">Property Details</h3>
 
-            {/* Bedrooms and Bathrooms */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="bedrooms">Bedrooms *</Label>
-                  {formErrors.bedrooms && <span className="text-xs text-destructive">{formErrors.bedrooms}</span>}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="bedrooms">Bedrooms *</Label>
+                      {formErrors.bedrooms && <span className="text-xs text-destructive">{formErrors.bedrooms}</span>}
+                    </div>
+                    <Input 
+                      id="bedrooms"
+                      type="number" 
+                      value={newProperty.bedrooms === null ? '' : newProperty.bedrooms} 
+                      onChange={(e) => handleNumericChange('bedrooms', e.target.value)} 
+                      placeholder="3"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="bathrooms">Bathrooms *</Label>
+                      {formErrors.bathrooms && <span className="text-xs text-destructive">{formErrors.bathrooms}</span>}
+                    </div>
+                    <Input 
+                      id="bathrooms"
+                      type="number" 
+                      value={newProperty.bathrooms === null ? '' : newProperty.bathrooms} 
+                      onChange={(e) => handleNumericChange('bathrooms', e.target.value)} 
+                      placeholder="2.5"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="square_feet">Square Feet</Label>
+                      {formErrors.square_feet && <span className="text-xs text-destructive">{formErrors.square_feet}</span>}
+                    </div>
+                    <Input 
+                      id="square_feet"
+                      type="number" 
+                      value={newProperty.square_feet === null ? '' : newProperty.square_feet} 
+                      onChange={(e) => handleNumericChange('square_feet', e.target.value)} 
+                      placeholder="1200"
+                    />
+                  </div>
                 </div>
-                <Input 
-                  id="bedrooms"
-                  type="number" 
-                  value={newProperty.bedrooms === null ? '' : newProperty.bedrooms} 
-                  onChange={(e) => handleNumericChange('bedrooms', e.target.value)} 
-                  data-testid="input-property-bedrooms"
-                  className={formErrors.bedrooms ? "border-destructive" : ""}
-                  placeholder="3"
-                  min="0"
-                  max="20"
-                  step="1"
-                />
-                <p className="text-xs text-muted-foreground">Max 20 bedrooms</p>
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="bathrooms">Bathrooms *</Label>
-                  {formErrors.bathrooms && <span className="text-xs text-destructive">{formErrors.bathrooms}</span>}
-                </div>
-                <Input 
-                  id="bathrooms"
-                  type="number" 
-                  value={newProperty.bathrooms === null ? '' : newProperty.bathrooms} 
-                  onChange={(e) => handleNumericChange('bathrooms', e.target.value)} 
-                  data-testid="input-property-bathrooms"
-                  className={formErrors.bathrooms ? "border-destructive" : ""}
-                  placeholder="2.5"
-                  min="0"
-                  max="99.9"
-                  step="0.1"
-                />
-                <p className="text-xs text-muted-foreground">Max 99.9 (e.g., 2.5)</p>
-              </div>
-            </div>
 
-            {/* Description */}
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="description">Description</Label>
-                {formErrors.description && <span className="text-xs text-destructive">{formErrors.description}</span>}
+                {/* Features */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="furnished"
+                      checked={newProperty.furnished}
+                      onChange={(e) => setNewProperty({ ...newProperty, furnished: e.target.checked })}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="furnished" className="cursor-pointer">Furnished</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="pets_allowed"
+                      checked={newProperty.pets_allowed}
+                      onChange={(e) => setNewProperty({ ...newProperty, pets_allowed: e.target.checked })}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="pets_allowed" className="cursor-pointer">Pets Allowed</Label>
+                  </div>
+                </div>
+
+                {/* Amenities */}
+                <div className="space-y-2">
+                  <Label>Amenities</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 border rounded-lg">
+                    {COMMON_AMENITIES.map((amenity) => (
+                      <div key={amenity} className="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleAmenity(amenity)}
+                          className="flex items-center space-x-2 hover:bg-muted p-1 rounded"
+                        >
+                          {newProperty.amenities.includes(amenity) ? (
+                            <CheckSquare className="h-4 w-4 text-primary" />
+                          ) : (
+                            <Square className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span className="text-sm">{amenity}</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  {newProperty.amenities.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Selected: {newProperty.amenities.join(', ')}
+                    </p>
+                  )}
+                </div>
               </div>
-              <Textarea 
-                id="description"
-                value={newProperty.description} 
-                onChange={(e) => handleTextChange('description', e.target.value)} 
-                data-testid="input-property-description"
-                className={formErrors.description ? "border-destructive min-h-[100px]" : "min-h-[100px]"}
-                placeholder="Describe the property features, amenities, and neighborhood..."
-              />
-              <p className="text-xs text-muted-foreground">
-                Optional. If provided, must be at least 10 characters.
-              </p>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <h3 className="font-semibold">Description</h3>
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="description">Property Description</Label>
+                    {formErrors.description && <span className="text-xs text-destructive">{formErrors.description}</span>}
+                  </div>
+                  <Textarea 
+                    id="description"
+                    value={newProperty.description} 
+                    onChange={(e) => handleTextChange('description', e.target.value)} 
+                    className="min-h-[120px]"
+                    placeholder="Describe the property features, amenities, neighborhood, nearby attractions, and any special features..."
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Optional. Minimum 10 characters if provided. Include details about the property condition, recent upgrades, and unique selling points.
+                  </p>
+                </div>
+              </div>
+
+              {/* Images */}
+              <div className="space-y-2">
+                <h3 className="font-semibold">Property Images</h3>
+                <p className="text-xs text-muted-foreground">
+                  Image upload feature coming soon. Upload high-quality images of the property. First image will be used as the main thumbnail.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -1988,13 +2185,12 @@ export default function Admin() {
             </Button>
             <Button 
               onClick={handleCreateProperty} 
-              data-testid="button-save-property"
-              disabled={isCreatingProperty || Object.keys(formErrors).length > 0}
+              disabled={isCreatingProperty || isUploadingImages || Object.keys(formErrors).length > 0}
             >
-              {isCreatingProperty ? (
+              {isCreatingProperty || isUploadingImages ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating...
+                  {isUploadingImages ? 'Uploading Images...' : 'Creating Property...'}
                 </>
               ) : (
                 'Create Property'
@@ -2011,47 +2207,55 @@ export default function Admin() {
             <DialogTitle>Edit Property</DialogTitle>
             <DialogDescription>Update property details</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label>Title</Label>
-              <Input value={editPropertyData.title || ''} onChange={(e) => setEditPropertyData({ ...editPropertyData, title: e.target.value })} data-testid="input-edit-property-title" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+          {selectedProperty && (
+            <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label>Price</Label>
-                <Input type="number" value={editPropertyData.price || ''} onChange={(e) => setEditPropertyData({ ...editPropertyData, price: parseFloat(e.target.value) })} data-testid="input-edit-property-price" />
+                <Label>Title</Label>
+                <Input 
+                  value={editPropertyData.title || selectedProperty.title} 
+                  onChange={(e) => setEditPropertyData({ ...editPropertyData, title: e.target.value })} 
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Price</Label>
+                  <Input 
+                    type="number" 
+                    value={editPropertyData.price || selectedProperty.price} 
+                    onChange={(e) => setEditPropertyData({ ...editPropertyData, price: parseFloat(e.target.value) })} 
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Status</Label>
+                  <Select 
+                    value={editPropertyData.status || selectedProperty.status} 
+                    onValueChange={(v) => setEditPropertyData({ ...editPropertyData, status: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="sold">Sold</SelectItem>
+                      <SelectItem value="rented">Rented</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="grid gap-2">
-                <Label>Status</Label>
-                <Select value={editPropertyData.status || 'active'} onValueChange={(v) => setEditPropertyData({ ...editPropertyData, status: v })}>
-                  <SelectTrigger data-testid="select-edit-property-status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Description</Label>
+                <Textarea 
+                  value={editPropertyData.description || selectedProperty.description || ''} 
+                  onChange={(e) => setEditPropertyData({ ...editPropertyData, description: e.target.value })} 
+                />
               </div>
             </div>
-            <div className="grid gap-2">
-              <Label>Address</Label>
-              <Input value={editPropertyData.address || ''} onChange={(e) => setEditPropertyData({ ...editPropertyData, address: e.target.value })} data-testid="input-edit-property-address" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>City</Label>
-                <Input value={editPropertyData.city || ''} onChange={(e) => setEditPropertyData({ ...editPropertyData, city: e.target.value })} data-testid="input-edit-property-city" />
-              </div>
-              <div className="grid gap-2">
-                <Label>State</Label>
-                <Input value={editPropertyData.state || ''} onChange={(e) => setEditPropertyData({ ...editPropertyData, state: e.target.value })} data-testid="input-edit-property-state" />
-              </div>
-            </div>
-          </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditProperty(false)}>Cancel</Button>
-            <Button onClick={handleUpdateProperty} data-testid="button-update-property">Update Property</Button>
+            <Button onClick={handleUpdateProperty}>Update Property</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -2067,16 +2271,20 @@ export default function Admin() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Price</p>
-                  <p className="font-medium">${selectedProperty.price?.toLocaleString()}</p>
+                  <p className="font-medium">${selectedProperty.price?.toLocaleString()}/month</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge variant={selectedProperty.status === 'active' ? 'default' : 'secondary'}>{selectedProperty.status}</Badge>
+                  <Badge variant={selectedProperty.status === 'active' ? 'default' : 'secondary'}>
+                    {selectedProperty.status}
+                  </Badge>
                 </div>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Address</p>
-                <p className="font-medium">{selectedProperty.address}, {selectedProperty.city}, {selectedProperty.state}</p>
+                <p className="font-medium">
+                  {selectedProperty.address}, {selectedProperty.city}, {selectedProperty.state} {selectedProperty.zip_code}
+                </p>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
@@ -2092,10 +2300,44 @@ export default function Admin() {
                   <p className="font-medium">{selectedProperty.bathrooms}</p>
                 </div>
               </div>
+              {selectedProperty.square_feet && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Square Feet</p>
+                  <p className="font-medium">{selectedProperty.square_feet?.toLocaleString()} sqft</p>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2">
+                  <div className={`h-3 w-3 rounded-full ${selectedProperty.furnished ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <span className="text-sm">Furnished: {selectedProperty.furnished ? 'Yes' : 'No'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`h-3 w-3 rounded-full ${selectedProperty.pets_allowed ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <span className="text-sm">Pets Allowed: {selectedProperty.pets_allowed ? 'Yes' : 'No'}</span>
+                </div>
+              </div>
+              {selectedProperty.amenities && selectedProperty.amenities.length > 0 && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Amenities</p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {selectedProperty.amenities.map((amenity, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {amenity}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
               {selectedProperty.description && (
                 <div>
                   <p className="text-sm text-muted-foreground">Description</p>
                   <p className="text-sm">{selectedProperty.description}</p>
+                </div>
+              )}
+              {selectedProperty.images && selectedProperty.images.length > 0 && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Images</p>
+                  <p className="text-sm">{selectedProperty.images.length} image(s)</p>
                 </div>
               )}
             </div>
@@ -2113,16 +2355,16 @@ export default function Admin() {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label>Full Name</Label>
-              <Input value={newUser.full_name} onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })} data-testid="input-user-name" />
+              <Input value={newUser.full_name} onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })} />
             </div>
             <div className="grid gap-2">
               <Label>Email</Label>
-              <Input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} data-testid="input-user-email" />
+              <Input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} />
             </div>
             <div className="grid gap-2">
               <Label>Role</Label>
               <Select value={newUser.role} onValueChange={(v) => setNewUser({ ...newUser, role: v })}>
-                <SelectTrigger data-testid="select-user-role">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -2137,7 +2379,7 @@ export default function Admin() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddUser(false)}>Cancel</Button>
-            <Button onClick={handleCreateUser} data-testid="button-save-user">Create User</Button>
+            <Button onClick={handleCreateUser}>Create User</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -2160,7 +2402,6 @@ export default function Admin() {
                   <Badge
                     variant={selectedApplication.status === 'approved' ? 'default' : selectedApplication.status === 'rejected' ? 'destructive' : 'secondary'}
                     className={selectedApplication.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' : selectedApplication.status === 'under_review' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : ''}
-                    data-testid="badge-application-status"
                   >
                     {selectedApplication.status}
                   </Badge>
@@ -2196,7 +2437,6 @@ export default function Admin() {
                     <Badge 
                       variant={selectedApplication.score >= 70 ? 'default' : selectedApplication.score >= 50 ? 'secondary' : 'destructive'}
                       className={selectedApplication.score >= 70 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : ''}
-                      data-testid="badge-application-score"
                     >
                       {selectedApplication.score}/100
                     </Badge>
@@ -2254,11 +2494,11 @@ export default function Admin() {
 
               {(selectedApplication.status === 'pending' || selectedApplication.status === 'under_review') && (
                 <div className="flex gap-2 pt-4">
-                  <Button onClick={() => handleUpdateApplicationStatus(selectedApplication.id, 'approved')} className="flex-1" data-testid="button-approve-application">
+                  <Button onClick={() => handleUpdateApplicationStatus(selectedApplication.id, 'approved')} className="flex-1">
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Approve
                   </Button>
-                  <Button variant="destructive" onClick={() => handleUpdateApplicationStatus(selectedApplication.id, 'rejected')} className="flex-1" data-testid="button-reject-application">
+                  <Button variant="destructive" onClick={() => handleUpdateApplicationStatus(selectedApplication.id, 'rejected')} className="flex-1">
                     <XCircle className="h-4 w-4 mr-2" />
                     Reject
                   </Button>
@@ -2306,12 +2546,12 @@ export default function Admin() {
               {selectedInquiry.status !== 'closed' && (
                 <div className="flex gap-2 pt-4">
                   {selectedInquiry.status === 'pending' && (
-                    <Button onClick={() => handleUpdateInquiryStatus(selectedInquiry.id, 'responded')} className="flex-1" data-testid="button-respond-inquiry">
+                    <Button onClick={() => handleUpdateInquiryStatus(selectedInquiry.id, 'responded')} className="flex-1">
                       <Check className="h-4 w-4 mr-2" />
                       Mark Responded
                     </Button>
                   )}
-                  <Button variant="outline" onClick={() => handleUpdateInquiryStatus(selectedInquiry.id, 'closed')} className="flex-1" data-testid="button-close-inquiry">
+                  <Button variant="outline" onClick={() => handleUpdateInquiryStatus(selectedInquiry.id, 'closed')} className="flex-1">
                     <X className="h-4 w-4 mr-2" />
                     Close
                   </Button>
@@ -2367,7 +2607,7 @@ export default function Admin() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (deleteConfirm?.type === 'property') handleDeleteProperty(deleteConfirm.id);
@@ -2375,7 +2615,6 @@ export default function Admin() {
                 else if (deleteConfirm?.type === 'search') handleDeleteSavedSearch(deleteConfirm.id);
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              data-testid="button-confirm-delete"
             >
               Delete
             </AlertDialogAction>
