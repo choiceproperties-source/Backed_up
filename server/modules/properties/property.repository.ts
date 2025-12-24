@@ -285,56 +285,60 @@ export async function updateProperty(
     throw new Error("Property ID is required for update");
   }
 
-  console.log("[PROPERTY_REPOSITORY] updateProperty called:", {
-    id,
-    updateDataKeys: Object.keys(updateData),
-    updateDataTypes: Object.entries(updateData).map(([k, v]) => ({ 
-      key: k, 
-      type: typeof v, 
-      value: v 
-    })),
-  });
-
   // Create a clean copy of the update data
   const cleanUpdateData: Record<string, any> = {};
 
-  // Only include valid fields and handle numeric conversions
-  const validFields = [
-    'title', 'description', 'address', 'city', 'state', 'zip_code',
-    'price', 'bedrooms', 'bathrooms', 'square_feet', 'property_type',
-    'amenities', 'images', 'latitude', 'longitude', 'furnished',
-    'pets_allowed', 'utilities_included', 'status', 'view_count',
-    'deposit', 'hoa_fee', 'year_built', 'expires_at', 'publish_at'
-  ];
+  // Map camelCase to snake_case and handle numeric conversions
+  const validFields: Record<string, string> = {
+    'title': 'title',
+    'description': 'description',
+    'address': 'address',
+    'city': 'city',
+    'state': 'state',
+    'zipCode': 'zip_code',
+    'price': 'price',
+    'bedrooms': 'bedrooms',
+    'bathrooms': 'bathrooms',
+    'squareFeet': 'square_feet',
+    'propertyType': 'property_type',
+    'amenities': 'amenities',
+    'images': 'images',
+    'latitude': 'latitude',
+    'longitude': 'longitude',
+    'furnished': 'furnished',
+    'petsAllowed': 'pets_allowed',
+    'leaseTerm': 'lease_term',
+    'utilitiesIncluded': 'utilities_included',
+    'status': 'status',
+    'viewCount': 'view_count'
+  };
+
+  const numericFields = ['price', 'bedrooms', 'bathrooms', 'squareFeet', 'viewCount'];
 
   for (const [key, value] of Object.entries(updateData)) {
-    // Skip undefined values
     if (value === undefined) continue;
+    
+    const dbKey = validFields[key] || key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    
+    // Final check against known valid columns (to avoid Supabase errors)
+    const knownColumns = [
+      'title', 'description', 'address', 'city', 'state', 'zip_code',
+      'price', 'bedrooms', 'bathrooms', 'square_feet', 'property_type',
+      'amenities', 'images', 'latitude', 'longitude', 'furnished',
+      'pets_allowed', 'lease_term', 'utilities_included', 'status', 'view_count',
+      'updated_at'
+    ];
 
-    // Only include valid fields
-    if (validFields.includes(key)) {
-      // Convert numeric fields
-      if (['price', 'bedrooms', 'bathrooms', 'square_feet', 'deposit', 'hoa_fee', 'year_built', 'view_count'].includes(key)) {
-        if (value !== null && value !== undefined && value !== '') {
-          cleanUpdateData[key] = Number(value);
-        } else {
-          cleanUpdateData[key] = null;
-        }
+    if (knownColumns.includes(dbKey)) {
+      if (numericFields.includes(key) || ['price', 'bedrooms', 'bathrooms', 'square_feet'].includes(dbKey)) {
+        cleanUpdateData[dbKey] = value === '' || value === null ? null : Number(value);
       } else {
-        cleanUpdateData[key] = value;
+        cleanUpdateData[dbKey] = value;
       }
-    } else {
-      console.warn(`[PROPERTY_REPOSITORY] Skipping invalid field in update: ${key}`);
     }
   }
 
-  // Always update the timestamp
   cleanUpdateData.updated_at = new Date().toISOString();
-
-  console.log("[PROPERTY_REPOSITORY] Updating property with:", {
-    cleanUpdateDataKeys: Object.keys(cleanUpdateData),
-    id,
-  });
 
   const { data, error } = await supabase
     .from("properties")
@@ -344,22 +348,9 @@ export async function updateProperty(
     .single();
 
   if (error) {
-    console.error("[PROPERTY_REPOSITORY] updateProperty failed:", {
-      propertyId: id,
-      code: error.code,
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-      payloadKeys: Object.keys(cleanUpdateData),
-      payloadValues: cleanUpdateData,
-    });
+    console.error("[PROPERTY_REPOSITORY] updateProperty failed:", error);
     throw error;
   }
-
-  console.log("[PROPERTY_REPOSITORY] updateProperty success:", {
-    propertyId: id,
-    updatedFields: Object.keys(cleanUpdateData),
-  });
 
   return data;
 }
