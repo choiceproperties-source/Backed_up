@@ -653,11 +653,18 @@ export default function Admin() {
     if (!selectedProperty?.id) return;
 
     const cleanedData: Record<string, any> = {};
-    for (const [key, value] of Object.entries(editPropertyData)) {
-      if (value !== undefined && value !== null && value !== '') {
-        cleanedData[key] = value;
+    const fieldsToInclude = [
+      'title', 'description', 'address', 'city', 'state', 'zip_code',
+      'price', 'bedrooms', 'bathrooms', 'square_feet', 'property_type',
+      'furnished', 'pets_allowed', 'amenities', 'status'
+    ];
+
+    fieldsToInclude.forEach(field => {
+      const value = editPropertyData[field as keyof Property];
+      if (value !== undefined) {
+        cleanedData[field] = (value === '' || value === null) ? null : value;
       }
-    }
+    });
 
     if (Object.keys(cleanedData).length === 0) {
       toast({ title: 'No changes to update', variant: 'destructive' });

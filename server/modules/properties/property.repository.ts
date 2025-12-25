@@ -332,7 +332,7 @@ export async function updateProperty(
     'publish_at': 'publish_at'
   };
 
-  const numericFields = ['price', 'bedrooms', 'bathrooms', 'squareFeet', 'square_feet', 'viewCount', 'view_count', 'deposit', 'hoaFee', 'hoa_fee', 'yearBuilt', 'year_built'];
+  const numericFields = ['price', 'bedrooms', 'bathrooms', 'square_feet', 'squareFeet', 'view_count', 'viewCount', 'deposit', 'hoa_fee', 'hoaFee', 'year_built', 'yearBuilt'];
 
   for (const [key, value] of Object.entries(updateData)) {
     if (value === undefined) continue;
@@ -340,13 +340,14 @@ export async function updateProperty(
     const dbKey = validFields[key] || key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     
     // Final check against known valid columns (to avoid Supabase errors)
-    const knownColumns = [
-      'title', 'description', 'address', 'city', 'state', 'zip_code',
-      'price', 'bedrooms', 'bathrooms', 'square_feet', 'property_type',
-      'amenities', 'images', 'latitude', 'longitude', 'furnished',
-      'pets_allowed', 'lease_term', 'utilities_included', 'status', 'view_count',
-      'updated_at'
-    ];
+  const knownColumns = [
+    'title', 'description', 'address', 'city', 'state', 'zip_code',
+    'price', 'bedrooms', 'bathrooms', 'square_feet', 'property_type',
+    'amenities', 'images', 'latitude', 'longitude', 'furnished',
+    'pets_allowed', 'lease_term', 'utilities_included', 'status', 'view_count',
+    'deposit', 'hoa_fee', 'year_built', 'expires_at', 'publish_at',
+    'updated_at'
+  ];
 
     if (knownColumns.includes(dbKey)) {
       if (numericFields.includes(key) || ['price', 'bedrooms', 'bathrooms', 'square_feet'].includes(dbKey)) {
