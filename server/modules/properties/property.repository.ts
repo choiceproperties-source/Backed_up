@@ -296,24 +296,40 @@ export async function updateProperty(
     'city': 'city',
     'state': 'state',
     'zipCode': 'zip_code',
+    'zip_code': 'zip_code',
     'price': 'price',
     'bedrooms': 'bedrooms',
     'bathrooms': 'bathrooms',
     'squareFeet': 'square_feet',
+    'square_feet': 'square_feet',
     'propertyType': 'property_type',
+    'property_type': 'property_type',
     'amenities': 'amenities',
     'images': 'images',
     'latitude': 'latitude',
     'longitude': 'longitude',
     'furnished': 'furnished',
     'petsAllowed': 'pets_allowed',
+    'pets_allowed': 'pets_allowed',
     'leaseTerm': 'lease_term',
+    'lease_term': 'lease_term',
     'utilitiesIncluded': 'utilities_included',
+    'utilities_included': 'utilities_included',
     'status': 'status',
-    'viewCount': 'view_count'
+    'viewCount': 'view_count',
+    'view_count': 'view_count',
+    'deposit': 'deposit',
+    'hoaFee': 'hoa_fee',
+    'hoa_fee': 'hoa_fee',
+    'yearBuilt': 'year_built',
+    'year_built': 'year_built',
+    'expiresAt': 'expires_at',
+    'expires_at': 'expires_at',
+    'publishAt': 'publish_at',
+    'publish_at': 'publish_at'
   };
 
-  const numericFields = ['price', 'bedrooms', 'bathrooms', 'squareFeet', 'viewCount'];
+  const numericFields = ['price', 'bedrooms', 'bathrooms', 'squareFeet', 'square_feet', 'viewCount', 'view_count', 'deposit', 'hoaFee', 'hoa_fee', 'yearBuilt', 'year_built'];
 
   for (const [key, value] of Object.entries(updateData)) {
     if (value === undefined) continue;
