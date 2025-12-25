@@ -184,20 +184,23 @@ export async function createProperty(propertyData: PropertyCreateData) {
     // Skip undefined values
     if (value === undefined) continue;
 
+    // Convert camelCase keys to snake_case for consistency with update logic if needed
+    const dbKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+
     // Only include valid fields
-    if (validFields.includes(key)) {
+    if (validFields.includes(dbKey)) {
       // Convert numeric fields to proper types if needed
-      if (['price', 'bedrooms', 'bathrooms', 'square_feet', 'deposit', 'hoa_fee', 'year_built', 'view_count'].includes(key)) {
-        if (value !== null && value !== undefined) {
-          cleanData[key] = Number(value);
+      if (['price', 'bedrooms', 'bathrooms', 'square_feet', 'deposit', 'hoa_fee', 'year_built', 'view_count'].includes(dbKey)) {
+        if (value !== null && value !== undefined && value !== '') {
+          cleanData[dbKey] = Number(value);
         } else {
-          cleanData[key] = null;
+          cleanData[dbKey] = null;
         }
       } else {
-        cleanData[key] = value;
+        cleanData[dbKey] = value;
       }
     } else {
-      console.warn(`[PROPERTY_REPOSITORY] Skipping invalid field: ${key}`);
+      console.warn(`[PROPERTY_REPOSITORY] Skipping invalid field: ${key} (db: ${dbKey})`);
     }
   }
 
