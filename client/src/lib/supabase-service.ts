@@ -109,18 +109,21 @@ export async function createProperty(property: Omit<Property, 'id'>): Promise<Ap
   }
 }
 
-export async function updateProperty(id: string, updates: Partial<Property>): Promise<Property | null> {
-  if (!supabase) return null;
+export async function updateProperty(id: string, updates: Partial<Property>) {
   try {
-    const { data, error } = await supabase
-      .from('properties')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
-    return data || null;
-  } catch (err) {
+    const result = await apiCall<Property>(`/properties/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+
+    if (result.success && result.data) {
+      return result.data;
+    }
+
+    console.error('updateProperty failed:', result.error);
+    return null;
+  } catch (error: any) {
+    console.error('updateProperty error:', error);
     return null;
   }
 }
