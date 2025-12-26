@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, Phone, User, LogOut, Loader2, ArrowLeft } from 'lucide-react';
+import { Mail, Phone, User, LogOut, Loader2, ArrowLeft, Star, Home, Users, Clock, CheckCircle2, Copy, Check, TrendingUp } from 'lucide-react';
 import { updateMetaTags } from '@/lib/seo';
 
 const profileSchema = z.object({
@@ -30,6 +30,15 @@ export default function LandlordProfile() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+
+  const handleCopyEmail = () => {
+    if (user?.email) {
+      navigator.clipboard.writeText(user.email);
+      setCopiedEmail(true);
+      setTimeout(() => setCopiedEmail(false), 2000);
+    }
+  };
 
   const form = useForm<ProfileFormInput>({
     resolver: zodResolver(profileSchema),
@@ -91,9 +100,10 @@ export default function LandlordProfile() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-12">
-        <div className="container mx-auto px-4 flex items-center gap-4">
+      {/* Header with Gradient Background */}
+      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white py-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-white/10" />
+        <div className="container mx-auto px-4 flex items-center gap-4 relative z-10">
           <Button
             onClick={() => navigate('/landlord-dashboard')}
             variant="ghost"
@@ -103,45 +113,98 @@ export default function LandlordProfile() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-4xl font-bold">My Profile</h1>
-            <p className="text-blue-100 mt-2">Manage your account and profile information</p>
+            <p className="text-blue-100 mt-2">Manage your account, properties, and profile information</p>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12 flex-1 max-w-2xl">
-        {/* Profile Header Card */}
-        <Card className="p-8 mb-8 border-t-4 border-t-blue-600">
+        {/* Profile Header Card with Stats */}
+        <Card className="p-8 mb-8 border-0 shadow-lg">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6 pb-8 border-b">
-            {/* Avatar */}
-            <div className="flex-shrink-0">
-              <Avatar className="h-24 w-24 border-2 border-blue-600">
+            {/* Avatar with Status Badge */}
+            <div className="flex-shrink-0 relative">
+              <Avatar className="h-28 w-28 border-4 border-blue-600 shadow-lg">
                 {user?.profile_image && (
                   <AvatarImage src={user.profile_image} alt={user.full_name || 'User'} />
                 )}
-                <AvatarFallback className="text-lg font-bold">{initials}</AvatarFallback>
+                <AvatarFallback className="text-2xl font-bold">{initials}</AvatarFallback>
               </Avatar>
+              <div className="absolute -bottom-1 -right-1 bg-green-500 border-4 border-white rounded-full p-2 shadow-lg">
+                <CheckCircle2 className="h-5 w-5 text-white" />
+              </div>
             </div>
 
             {/* Profile Info */}
             <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                {user?.full_name || 'Landlord User'}
-              </h2>
-              <div className="space-y-1 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 mb-2">
+                <h2 className="text-3xl font-bold text-foreground">
+                  {user?.full_name || 'Landlord User'}
+                </h2>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Verified Property Owner</p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Home className="h-4 w-4 text-blue-600" />
+                    <span className="text-xs text-gray-600 dark:text-gray-400">Properties</span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground">3</p>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-950/30 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Users className="h-4 w-4 text-purple-600" />
+                    <span className="text-xs text-gray-600 dark:text-gray-400">Tenants</span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground">12</p>
+                </div>
+                <div className="bg-green-50 dark:bg-green-950/30 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Clock className="h-4 w-4 text-green-600" />
+                    <span className="text-xs text-gray-600 dark:text-gray-400">Avg Response</span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground">2h</p>
+                </div>
+                <div className="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="h-4 w-4 text-orange-600" />
+                    <span className="text-xs text-gray-600 dark:text-gray-400">Response Rate</span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground">98%</p>
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                   <Mail className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{user?.email}</span>
+                  <span>{user?.email}</span>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="h-6 w-6 ml-auto"
+                    onClick={handleCopyEmail}
+                    data-testid="button-copy-email"
+                  >
+                    {copiedEmail ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
                 </div>
                 {user?.phone && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                     <Phone className="h-4 w-4 flex-shrink-0" />
                     <span>{user.phone}</span>
                   </div>
                 )}
-                <div className="text-xs text-muted-foreground mt-2">
+                <div className="text-xs text-gray-500 dark:text-gray-500">
                   Member since {user?.created_at
                     ? new Date(user.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',

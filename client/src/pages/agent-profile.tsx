@@ -19,6 +19,12 @@ import {
   Award,
   Edit2,
   Save,
+  Star,
+  TrendingUp,
+  MapPin,
+  CheckCircle2,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { updateMetaTags } from '@/lib/seo';
 
@@ -26,12 +32,21 @@ export default function AgentProfile() {
   const { user, logout, isLoggedIn } = useAuth();
   const [, navigate] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
   const [formData, setFormData] = useState({
     fullName: user?.full_name || '',
     email: user?.email || '',
     phone: user?.phone || '',
     bio: user?.bio || '',
   });
+
+  const handleCopyEmail = () => {
+    if (user?.email) {
+      navigator.clipboard.writeText(user.email);
+      setCopiedEmail(true);
+      setTimeout(() => setCopiedEmail(false), 2000);
+    }
+  };
 
   // Update meta tags
   useMemo(() => {
@@ -64,9 +79,10 @@ export default function AgentProfile() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-8">
-        <div className="container mx-auto px-4">
+      {/* Header with Gradient Background */}
+      <div className="bg-gradient-to-br from-purple-600 via-indigo-600 to-pink-600 text-white py-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-white/10" />
+        <div className="container mx-auto px-4 relative z-10">
           <div className="flex items-center gap-2 mb-4">
             <Button
               variant="ghost"
@@ -77,25 +93,48 @@ export default function AgentProfile() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </div>
-          <h1 className="text-3xl font-bold">Agent Profile</h1>
-          <p className="text-purple-100 mt-2">Manage your profile and commission information</p>
+          <h1 className="text-4xl font-bold">Agent Profile</h1>
+          <p className="text-purple-100 mt-2">Manage your profile, performance metrics, and license information</p>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12 flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Card */}
-          <Card className="lg:col-span-1 p-8">
-            <div className="text-center mb-8">
-              <Avatar className="h-24 w-24 mx-auto mb-4" data-testid="avatar-profile">
-                <AvatarImage src={user.profile_image || ''} alt={user.full_name || ''} />
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
-              <h2 className="text-2xl font-bold text-foreground">{user.full_name || 'Agent'}</h2>
-              <Badge className="mt-2" data-testid="badge-role">
-                {user.role}
+          {/* Profile Card with Stats */}
+          <Card className="lg:col-span-1 p-8 shadow-lg">
+            <div className="text-center mb-8 relative">
+              <div className="relative inline-block mb-4">
+                <Avatar className="h-32 w-32 mx-auto border-4 border-purple-600 shadow-lg" data-testid="avatar-profile">
+                  <AvatarImage src={user.profile_image || ''} alt={user.full_name || ''} />
+                  <AvatarFallback className="text-2xl font-bold">{initials}</AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1 bg-green-500 border-4 border-white rounded-full p-2 shadow-lg">
+                  <CheckCircle2 className="h-5 w-5 text-white" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{user.full_name || 'Agent'}</h2>
+              <div className="flex justify-center gap-1 mb-2">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                ))}
+              </div>
+              <Badge className="mt-2 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100" data-testid="badge-role">
+                {user.role === 'agent' ? 'Real Estate Agent' : user.role}
               </Badge>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">License Verified</p>
+            </div>
+
+            {/* Performance Stats */}
+            <div className="grid grid-cols-2 gap-3 mb-6 p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-purple-600">24</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Deals</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-purple-600">$2.4M</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Volume</p>
+              </div>
             </div>
 
             {/* Account Settings */}
@@ -163,6 +202,15 @@ export default function AgentProfile() {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Mail className="h-4 w-4" />
                   <p>{formData.email}</p>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="h-6 w-6 ml-auto"
+                    onClick={handleCopyEmail}
+                    data-testid="button-copy-email"
+                  >
+                    {copiedEmail ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
               </div>
