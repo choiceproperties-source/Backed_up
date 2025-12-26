@@ -273,10 +273,10 @@ export function PhotoGallery({ images, title, propertyId, canEdit = false, onIma
       {/* Main Gallery */}
       <div className="w-full bg-background">
         {/* Desktop Grid Layout */}
-        <div className="hidden md:grid grid-cols-4 gap-3 rounded-lg overflow-hidden mb-4">
+        <div className="hidden md:grid grid-cols-4 gap-3 mb-4">
           {/* Main Large Image - 2 columns - Fixed Aspect Ratio */}
           <div
-            className="col-span-2 row-span-2 relative group cursor-pointer overflow-hidden rounded-lg bg-muted aspect-square"
+            className="col-span-2 row-span-2 relative group cursor-pointer overflow-hidden bg-muted aspect-square"
             onClick={() => setIsFullscreen(true)}
             data-testid="gallery-main-image"
           >
@@ -317,7 +317,7 @@ export function PhotoGallery({ images, title, propertyId, canEdit = false, onIma
           {validImages.slice(1, 5).map((img, idx) => (
             <div
               key={idx + 1}
-              className="relative group cursor-pointer overflow-hidden rounded-lg h-[120px] bg-muted"
+              className="relative group cursor-pointer overflow-hidden h-[120px] bg-muted"
               onClick={() => {
                 setCurrentImageIndex(idx + 1);
                 setIsFullscreen(true);
@@ -363,7 +363,7 @@ export function PhotoGallery({ images, title, propertyId, canEdit = false, onIma
         </div>
 
         {/* Mobile Carousel - Fixed Height to Prevent Shift */}
-        <div className="md:hidden relative group rounded-lg overflow-hidden mb-4">
+        <div className="md:hidden relative group overflow-hidden mb-4">
           <div
             className="relative h-96 bg-muted w-full"
             onTouchStart={onTouchStart}
