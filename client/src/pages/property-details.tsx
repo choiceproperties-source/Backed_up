@@ -46,6 +46,29 @@ const imageMap: Record<string, string> = {
   "placeholder-bedroom": placeholderBedroom,
 };
 
+// Room labels for better navigation
+const getRoomLabel = (index: number, category?: string): string => {
+  const roomLabels: Record<string, string> = {
+    exterior: "Exterior",
+    living: "Living Room",
+    kitchen: "Kitchen",
+    bedroom: "Bedroom",
+    bathroom: "Bathroom",
+    "master-bedroom": "Master Bedroom",
+    dining: "Dining",
+    office: "Office",
+    laundry: "Laundry Room",
+  };
+  
+  if (category && roomLabels[category.toLowerCase()]) {
+    return roomLabels[category.toLowerCase()];
+  }
+  
+  // Fallback to generic labels based on position
+  const genericLabels = ["Exterior", "Living Room", "Kitchen", "Master Bedroom", "Bedroom", "Bathroom", "Laundry", "Dining", "Office"];
+  return genericLabels[index % genericLabels.length];
+};
+
 export default function PropertyDetails() {
   const [match, params] = useRoute("/property/:id");
   const id = params?.id;
@@ -220,6 +243,11 @@ export default function PropertyDetails() {
 
   const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
   const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  
+  // Get room label for current image
+  const currentRoomLabel = photosData?.[currentImageIndex]?.category 
+    ? getRoomLabel(currentImageIndex, photosData[currentImageIndex]?.category)
+    : getRoomLabel(currentImageIndex);
 
   // Preload adjacent images when modal is open
   const getPrevImageIndex = () => (currentImageIndex - 1 + allImages.length) % allImages.length;
@@ -246,10 +274,18 @@ export default function PropertyDetails() {
           aria-label={`Photo gallery for ${property.title}`}
           data-testid="gallery-modal"
         >
-          <div className="flex justify-between items-center p-4 border-b border-white/10">
-            <span className="text-white text-lg font-semibold">
-              {currentImageIndex + 1} / {allImages.length}
-            </span>
+          <div className="flex justify-between items-center p-4 border-b border-white/20 bg-gradient-to-b from-black/80 to-black/40">
+            <div className="flex flex-col gap-1">
+              <span className="text-white text-sm font-medium text-gray-300">
+                {currentRoomLabel}
+              </span>
+              <span className="text-white text-lg font-bold">
+                {currentImageIndex + 1} of {allImages.length}
+              </span>
+              <span className="text-white text-xs text-gray-400 hidden md:block">
+                Press ← → or ESC to close
+              </span>
+            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -261,49 +297,67 @@ export default function PropertyDetails() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex-1 flex items-center justify-center relative">
+          <div className="flex-1 flex items-center justify-center relative group">
+            {/* Left Navigation */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-4 text-white hover:bg-white/20 h-12 w-12"
+              className="absolute left-4 text-white hover:bg-white/30 h-14 w-14 transition-all hover:scale-110 hidden md:flex"
               onClick={prevImage}
               data-testid="button-prev-image"
               aria-label="Previous image"
             >
-              <ChevronLeft className="h-8 w-8" />
+              <ChevronLeft className="h-10 w-10" />
             </Button>
+            
+            {/* Main Image */}
             <img
               key={currentImageIndex}
               src={allImages[currentImageIndex]}
               alt={`${property.title} - Photo ${currentImageIndex + 1}`}
               className="max-h-[80vh] max-w-[90vw] object-contain animate-in fade-in duration-300"
             />
+            
+            {/* Right Navigation */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-4 text-white hover:bg-white/20 h-12 w-12"
+              className="absolute right-4 text-white hover:bg-white/30 h-14 w-14 transition-all hover:scale-110 hidden md:flex"
               onClick={nextImage}
               data-testid="button-next-image"
               aria-label="Next image"
             >
-              <ChevronRight className="h-8 w-8" />
+              <ChevronRight className="h-10 w-10" />
             </Button>
+            
+            {/* Mobile Swipe Hint */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 md:hidden">
+              <span className="text-white text-xs bg-black/60 px-3 py-2 rounded-full">
+                Swipe to navigate
+              </span>
+            </div>
           </div>
-          <div className="flex gap-2 p-4 overflow-x-auto justify-center">
-            {allThumbnails.map((thumbnailUrl, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentImageIndex(idx)}
-                className={`flex-shrink-0 rounded overflow-hidden transition-all cursor-pointer ${
-                  idx === currentImageIndex ? "ring-2 ring-white" : "opacity-50 hover:opacity-100"
-                }`}
-                data-testid={`thumbnail-${idx}`}
-                aria-label={`View photo ${idx + 1}`}
-                aria-current={idx === currentImageIndex ? "true" : "false"}
-              >
-                <img src={thumbnailUrl} alt={`Thumbnail ${idx + 1}`} className="w-16 h-12 object-cover" />
-              </button>
-            ))}
+          
+          {/* Enhanced Thumbnail Bar */}
+          <div className="bg-gradient-to-t from-black/80 to-black/40 p-4">
+            <div className="flex gap-3 overflow-x-auto justify-center pb-2">
+              {allThumbnails.map((thumbnailUrl, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentImageIndex(idx)}
+                  className={`flex-shrink-0 rounded-lg overflow-hidden transition-all cursor-pointer transform relative ${
+                    idx === currentImageIndex 
+                      ? "ring-2 ring-white scale-100 opacity-100" 
+                      : "opacity-60 hover:opacity-100 hover:scale-105"
+                  }`}
+                  data-testid={`thumbnail-${idx}`}
+                  aria-label={`View photo ${idx + 1}`}
+                  aria-current={idx === currentImageIndex ? "true" : "false"}
+                >
+                  <img src={thumbnailUrl} alt={`Thumbnail ${idx + 1}`} className="w-24 h-16 object-cover" />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
