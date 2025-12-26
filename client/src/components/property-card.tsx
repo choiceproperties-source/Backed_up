@@ -99,8 +99,50 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
       onMouseEnter={prefetchDetails}
       data-testid={`card-property-${property.id}`}
     >
-      {/* Top Section - Info */}
-      <div className="p-4 space-y-3 border-b border-gray-100 dark:border-gray-800">
+      {/* Image Section with Overlay Badges */}
+      <div className="relative overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <Link href={`/property/${property.id}`}>
+          <span className="block w-full h-full" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={displayImage}
+              alt={`${property.title} - ${property.property_type || 'Property'}`}
+              loading="lazy"
+              decoding="async"
+              className="w-full aspect-video object-cover group-hover:scale-105 transition-all duration-500 ease-in-out rounded-3xl"
+              data-testid="img-property-preview"
+            />
+          </span>
+        </Link>
+
+        {/* Heart Icon - Top Left in White Circle */}
+        <button
+          onClick={handleToggleFavorite}
+          className="absolute top-3 left-3 p-2.5 rounded-full bg-white dark:bg-gray-200 shadow-lg hover:shadow-xl transition-all active:scale-90 z-10 flex items-center justify-center"
+          title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
+          data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
+        >
+          <Heart 
+            className={`h-5 w-5 transition-all duration-300 ${
+              isFavorited(property.id) 
+                ? 'fill-red-500 text-red-500' 
+                : 'text-gray-700'
+            }`}
+          />
+        </button>
+
+        {/* 3D Tour Badge - Top Right Area */}
+        <div className="absolute top-3 right-3 flex gap-2 z-10">
+          <Badge className="bg-white/90 dark:bg-gray-800/90 text-gray-900 dark:text-white border-0 font-bold text-xs px-3 py-1.5 shadow-lg backdrop-blur-sm flex items-center gap-1.5">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            3D Tour
+          </Badge>
+        </div>
+      </div>
+
+      {/* Info Section Below Image */}
+      <div className="p-4 space-y-3 flex flex-col flex-1">
         {/* Status Badge */}
         <div>
           <Badge 
@@ -114,15 +156,15 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
         {/* Address and Price Row */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-gray-900 dark:text-white truncate" title={property.address}>
+            <p className="text-sm font-bold text-gray-900 dark:text-white line-clamp-2" title={property.address}>
               {property.address}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {property.city}, {property.state || 'GA'}
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {property.city}, {property.state || 'GA'} {property.zip_code || ''}
             </p>
           </div>
           <div className="flex-shrink-0 text-right">
-            <div className="text-lg font-black text-gray-900 dark:text-white leading-none">
+            <div className="text-xl font-black text-gray-900 dark:text-white leading-none">
               ${property.price ? Math.round(parseFloat(property.price)).toLocaleString() : 'N/A'}
             </div>
             <span className="text-xs text-gray-500 dark:text-gray-400 font-bold">/ mo</span>
@@ -146,7 +188,7 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
           </span>
         </div>
 
-        {/* Quick Facts */}
+        {/* Quick Facts - Bottom */}
         <div className="flex items-center justify-start gap-4 pt-2 border-t border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900 dark:text-white">
             <Bed className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
@@ -161,38 +203,6 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
             <span>{property.square_feet ? Math.round(property.square_feet).toLocaleString() : '0'} Sqft.</span>
           </div>
         </div>
-      </div>
-
-      {/* Bottom Section - Image with Heart */}
-      <div className="relative flex-1 overflow-hidden bg-gray-100 dark:bg-gray-800">
-        <Link href={`/property/${property.id}`}>
-          <span className="block w-full h-full" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={displayImage}
-              alt={`${property.title} - ${property.property_type || 'Property'}`}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ease-in-out rounded-b-2xl"
-              data-testid="img-property-preview"
-            />
-          </span>
-        </Link>
-
-        {/* Heart Icon - Top Left */}
-        <button
-          onClick={handleToggleFavorite}
-          className="absolute top-3 left-3 p-2 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all active:scale-90 z-10 flex items-center justify-center"
-          title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
-          data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
-        >
-          <Heart 
-            className={`h-5 w-5 transition-all duration-300 ${
-              isFavorited(property.id) 
-                ? 'fill-red-500 text-red-500' 
-                : 'text-gray-700 dark:text-gray-300'
-            }`}
-          />
-        </button>
       </div>
     </Card>
   );
