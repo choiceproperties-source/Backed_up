@@ -743,201 +743,89 @@ export default function PropertyDetails() {
             )}
           </div>
 
-          {/* Right Column - Contact Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-4">
-              {/* Unified Pricing Card */}
-              <Card className="border-gray-200 dark:border-gray-800 shadow-lg overflow-hidden">
-                <CardContent className="p-0">
-                  {/* Price Header */}
-                  <div className="bg-gradient-to-r from-primary to-primary/90 p-5">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-bold text-white" data-testid="price-display">
-                        {formatPrice(property.price)}
-                      </span>
-                      <span className="text-white/80 text-lg">/month</span>
-                    </div>
-                    <p className="text-white/90 text-sm mt-1">Available Now</p>
+              <Card className="shadow-xl border-primary/10 dark:border-primary/5 rounded-2xl overflow-hidden hover-elevate transition-all duration-300">
+                <div className="bg-primary p-6 text-white text-center sm:text-left">
+                  <div className="flex items-baseline justify-center sm:justify-start gap-1">
+                    <span className="text-4xl font-black">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
+                    <span className="text-primary-foreground/80 font-medium">/mo</span>
                   </div>
-
-                  {/* Cost Breakdown */}
-                  <div className="p-4 space-y-3">
-                    <h4 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-primary" />
-                      Pricing Details
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between py-1.5 border-b border-gray-100 dark:border-gray-800">
-                        <span className="text-gray-600 dark:text-gray-400">Monthly Rent</span>
-                        <span className="font-semibold text-gray-900 dark:text-white">{formatPrice(property.price)}</span>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b border-gray-100 dark:border-gray-800">
-                        <span className="text-gray-600 dark:text-gray-400">Security Deposit</span>
-                        <span className="font-semibold text-gray-900 dark:text-white">{formatPrice(property.price)} <span className="text-xs text-gray-500">(refundable)</span></span>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b border-gray-100 dark:border-gray-800">
-                        <span className="text-gray-600 dark:text-gray-400">Move-in Total</span>
-                        <span className="font-bold text-primary">{formatPrice(parseDecimal(property.price) * 2)}</span>
-                      </div>
-                      <div className="flex justify-between py-1.5">
-                        <span className="text-gray-600 dark:text-gray-400">Est. Utilities</span>
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {property.utilities_included && property.utilities_included.length > 0 ? (
-                            <span className="text-green-600">Included</span>
-                          ) : (
-                            '~$150/month'
-                          )}
-                        </span>
-                      </div>
-                    </div>
+                  <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
+                    <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[10px] uppercase tracking-tighter">Instant Approval</Badge>
+                    <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[10px] uppercase tracking-tighter">Low Deposit</Badge>
                   </div>
-
-                  <Separator />
-
-                  {/* CTA Buttons */}
-                  <div className="p-4 space-y-3">
-                    <Button 
-                      onClick={() => setShowScheduleTour(true)}
-                      size="lg"
-                      className="w-full flex items-center justify-center gap-2 h-12 text-base font-bold"
-                      data-testid="button-schedule-tour"
-                    >
-                      <Calendar className="h-5 w-5" />
-                      Schedule a Tour
-                    </Button>
-                    
-                    {owner && (
-                      <AgentContactDialog 
-                        agent={{
-                          id: owner.id,
-                          name: owner.full_name || 'Property Manager',
-                          email: owner.email,
-                          phone: owner.phone || ''
-                        }}
-                        propertyId={property.id}
-                        propertyTitle={property.title}
-                        triggerText="Contact Agent"
-                      />
-                    )}
-
-                    <Button 
-                      variant="outline" 
-                      className="w-full flex items-center justify-center gap-2 h-10"
-                      data-testid="button-virtual-tour"
-                    >
-                      <Video className="h-4 w-4" />
-                      Virtual Tour
-                    </Button>
-
+                </div>
+                <CardContent className="p-6 space-y-5">
+                  <div className="space-y-3">
                     <Link href={`/apply?propertyId=${property.id}`} className="block">
-                      <Button variant="secondary" className="w-full font-semibold h-10" data-testid="button-apply-now">
+                      <Button className="w-full h-14 text-xl font-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all active-elevate-2 rounded-xl" size="lg" data-testid="button-apply-now">
                         Apply Now
                       </Button>
                     </Link>
+                    <Button variant="outline" className="w-full h-14 text-lg font-bold hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl border-2 hover-elevate" size="lg" onClick={() => setShowScheduleTour(true)} data-testid="button-schedule-tour">
+                      <Calendar className="h-5 w-5 mr-2" />
+                      Schedule Tour
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Verified & Trusted Card */}
-              <Card className="border-gray-200 dark:border-gray-800" data-testid="card-trust-badges">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-green-600" />
-                    Verified & Trusted
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300" data-testid="badge-professional-manager">
-                      <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                      <span>Professional Manager</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300" data-testid="badge-verified-photos">
-                      <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                      <span>Verified Photos</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300" data-testid="badge-secure-application">
-                      <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                      <span>Secure Application</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300" data-testid="badge-maintenance">
-                      <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                      <span>24/7 Maintenance</span>
-                    </div>
+                  
+                  <div className="relative py-2">
+                    <Separator className="bg-gray-100 dark:bg-gray-800" />
+                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-950 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Connect</span>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Social Proof Card */}
-              <Card className="border-gray-200 dark:border-gray-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30" data-testid="card-social-proof">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-sm mb-2">
-                    <Eye className="h-4 w-4 text-orange-600" />
-                    <span className="font-medium text-orange-800 dark:text-orange-300" data-testid="text-viewer-count">Popular listing</span>
-                  </div>
-                  <p className="text-xs text-orange-700 dark:text-orange-400">Schedule your tour today!</p>
-                </CardContent>
-              </Card>
-
-              {/* Property Manager Card */}
-              {owner && (
-                <Card className="border-gray-200 dark:border-gray-800">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-4">
-                      <Avatar className="h-14 w-14 border-2 border-primary/20">
-                        <AvatarImage src={owner.profile_image || undefined} alt={owner.full_name || 'Manager'} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-bold">{owner.full_name?.charAt(0) || 'M'}</AvatarFallback>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+                      <Avatar className="h-12 w-12 ring-2 ring-primary/10 shadow-sm">
+                        <AvatarImage src={owner?.profile_image || undefined} />
+                        <AvatarFallback className="bg-primary/5 text-primary font-black">{owner?.full_name?.substring(0, 2).toUpperCase() || 'PM'}</AvatarFallback>
                       </Avatar>
-                      <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">{owner.full_name || 'Property Manager'}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Professional Property Manager</p>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <div className="flex gap-0.5">
-                            {[1, 2, 3, 4, 5].map(i => (
-                              <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            ))}
-                          </div>
-                          <span className="text-xs text-gray-500">3+ years experience</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{owner?.full_name || 'Property Manager'}</p>
+                        <div className="flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3 text-green-600" />
+                          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">Verified Expert</span>
                         </div>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <a
-                        href={`mailto:${owner.email}`}
-                        className="flex items-center gap-2 text-sm text-primary hover:underline"
-                      >
-                        <Mail className="h-4 w-4" /> {owner.email}
-                      </a>
-                      {owner.phone && (
-                        <a
-                          href={`tel:${owner.phone}`}
-                          className="flex items-center gap-2 text-sm text-primary hover:underline"
-                        >
-                          <Phone className="h-4 w-4" /> {owner.phone}
-                        </a>
+                    
+                    <div className="grid grid-cols-1 gap-2">
+                      {owner && (
+                        <AgentContactDialog 
+                          agent={{
+                            id: owner.id,
+                            name: owner.full_name || 'Property Manager',
+                            email: owner.email,
+                            phone: owner.phone || ''
+                          }}
+                          propertyId={property.id}
+                          propertyTitle={property.title}
+                          triggerText="Ask a Question"
+                        />
+                      )}
+                      {owner?.phone && (
+                        <Button variant="ghost" className="w-full gap-2 text-primary font-bold hover:bg-primary/5" onClick={() => window.open(`tel:${owner.phone}`)}>
+                          <PhoneCall className="h-4 w-4" />
+                          Call Office
+                        </Button>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  </div>
+                </CardContent>
+              </Card>
 
-              {/* Value Propositions */}
-              {property.furnished && (
-                <Card className="border-gray-200 dark:border-gray-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Sofa className="h-4 w-4 text-green-600" />
-                      <span className="font-medium text-green-800 dark:text-green-300">Includes all furniture - save $3,000+</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Cost Calculator */}
-              <CostCalculator
-                monthlyRent={parseDecimal(property.price)}
-                securityDeposit={parseDecimal(property.price)}
-                petsAllowed={property.pets_allowed || false}
-                parkingIncluded={false}
-              />
+              {/* Trust Badge Card */}
+              <Card className="p-4 border-2 border-dashed border-gray-200 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/30 rounded-2xl">
+                <div className="flex items-start gap-4">
+                  <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-xl">
+                    <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">Choice Verified</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">This listing has been audited for fair housing compliance and price accuracy.</p>
+                  </div>
+                </div>
+              </Card>
             </div>
           </div>
         </div>

@@ -4,95 +4,76 @@ import { Card, CardContent } from "@/components/ui/card";
 export function PropertyDetailsSkeleton() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
-      {/* Navbar and Breadcrumb space */}
-      <div className="h-24" />
+      {/* Navbar space */}
+      <div className="h-20" />
 
-      {/* Main image skeleton */}
-      <div className="max-w-[1400px] mx-auto w-full p-2 md:p-4">
-        <Skeleton className="w-full aspect-video rounded-lg" data-testid="skeleton-main-image" />
+      {/* Immersive Gallery Skeleton */}
+      <div className="w-full px-4 md:px-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 aspect-[21/9] rounded-2xl overflow-hidden">
+          <Skeleton className="md:col-span-2 h-full rounded-l-2xl" />
+          <div className="hidden md:grid grid-rows-2 gap-4">
+            <Skeleton className="h-full" />
+            <Skeleton className="h-full" />
+          </div>
+          <div className="hidden md:grid grid-rows-2 gap-4">
+            <Skeleton className="h-full rounded-tr-2xl" />
+            <Skeleton className="h-full rounded-br-2xl" />
+          </div>
+        </div>
       </div>
 
-      <div className="container mx-auto px-4 max-w-[1200px] py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="container mx-auto px-4 md:px-6 max-w-7xl py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            {/* Property Overview Section */}
-            <div className="space-y-4">
-              <Skeleton className="h-10 w-3/4" data-testid="skeleton-title" />
-              <Skeleton className="h-6 w-full" data-testid="skeleton-address" />
-              <Skeleton className="h-6 w-2/3" data-testid="skeleton-price" />
-            </div>
+            {/* Header Card Skeleton */}
+            <Card className="border-gray-200 dark:border-gray-800">
+              <CardContent className="p-6 space-y-6">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-3 w-2/3">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-6 w-1/2" />
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                  </div>
+                </div>
+                <div className="h-12 w-full bg-gray-50 dark:bg-gray-900/50 rounded-lg" />
+                <Separator />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {[1, 2, 3, 4].map(i => (
+                    <Skeleton key={i} className="h-20 rounded-xl" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 flex-wrap">
-              <Skeleton className="h-10 w-32" data-testid="skeleton-button-1" />
-              <Skeleton className="h-10 w-28" data-testid="skeleton-button-2" />
-              <Skeleton className="h-10 w-28" data-testid="skeleton-button-3" />
-            </div>
-
-            <div className="h-px bg-gray-200 dark:bg-gray-800" />
-
-            {/* Overview Section */}
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-1/3" data-testid="skeleton-overview-title" />
-              <Skeleton className="h-20 w-full" data-testid="skeleton-overview-text" />
-            </div>
-
-            {/* Amenities Section */}
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-1/3" data-testid="skeleton-amenities-title" />
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    className="aspect-square rounded-lg"
-                    data-testid={`skeleton-amenity-card-${i}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="h-px bg-gray-200 dark:bg-gray-800" />
-
-            {/* Reviews Section */}
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-1/3" data-testid="skeleton-reviews-title" />
-              <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Card key={i} className="border-gray-200 dark:border-gray-800">
-                    <CardContent className="p-4 space-y-3">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-6 w-1/2" />
-                      <Skeleton className="h-16 w-full" />
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            <div className="h-px bg-gray-200 dark:bg-gray-800" />
-
-            {/* Location Section */}
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-1/2" data-testid="skeleton-location-title" />
-              <Skeleton className="w-full aspect-video rounded-lg" data-testid="skeleton-map" />
-            </div>
+            {/* Content Sections */}
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="border-gray-200 dark:border-gray-800">
+                <CardContent className="p-6 space-y-4">
+                  <Skeleton className="h-8 w-1/4" />
+                  <Skeleton className="h-24 w-full" />
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
-          {/* Right Sidebar */}
+          {/* Sidebar Skeleton */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-24 shadow-lg border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
-              <div className="bg-primary p-4 text-white">
-                <Skeleton className="h-6 w-1/2 bg-primary/50" />
-                <Skeleton className="h-4 w-2/3 mt-2 bg-primary/50" />
-              </div>
-              <CardContent className="p-6 space-y-4">
-                <Skeleton className="h-12 w-full" data-testid="skeleton-sidebar-button-1" />
-                <div className="flex items-center gap-2">
-                  <div className="h-px bg-gray-200 dark:bg-gray-800 flex-1" />
-                  <Skeleton className="h-4 w-6" />
-                  <div className="h-px bg-gray-200 dark:bg-gray-800 flex-1" />
+            <Card className="sticky top-24 rounded-2xl overflow-hidden">
+              <div className="bg-primary/10 h-32" />
+              <CardContent className="p-6 space-y-6">
+                <Skeleton className="h-14 w-full rounded-xl" />
+                <Skeleton className="h-14 w-full rounded-xl" />
+                <Separator />
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-1/3" />
+                  </div>
                 </div>
-                <Skeleton className="h-12 w-full" data-testid="skeleton-sidebar-button-2" />
               </CardContent>
             </Card>
           </div>
