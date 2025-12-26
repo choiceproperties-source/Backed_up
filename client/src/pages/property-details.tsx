@@ -79,10 +79,11 @@ export default function PropertyDetails() {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     overview: true,
     facts: true,
-    amenities: false,
-    location: false,
+    amenities: true,
+    location: true,
     management: false,
   });
+  const [showVideoTour, setShowVideoTour] = useState(false);
 
   const { data: propertyData, isLoading } = useQuery<{ property: Property; owner: Owner | null }>({
     queryKey: ['/api/v2/properties', id],
@@ -361,18 +362,59 @@ export default function PropertyDetails() {
         </div>
       )}
 
+      {/* Video Tour Modal */}
+      {showVideoTour && (
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-4 right-4 text-white hover:bg-white/20 z-10"
+              onClick={() => setShowVideoTour(false)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            <div className="w-full h-full flex flex-col items-center justify-center text-white space-y-4">
+              <div className="p-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+                <Video className="h-16 w-16 text-primary animate-pulse" />
+              </div>
+              <div className="text-center space-y-2">
+                <h3 className="text-2xl font-black">Experience {property.title}</h3>
+                <p className="text-gray-400 font-medium max-w-md">The cinematic video tour is being prepared. In a production environment, this would load a high-resolution 4K walkthrough.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Gallery - Modern Mosaic Design */}
       <div className="w-full bg-white dark:bg-gray-950 px-4 md:px-8 py-4 md:py-8 max-w-[1600px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-2 md:gap-4 aspect-[4/3] md:aspect-[21/9] rounded-2xl overflow-hidden cursor-pointer group" onClick={() => setShowFullGallery(true)}>
           {/* Main Large Image */}
-          <div className="md:col-span-2 md:row-span-2 relative overflow-hidden">
+          <div className="md:col-span-2 md:row-span-2 relative overflow-hidden group/main">
             <img
               src={allImages[0]}
               alt={property.title}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover/main:scale-105"
             />
-            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors" />
+            <div className="absolute inset-0 bg-black/10 group-hover/main:bg-black/20 transition-colors" />
             
+            {/* Video Tour Trigger */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/main:opacity-100 transition-opacity duration-300">
+              <Button 
+                variant="secondary" 
+                size="lg" 
+                className="rounded-full font-bold shadow-2xl scale-90 group-hover/main:scale-100 transition-transform bg-white/90 backdrop-blur-md text-gray-900 border-none px-6"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowVideoTour(true);
+                }}
+              >
+                <Video className="h-5 w-5 mr-2" />
+                Watch Video Tour
+              </Button>
+            </div>
+
             <div className="absolute top-4 left-4 flex gap-2">
               <Badge className="bg-white/90 dark:bg-black/90 text-foreground font-bold px-3 py-1 border-none shadow-sm">
                 {property.status || 'Available'}
@@ -443,7 +485,29 @@ export default function PropertyDetails() {
                 <span className="text-4xl font-black text-gray-900 dark:text-white">{formatPrice(property.price)}</span>
                 <span className="text-gray-500 font-medium">/mo</span>
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 flex gap-4">
+              {/* Smart Cost Breakdown */}
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-gray-400">
+                  <span>Monthly Breakdown</span>
+                  <span className="text-primary">Est. Total</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Rent</span>
+                  <span className="text-sm font-bold text-gray-900 dark:text-white">{formatPrice(property.price)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Est. Utilities</span>
+                  <span className="text-sm font-bold text-green-600 dark:text-green-400">+$120.00</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-dashed border-gray-100 dark:border-gray-800">
+                  <span className="text-sm font-black text-gray-900 dark:text-white">Total Estimate</span>
+                  <span className="text-lg font-black text-primary">
+                    {formatPrice(parseDecimal(property.price) + 120)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 flex gap-4">
                 <Button size="lg" className="flex-1 font-bold rounded-xl" onClick={() => window.location.href = `/apply/${property.id}`}>
                   Apply Now
                 </Button>

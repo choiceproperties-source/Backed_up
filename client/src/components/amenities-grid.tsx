@@ -52,12 +52,13 @@ export function AmenitiesGrid({ amenities = [] }: AmenitiesGridProps) {
         return (
           <Card
             key={`${amenity}-${index}`}
-            className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 hover:border-primary/30 dark:hover:border-primary/30 transition-all duration-200 hover-elevate"
+            className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 hover:border-primary/30 dark:hover:border-primary/30 transition-all duration-500 hover-elevate group/amenity animate-in fade-in slide-in-from-bottom-4"
+            style={{ animationDelay: `${index * 100}ms` }}
             data-testid={`card-amenity-${amenity.replace(/\s+/g, '-').toLowerCase()}`}
           >
             <CardContent className="p-4 flex flex-col items-center text-center gap-3">
-              <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-800 transition-colors duration-200`}>
-                <IconComponent className={`h-6 w-6 ${amenityInfo.color}`} />
+              <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-800 transition-all duration-300 group-hover/amenity:bg-primary/10 group-hover/amenity:scale-110`}>
+                <IconComponent className={`h-6 w-6 ${amenityInfo.color} group-hover/amenity:text-primary transition-colors`} />
               </div>
               <p className="text-sm font-medium text-gray-900 dark:text-white leading-tight">
                 {amenityInfo.label}

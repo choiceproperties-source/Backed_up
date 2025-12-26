@@ -49,12 +49,13 @@ export function NearbyPlaces({ places }: NearbyPlacesProps) {
         return (
           <Card
             key={category}
-            className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 hover:border-primary/30 dark:hover:border-primary/30 transition-all duration-200"
+            className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 hover:border-primary/30 dark:hover:border-primary/30 transition-all duration-500 hover-elevate group/place animate-in fade-in zoom-in-95"
+            style={{ animationDelay: `${categories.indexOf(category) * 150}ms` }}
             data-testid={`card-category-${category.toLowerCase()}`}
           >
             <CardContent className="p-4">
               {/* Category Header */}
-              <div className={`flex items-center gap-2 rounded-lg p-2 mb-3 ${colorClass}`}>
+              <div className={`flex items-center gap-2 rounded-lg p-2 mb-3 ${colorClass} transition-transform duration-300 group-hover/place:-translate-y-1`}>
                 <IconComponent className="h-5 w-5" />
                 <h3 className="text-sm font-semibold">{category}</h3>
               </div>
