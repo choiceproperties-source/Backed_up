@@ -524,6 +524,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/images/property/:propertyId - Get property images (critical for property cards)
+  app.get("/api/images/property/:propertyId", optionalAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { data: property, error: propError } = await supabase
+        .from("properties")
+        .select("id, title, images")
+        .eq("id", req.params.propertyId)
+        .single();
+
+      if (propError || !property) {
+        console.error("[IMAGES] Property not found:", propError);
+        return res.json(success([], "Property not found"));
+      }
+
+      const imageUrls = (property.images || []).map((url: string, index: number) => ({
+        id: `${property.id}-${index}`,
+        url: url,
+        index: index,
+        category: 'property',
+        isPrivate: false,
+        imageUrls: {
+          thumbnail: url,
+          gallery: url,
+          original: url,
+        },
+      }));
+
+      return res.json(success(imageUrls, "Property images fetched successfully"));
+    } catch (err: any) {
+      console.error("[IMAGES] Fetch error:", err);
+      return res.status(500).json(errorResponse("Failed to fetch images"));
+    }
+  });
+
   console.log('[ROUTES] Critical legacy endpoints enabled, all others disabled.');
   
   if (!enableLegacyRoutes) {
