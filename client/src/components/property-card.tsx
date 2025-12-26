@@ -36,6 +36,7 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const [primaryPhoto, setPrimaryPhoto] = useState<PropertyPhoto | null>(null);
   const [photoCount, setPhotoCount] = useState(0);
   const [photos, setPhotos] = useState<PropertyPhoto[]>([]);
@@ -50,7 +51,6 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
 
   const { toggleFavorite: toggleFav, isFavorited } = useFavorites();
   const [copied, setCopied] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

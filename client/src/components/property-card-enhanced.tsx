@@ -47,6 +47,7 @@ export function EnhancedPropertyCard({
   isInComparison = false,
   showCompareButton = true 
 }: EnhancedPropertyCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const [primaryPhoto, setPrimaryPhoto] = useState<PropertyPhoto | null>(null);
   const [photoCount, setPhotoCount] = useState(0);
   const [photos, setPhotos] = useState<PropertyPhoto[]>([]);
@@ -60,7 +61,6 @@ export function EnhancedPropertyCard({
     : primaryPhoto?.imageUrls.thumbnail || fallbackImage;
 
   const { toggleFavorite: toggleFav, isFavorited } = useFavorites();
-  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
