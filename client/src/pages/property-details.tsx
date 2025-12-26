@@ -196,7 +196,9 @@ export default function PropertyDetails() {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
-        <PropertyDetailsSkeleton />
+        <div className="flex-1 animate-in fade-in duration-500">
+          <PropertyDetailsSkeleton />
+        </div>
         <Footer />
       </div>
     );
@@ -226,7 +228,7 @@ export default function PropertyDetails() {
   const getNextImageIndex = () => (currentImageIndex + 1) % allImages.length;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-500">
       <Navbar />
 
       {/* Image Preload Links - Hidden, improves navigation performance */}

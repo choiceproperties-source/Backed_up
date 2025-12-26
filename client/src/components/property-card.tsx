@@ -6,6 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Bed, Bath, Maximize, Heart, CheckCircle2, Share2, Image as ImageIcon } from "lucide-react";
 import type { Property } from "@/lib/types";
 import { useFavorites } from "@/hooks/use-favorites";
+import { queryClient } from "@/lib/queryClient";
 import placeholderExterior from "@assets/generated_images/modern_luxury_home_exterior_with_blue_sky.png";
 import placeholderLiving from "@assets/generated_images/bright_modern_living_room_interior.png";
 import placeholderKitchen from "@assets/generated_images/modern_kitchen_with_marble_island.png";
@@ -76,6 +77,31 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
     toggleFav(property.id);
   };
 
+  const prefetchDetails = () => {
+    queryClient.prefetchQuery({
+      queryKey: ['/api/v2/properties', property.id],
+      queryFn: async () => {
+        const res = await fetch(`/api/v2/properties/${property.id}`);
+        const json = await res.json();
+        const propertyInfo = json?.data || json;
+        return {
+          property: propertyInfo,
+          owner: propertyInfo?.owner || null
+        };
+      },
+    });
+    
+    // Also prefetch photos
+    queryClient.prefetchQuery({
+      queryKey: ['/api/v2/images/property', property.id],
+      queryFn: async () => {
+        const res = await fetch(`/api/v2/images/property/${property.id}`);
+        const json = await res.json();
+        return json?.data ?? [];
+      },
+    });
+  };
+
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -89,7 +115,10 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
     <Card 
       className="overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 dark:hover:shadow-2xl dark:hover:shadow-black/50"
       onClick={() => onQuickView?.(property)}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        prefetchDetails();
+      }}
       onMouseLeave={() => setIsHovered(false)}
       data-testid={`card-property-${property.id}`}
     >
