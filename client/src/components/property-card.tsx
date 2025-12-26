@@ -129,28 +129,43 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
             }`}
           />
         </button>
-
-        {/* 3D Tour Badge - Top Right Area */}
-        <div className="absolute top-3 right-3 flex gap-2 z-10">
-          <Badge className="bg-white/90 dark:bg-gray-800/90 text-gray-900 dark:text-white border-0 font-bold text-xs px-3 py-1.5 shadow-lg backdrop-blur-sm flex items-center gap-1.5">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            3D Tour
-          </Badge>
-        </div>
       </div>
 
       {/* Info Section Below Image */}
       <div className="p-4 space-y-3 flex flex-col flex-1">
         {/* Status Badge */}
         <div>
-          <Badge 
-            className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-0 font-bold text-xs px-2.5 py-1 hover:bg-green-100 dark:hover:bg-green-900/30"
-            data-testid="badge-status"
-          >
-            {property.status === 'available' ? 'Available Now' : property.status === 'pending' ? 'Lease Starting' : 'Rented'}
-          </Badge>
+          {(() => {
+            const status = property.status?.toLowerCase().trim() || 'unknown';
+            let badgeClass = '';
+            let badgeText = '';
+
+            if (status === 'available' || status === 'active') {
+              badgeClass = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+              badgeText = 'Available Now';
+            } else if (status === 'pending' || status === 'lease_starting') {
+              badgeClass = 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+              badgeText = 'Available Soon';
+            } else if (status === 'rented' || status === 'leased') {
+              badgeClass = 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
+              badgeText = 'Off Market';
+            } else if (status === 'off_market' || status === 'unavailable') {
+              badgeClass = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+              badgeText = 'Off Market';
+            } else {
+              badgeClass = 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
+              badgeText = status.charAt(0).toUpperCase() + status.slice(1);
+            }
+
+            return (
+              <Badge 
+                className={`${badgeClass} border-0 font-bold text-xs px-2.5 py-1 hover:opacity-90 transition-opacity`}
+                data-testid="badge-status"
+              >
+                {badgeText}
+              </Badge>
+            );
+          })()}
         </div>
 
         {/* Address and Price Row */}
