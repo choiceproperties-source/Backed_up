@@ -156,7 +156,7 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
       {/* Visual Glint Effect */}
       <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none z-20" />
 
-      {/* Image Section - Maintain 16:9 ratio */}
+      {/* Image Section - Strict 16:9 ratio */}
       <div className="relative aspect-video overflow-hidden bg-muted">
         <Link href={`/property/${property.id}`}>
           <span className="block w-full h-full" onClick={(e) => e.stopPropagation()}>
@@ -268,7 +268,7 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
         {/* CTA Section */}
         <Link href={`/property/${property.id}`}>
           <button 
-            className="w-full h-11 bg-secondary hover:bg-secondary/90 text-primary-foreground font-black text-[11px] uppercase tracking-widest rounded-xl shadow-lg hover-elevate active-elevate-2 transition-all flex items-center justify-center gap-2"
+            className="w-full h-11 bg-secondary hover:bg-secondary/90 text-primary-foreground font-black text-[11px] uppercase tracking-widest rounded-xl shadow-lg hover-elevate active-elevate-2 transition-all flex items-center justify-center gap-2 group"
             onClick={(e) => e.stopPropagation()}
             data-testid="button-view-details"
           >
