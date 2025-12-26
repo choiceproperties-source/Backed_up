@@ -120,14 +120,14 @@ export function EnhancedPropertyCard({
 
   return (
     <Card 
-      className="overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 dark:hover:shadow-black/60 border-none bg-card/40 backdrop-blur-md relative flex flex-col h-full"
+      className="overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 dark:hover:shadow-black/60 border-none bg-card/50 backdrop-blur-md relative"
       onClick={() => onQuickView?.(property)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       data-testid={`card-property-${property.id}`}
     >
       {/* Image with enhanced hover effects and gradient overlay */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+      <div className="relative aspect-[1.6/1] overflow-hidden bg-muted">
         <Link href={`/property/${property.id}`}>
           <span className="block w-full h-full" onClick={(e) => e.stopPropagation()}>
             <img
@@ -145,15 +145,15 @@ export function EnhancedPropertyCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none opacity-70 group-hover:opacity-90 transition-opacity duration-500" />
         
         {/* Top Left Badges */}
-        <div className="absolute top-5 left-5 flex flex-col gap-2 max-w-[70%] z-10">
-          <Badge className="bg-secondary/90 backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-2xl px-3 py-1.5 w-fit">
+        <div className="absolute top-4 left-4 flex flex-wrap gap-2 max-w-[70%] z-10">
+          <Badge className="bg-secondary/90 backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-2xl px-3 py-1.5">
             For Rent
           </Badge>
-          <Badge className="bg-white/10 backdrop-blur-md dark:bg-card/20 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl border border-white/20 px-3 py-1.5 w-fit">
+          <Badge className="bg-white/10 backdrop-blur-md dark:bg-card/20 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl border border-white/20 px-3 py-1.5">
             {property.property_type || 'Property'}
           </Badge>
           {isAvailable && (
-            <Badge className="bg-green-500/80 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5 w-fit animate-pulse">
+            <Badge className="bg-green-500/80 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5 animate-pulse">
               <CheckCircle className="h-3.5 w-3.5" />
               Available
             </Badge>
@@ -161,18 +161,18 @@ export function EnhancedPropertyCard({
         </div>
         
         {/* Key Features Badges - Top Right */}
-        <div className="absolute top-5 right-5 flex flex-col gap-2 z-10 transition-all duration-500" style={{
+        <div className="absolute top-4 right-4 flex flex-col gap-2 z-10 transition-all duration-500" style={{
           opacity: isHovered ? 1 : 0,
           transform: isHovered ? 'translateX(0)' : 'translateX(10px)'
         }}>
           {property.pets_allowed && (
-            <Badge className="bg-purple-500/80 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5 w-fit">
+            <Badge className="bg-purple-500/80 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5">
               <PawPrint className="h-3.5 w-3.5" />
               Pets
             </Badge>
           )}
           {property.utilities_included && property.utilities_included.length > 0 && (
-            <Badge className="bg-amber-500/80 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5 w-fit">
+            <Badge className="bg-amber-500/80 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5">
               <Zap className="h-3.5 w-3.5" />
               Bills Incl.
             </Badge>
@@ -180,7 +180,7 @@ export function EnhancedPropertyCard({
         </div>
 
         {/* Action buttons */}
-        <div className="absolute top-5 right-5 flex flex-col gap-2 z-20" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute top-4 right-4 flex gap-2 z-20" onClick={(e) => e.stopPropagation()}>
           {showCompareButton && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -223,26 +223,32 @@ export function EnhancedPropertyCard({
           </button>
         </div>
 
-        {/* Price Tag - Bottom Left */}
-        <div className="absolute bottom-6 left-6 flex flex-col gap-0.5 text-white z-10 drop-shadow-2xl">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70">Per month</p>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-black tracking-tighter">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
-            <span className="text-white/80 text-[11px] font-black uppercase tracking-widest">Starting</span>
-          </div>
-        </div>
-
-        {/* Rating Badge - Bottom Left (Above Price) */}
+        {/* Rating Badge - Bottom Left */}
         {averageRating && (
-          <div className="absolute bottom-20 left-6 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-black border border-white/20 shadow-2xl z-10">
+          <div className="absolute bottom-4 left-4 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-black border border-white/20 shadow-2xl z-10">
             <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
             {averageRating.toFixed(1)}
+            {property.reviews?.length && (
+              <span className="text-white/60 font-bold ml-0.5">({property.reviews.length})</span>
+            )}
           </div>
         )}
+
+        {/* Lease Term Badge - Bottom Right */}
+        <div className="absolute bottom-4 right-4 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-black border border-white/20 shadow-2xl z-10">
+          <Calendar className="h-3.5 w-3.5" />
+          {leaseInfo}
+        </div>
       </div>
 
-      <CardContent className="p-6 flex flex-col flex-1">
-        {/* Host Info */}
+      <CardContent className="p-6">
+        {/* Price Line - High Impact */}
+        <div className="flex items-baseline gap-1.5 mb-5">
+          <span className="text-3xl font-black tracking-tighter text-primary">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
+          <span className="text-muted-foreground text-[11px] font-black uppercase tracking-widest">per month</span>
+        </div>
+
+        {/* Owner/Agent Info Card - Modern Glassmorphism variant */}
         <div className="flex items-center gap-3 mb-6 p-4 bg-muted/30 rounded-2xl border border-border/20 backdrop-blur-sm group-hover:bg-muted/50 transition-colors duration-500">
           <Avatar className="h-10 w-10 ring-4 ring-secondary/10 shadow-xl">
             {ownerImage ? (
@@ -258,39 +264,50 @@ export function EnhancedPropertyCard({
               {ownerName}
             </p>
           </div>
+          <div className="bg-secondary/10 px-2 py-1 rounded-lg">
+             <CheckCircle className="h-4 w-4 text-secondary" />
+          </div>
         </div>
 
         {/* Quick Stats Grid */}
-        <div className="grid grid-cols-3 gap-4 mb-6 p-4 rounded-2xl bg-muted/20 border border-border/10">
-          <div className="flex flex-col items-center gap-1 border-r border-border/50">
-            <Bed className="h-4 w-4 text-secondary/70" />
-            <p className="text-sm font-black">{property.bedrooms || 0}</p>
-            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tighter">Beds</span>
+        <div className="grid grid-cols-3 gap-6 mb-6">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Bed className="h-4 w-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Beds</span>
+            </div>
+            <p className="text-lg font-black">{property.bedrooms || 0}</p>
           </div>
-          <div className="flex flex-col items-center gap-1 border-r border-border/50">
-            <Bath className="h-4 w-4 text-secondary/70" />
-            <p className="text-sm font-black">{property.bathrooms || 0}</p>
-            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tighter">Baths</span>
+          <div className="flex flex-col gap-1 border-x border-border/50 px-6">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Bath className="h-4 w-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Baths</span>
+            </div>
+            <p className="text-lg font-black">{property.bathrooms || 0}</p>
           </div>
-          <div className="flex flex-col items-center gap-1">
-            <Maximize className="h-4 w-4 text-secondary/70" />
-            <p className="text-sm font-black">{property.square_feet ? Math.round(property.square_feet / 100) / 10 : '0'}k</p>
-            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tighter">Sqft</span>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Maximize className="h-4 w-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Area</span>
+            </div>
+            <p className="text-lg font-black">{property.square_feet ? Math.round(property.square_feet / 100) / 10 : '0'}k <span className="text-xs font-bold text-muted-foreground">sf</span></p>
           </div>
         </div>
 
-        {/* Location & CTA Row */}
-        <div className="flex items-center justify-between gap-4 mt-auto pt-6 border-t border-border/50">
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Location</p>
-            <p className="text-sm font-bold text-foreground truncate">
-              {property.address}
-            </p>
-          </div>
-          <button className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-2xl hover-elevate active-elevate-2 transition-all">
-            <ArrowRight className="h-6 w-6" />
-          </button>
-        </div>
+        {/* Call to Action */}
+        <Link href={`/property/${property.id}`}>
+          <Button 
+            className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-2xl hover-elevate active-elevate-2 transition-all duration-300 group/btn overflow-hidden relative"
+            data-testid="button-view-property"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              View Property Details
+              <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1.5 transition-transform duration-500" />
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-secondary/0 via-white/10 to-secondary/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000" />
+          </Button>
+        </Link>
       </CardContent>
     </Card>
   );
