@@ -225,7 +225,7 @@ export function EnhancedPropertyCard({
 
         {/* Rating Badge - Bottom Left */}
         {averageRating && (
-          <div className="absolute bottom-4 left-4 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-black border border-white/20 shadow-2xl z-10">
+          <div className="absolute bottom-4 left-4 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-black border border-white/20 shadow-2xl z-10 [text-shadow:_0_1px_4px_rgb(0_0_0_/_40%)]">
             <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
             {averageRating.toFixed(1)}
             {property.reviews?.length && (
@@ -235,7 +235,7 @@ export function EnhancedPropertyCard({
         )}
 
         {/* Lease Term Badge - Bottom Right */}
-        <div className="absolute bottom-4 right-4 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-black border border-white/20 shadow-2xl z-10">
+        <div className="absolute bottom-4 right-4 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-black border border-white/20 shadow-2xl z-10 [text-shadow:_0_1px_4px_rgb(0_0_0_/_40%)]">
           <Calendar className="h-3.5 w-3.5" />
           {leaseInfo}
         </div>
@@ -243,7 +243,7 @@ export function EnhancedPropertyCard({
 
       <CardContent className="p-6">
         {/* Price Line - High Impact */}
-        <div className="flex items-baseline gap-1.5 mb-5">
+        <div className="flex items-baseline gap-1.5 mb-5 drop-shadow-sm">
           <span className="text-3xl font-black tracking-tighter text-primary">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
           <span className="text-muted-foreground text-[11px] font-black uppercase tracking-widest">per month</span>
         </div>
@@ -294,10 +294,18 @@ export function EnhancedPropertyCard({
           </div>
         </div>
 
+        {/* Address */}
+        <div className="mb-6">
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Location</p>
+          <p className="text-sm font-bold text-foreground truncate capitalize" data-testid="text-property-address">
+            {property.address.toLowerCase()}, {property.city?.toLowerCase() || 'N/A'}, {property.state?.toUpperCase() || ''}
+          </p>
+        </div>
+
         {/* Call to Action */}
         <Link href={`/property/${property.id}`}>
           <Button 
-            className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-2xl hover-elevate active-elevate-2 transition-all duration-300 group/btn overflow-hidden relative"
+            className="w-full h-14 bg-secondary hover:bg-secondary/90 text-primary-foreground font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-2xl hover-elevate active-elevate-2 transition-all duration-300 group/btn overflow-hidden relative"
             data-testid="button-view-property"
             onClick={(e) => e.stopPropagation()}
           >
@@ -305,7 +313,7 @@ export function EnhancedPropertyCard({
               View Property Details
               <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1.5 transition-transform duration-500" />
             </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-secondary/0 via-white/10 to-secondary/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-white/10 to-secondary/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000" />
           </Button>
         </Link>
       </CardContent>

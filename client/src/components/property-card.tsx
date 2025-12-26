@@ -192,9 +192,9 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
         </div>
 
         {/* Price Tag Overlay - Bottom Left */}
-        <div className="absolute bottom-4 left-4 flex items-baseline gap-1 text-white z-10 drop-shadow-lg">
+        <div className="absolute bottom-4 left-4 flex items-baseline gap-1 text-white z-10 [text-shadow:_0_1px_4px_rgb(0_0_0_/_60%)]">
           <span className="text-2xl font-black tracking-tight">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
-          <span className="text-white/80 text-[10px] font-bold uppercase tracking-wider">/ mo</span>
+          <span className="text-white/90 text-[10px] font-bold uppercase tracking-wider">/ mo</span>
         </div>
       </div>
 
@@ -256,13 +256,15 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
               <Home className="h-3 w-3 shrink-0" />
               <p className="text-[10px] font-bold uppercase tracking-widest truncate">Location</p>
             </div>
-            <p className="text-sm font-bold text-foreground truncate" data-testid="text-property-address">
-              {property.address}
+            <p className="text-sm font-bold text-foreground truncate capitalize" data-testid="text-property-address">
+              {property.address.toLowerCase()}, {property.city?.toLowerCase() || 'N/A'}, {property.state?.toUpperCase() || ''}
             </p>
           </div>
-          <button className="h-10 w-10 rounded-full bg-secondary text-primary-foreground flex items-center justify-center shadow-xl hover-elevate active-elevate-2 transition-all">
-            <ArrowRight className="h-5 w-5" />
-          </button>
+          <Link href={`/property/${property.id}`}>
+            <button className="h-10 w-10 rounded-full bg-secondary text-primary-foreground flex items-center justify-center shadow-xl hover-elevate active-elevate-2 transition-all">
+              <ArrowRight className="h-5 w-5" />
+            </button>
+          </Link>
         </div>
       </CardContent>
     </Card>
