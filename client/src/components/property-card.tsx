@@ -148,19 +148,22 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
           </span>
         </Link>
         
+        {/* Dark wash gradient for readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+        
         {/* Badges with smooth animation */}
-        <div className="absolute top-2 left-2 flex gap-2 transition-all duration-300" style={{
+        <div className="absolute top-3 left-3 flex flex-wrap gap-2 transition-all duration-300" style={{
           opacity: isHovered ? 0.9 : 1,
           transform: isHovered ? 'translateY(-2px)' : 'translateY(0)'
         }}>
-          <Badge className="bg-secondary text-primary-foreground font-bold text-xs uppercase tracking-wider border border-secondary shadow-md hover-elevate" data-testid="badge-for-rent">
+          <Badge className="bg-secondary text-primary-foreground font-bold text-[10px] uppercase tracking-wider border border-secondary shadow-md" data-testid="badge-for-rent">
             For Rent
           </Badge>
-          <Badge className="bg-white/90 dark:bg-card text-primary font-bold text-xs uppercase tracking-wider shadow-sm" data-testid="badge-property-type">
+          <Badge className="bg-white/90 dark:bg-card text-primary font-bold text-[10px] uppercase tracking-wider shadow-sm" data-testid="badge-property-type">
             {property.property_type || 'Property'}
           </Badge>
           {photoCount > 0 && (
-            <Badge className="bg-blue-500/90 text-white font-bold text-xs flex items-center gap-1 shadow-md" data-testid="badge-photo-count">
+            <Badge className="bg-blue-500/90 text-white font-bold text-[10px] flex items-center gap-1 shadow-md" data-testid="badge-photo-count">
               <ImageIcon className="h-3 w-3" />
               {photoCount}
             </Badge>
@@ -168,8 +171,8 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
         </div>
 
         {/* Action buttons with enhanced visibility */}
-        <div className="absolute top-2 right-2 flex gap-2 z-10 transition-all duration-300" onClick={(e) => e.stopPropagation()} style={{
-          opacity: isHovered ? 1 : 0.7,
+        <div className="absolute top-3 right-3 flex gap-2 z-10 transition-all duration-300" onClick={(e) => e.stopPropagation()} style={{
+          opacity: isHovered ? 1 : 0.8,
         }}>
           <button 
             onClick={handleShare}
@@ -177,7 +180,7 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
             title={copied ? "Copied!" : "Share property"}
             data-testid="button-share-card"
           >
-            <Share2 className="h-5 w-5" />
+            <Share2 className="h-4 w-4" />
           </button>
           <button 
             onClick={handleToggleFavorite}
@@ -186,44 +189,59 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
             data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
           >
             {isFavorited(property.id) ? (
-              <Heart className="h-5 w-5 fill-red-500 text-red-500 transition-all duration-200" />
+              <Heart className="h-4 w-4 fill-red-500 text-red-500 transition-all duration-200" />
             ) : (
-              <Heart className="h-5 w-5 transition-all duration-200" />
+              <Heart className="h-4 w-4 transition-all duration-200" />
             )}
           </button>
         </div>
       </div>
 
-      <CardContent className="p-4 pb-2">
-        {/* Price Line with smooth transition */}
-        <div className="flex items-baseline gap-1 mb-1 transition-colors duration-300">
-            <span className="text-2xl font-bold">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
-            <span className="text-muted-foreground text-sm">/mo</span>
+      <CardContent className="p-4 pb-3">
+        {/* Price and Host Info */}
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl font-bold text-primary">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
+            <span className="text-muted-foreground text-xs font-medium">/mo</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="text-right hidden sm:block">
+              <p className="text-[10px] font-bold text-foreground leading-tight">Verified Host</p>
+              <p className="text-[9px] text-muted-foreground leading-tight">Fast Response</p>
+            </div>
+            <Avatar className="h-7 w-7 border-2 border-background shadow-sm">
+              <AvatarFallback className="bg-secondary/20 text-secondary text-[10px] font-bold">
+                VH
+              </AvatarFallback>
+            </Avatar>
+          </div>
         </div>
 
         {/* Stats Line */}
-        <div className="flex items-center gap-4 text-sm mb-2 font-medium">
+        <div className="flex items-center gap-3 text-sm mb-3 font-medium border-b border-border/50 pb-3">
             <div className="flex items-center gap-1">
-                <Bed className="h-4 w-4 text-primary" />
+                <Bed className="h-4 w-4 text-secondary" />
                 <span className="font-bold">{property.bedrooms || 0}</span>
-                <span className="font-normal text-muted-foreground">bds</span>
+                <span className="font-normal text-muted-foreground text-xs">bds</span>
             </div>
             <div className="w-px h-3 bg-border"></div>
             <div className="flex items-center gap-1">
-                <Bath className="h-4 w-4 text-primary" />
+                <Bath className="h-4 w-4 text-secondary" />
                 <span className="font-bold">{property.bathrooms || 0}</span>
-                <span className="font-normal text-muted-foreground">ba</span>
+                <span className="font-normal text-muted-foreground text-xs">ba</span>
             </div>
             <div className="w-px h-3 bg-border"></div>
             <div className="flex items-center gap-1">
-                <Maximize className="h-4 w-4 text-primary" />
+                <Maximize className="h-4 w-4 text-secondary" />
                 <span className="font-bold">{property.square_feet ? property.square_feet.toLocaleString() : 'N/A'}</span>
-                <span className="font-normal text-muted-foreground">sqft</span>
+                <span className="font-normal text-muted-foreground text-xs">sqft</span>
             </div>
         </div>
 
         {/* Address */}
-        <div className="text-sm text-muted-foreground truncate" data-testid="text-property-address">
+        <div className="text-sm text-muted-foreground truncate flex items-center gap-1" data-testid="text-property-address">
+            <span className="w-1 h-1 rounded-full bg-secondary shrink-0" />
             {property.address}, {property.city || 'N/A'}, {property.state || ''}
         </div>
       </CardContent>
