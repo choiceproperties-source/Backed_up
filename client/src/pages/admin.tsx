@@ -662,7 +662,13 @@ export default function Admin() {
     fieldsToInclude.forEach(field => {
       const value = editPropertyData[field as keyof Property];
       if (value !== undefined) {
-        cleanedData[field] = (value === '' || value === null) ? null : value;
+        // Ensure numbers are sent as numbers or strings that can be parsed
+        const isNumericField = ['price', 'bedrooms', 'bathrooms', 'square_feet'].includes(field);
+        if (isNumericField && value !== null && value !== '') {
+          cleanedData[field] = Number(value);
+        } else {
+          cleanedData[field] = (value === '' || value === null) ? null : value;
+        }
       }
     });
 

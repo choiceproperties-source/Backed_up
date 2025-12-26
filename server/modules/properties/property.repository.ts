@@ -350,8 +350,8 @@ export async function updateProperty(
   ];
 
     if (knownColumns.includes(dbKey)) {
-      if (numericFields.includes(key) || ['price', 'bedrooms', 'bathrooms', 'square_feet'].includes(dbKey)) {
-        cleanUpdateData[dbKey] = value === '' || value === null ? null : Number(value);
+      if (numericFields.includes(key) || numericFields.includes(dbKey)) {
+        cleanUpdateData[dbKey] = (value === '' || value === null || isNaN(Number(value))) ? null : Number(value);
       } else {
         cleanUpdateData[dbKey] = value;
       }
