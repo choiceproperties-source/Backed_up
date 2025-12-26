@@ -94,13 +94,13 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
 
   return (
     <Card 
-      className="overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-lg border-0 shadow-sm bg-white dark:bg-gray-900 flex flex-col h-full"
+      className="overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-lg border-0 shadow-sm bg-white dark:bg-gray-900 flex flex-col h-full rounded-none"
       onClick={() => onQuickView?.(property)}
       onMouseEnter={prefetchDetails}
       data-testid={`card-property-${property.id}`}
     >
       {/* Image Section with Overlay Badges */}
-      <div className="relative overflow-hidden bg-gray-100 dark:bg-gray-800">
+      <div className="relative overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-none">
         <Link href={`/property/${property.id}`}>
           <span className="block w-full h-full" onClick={(e) => e.stopPropagation()}>
             <img
