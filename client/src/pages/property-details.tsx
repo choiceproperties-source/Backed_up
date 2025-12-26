@@ -361,112 +361,95 @@ export default function PropertyDetails() {
         </div>
       )}
 
-      {/* Hero Gallery - Matching Property Card Design */}
-      <div className="w-full bg-white dark:bg-gray-950">
-        <div className="max-w-7xl mx-auto">
-          {/* Desktop Gallery - 16:9 with gradient overlay matching card */}
-          <div className="hidden md:block aspect-video relative overflow-hidden bg-muted cursor-pointer group" onClick={() => setShowFullGallery(true)}>
+      {/* Hero Gallery - Modern Mosaic Design */}
+      <div className="w-full bg-white dark:bg-gray-950 px-4 md:px-8 py-4 md:py-8 max-w-[1600px] mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-2 md:gap-4 aspect-[4/3] md:aspect-[21/9] rounded-2xl overflow-hidden cursor-pointer group" onClick={() => setShowFullGallery(true)}>
+          {/* Main Large Image */}
+          <div className="md:col-span-2 md:row-span-2 relative overflow-hidden">
             <img
               src={allImages[0]}
               alt={property.title}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ease-in-out"
-              data-testid="hero-image-primary"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
+            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors" />
             
-            {/* Dark Wash Gradient - Matches Property Card */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
-            
-            {/* Status & Image Count Badges - Matching Card Style */}
-            <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10">
-              <Badge className="bg-primary/90 backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-lg px-2 py-1" data-testid="badge-status">
-                Available
+            <div className="absolute top-4 left-4 flex gap-2">
+              <Badge className="bg-white/90 dark:bg-black/90 text-foreground font-bold px-3 py-1 border-none shadow-sm">
+                {property.status || 'Available'}
               </Badge>
-              {allImages.length > 1 && (
-                <Badge className="bg-black/40 backdrop-blur-md text-white font-bold text-[10px] shadow-lg border border-white/10 px-2 py-1 flex items-center gap-1">
-                  <ImageIcon className="h-3 w-3" />
-                  {allImages.length}
-                </Badge>
-              )}
             </div>
-
-            {/* Price Overlay - Matching Card Style */}
-            <div className="absolute bottom-6 left-6 text-white z-10">
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black tracking-tighter">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
-                <span className="text-white/80 text-[10px] font-bold uppercase tracking-widest">/mo</span>
-              </div>
-            </div>
-
-            {/* View All Photos Button */}
-            <button
-              className="absolute bottom-6 right-6 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 font-bold text-sm hover:shadow-xl hover:scale-105 transition-all duration-300 text-gray-900 dark:text-white"
-              onClick={(e) => { e.stopPropagation(); setShowFullGallery(true); }}
-              data-testid="button-view-all-photos"
-            >
-              <Grid3X3 className="h-4 w-4" />
-              View all
-            </button>
           </div>
 
-          {/* Mobile Gallery - 16:9 aspect ratio */}
-          <div className="md:hidden aspect-video relative overflow-hidden bg-muted cursor-pointer" onClick={() => setShowFullGallery(true)}>
+          {/* Side Images */}
+          <div className="hidden md:block relative overflow-hidden">
             <img
-              src={allImages[currentImageIndex]}
-              alt={property.title}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full object-cover"
-              data-testid="hero-image-mobile"
+              src={allImages[1] || allImages[0]}
+              className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
             />
-            
-            {/* Dark Wash Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none" />
-            
-            {/* Mobile Badges */}
-            <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10">
-              <Badge className="bg-primary/90 backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-lg px-2 py-1">
-                Available
-              </Badge>
-              {allImages.length > 1 && (
-                <Badge className="bg-black/40 backdrop-blur-md text-white font-bold text-[10px] shadow-lg border border-white/10 px-2 py-1 flex items-center gap-1">
-                  <ImageIcon className="h-3 w-3" />
-                  {allImages.length}
-                </Badge>
-              )}
-            </div>
-
-            {/* Mobile Price */}
-            <div className="absolute bottom-12 left-4 text-white z-10">
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black tracking-tighter">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
-                <span className="text-white/80 text-[10px] font-bold uppercase tracking-widest">/mo</span>
+            <div className="absolute inset-0 bg-black/5 hover:bg-transparent transition-colors" />
+          </div>
+          <div className="hidden md:block relative overflow-hidden">
+            <img
+              src={allImages[2] || allImages[0]}
+              className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-black/5 hover:bg-transparent transition-colors" />
+          </div>
+          <div className="hidden md:block relative overflow-hidden">
+            <img
+              src={allImages[3] || allImages[0]}
+              className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-black/5 hover:bg-transparent transition-colors" />
+          </div>
+          <div className="hidden md:block relative overflow-hidden">
+            <div className="w-full h-full relative">
+              <img
+                src={allImages[4] || allImages[0]}
+                className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <div className="text-white text-center">
+                  <Grid3X3 className="h-6 w-6 mx-auto mb-1" />
+                  <span className="text-sm font-bold">+{allImages.length - 5} photos</span>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Mobile Navigation */}
-            <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center z-20">
-              <span className="bg-black/40 backdrop-blur-md text-white px-2 py-1 rounded text-xs font-bold border border-white/10">
-                {currentImageIndex + 1}/{allImages.length}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                  className="p-1.5 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 border border-white/10 transition-all"
-                  data-testid="button-mobile-prev"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                  className="p-1.5 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 border border-white/10 transition-all"
-                  data-testid="button-mobile-next"
-                  aria-label="Next image"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+      {/* Modern Information Header */}
+      <div className="max-w-7xl mx-auto w-full px-4 md:px-8 py-8">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-medium text-primary uppercase tracking-widest">
+              <Building2 className="h-4 w-4" />
+              {property.property_type || 'Residential'}
+            </div>
+            <h1 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+              {property.title}
+            </h1>
+            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+              <MapPin className="h-5 w-5" />
+              <span className="text-lg">{property.address}, {property.city}</span>
+            </div>
+          </div>
+          
+          <div className="w-full md:w-auto p-6 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800">
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Monthly Rent</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-black text-gray-900 dark:text-white">{formatPrice(property.price)}</span>
+                <span className="text-gray-500 font-medium">/mo</span>
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 flex gap-4">
+                <Button size="lg" className="flex-1 font-bold rounded-xl" onClick={() => window.location.href = `/apply/${property.id}`}>
+                  Apply Now
+                </Button>
+                <Button size="lg" variant="outline" className="rounded-xl" onClick={() => toggleFavorite(property.id)}>
+                  <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                </Button>
               </div>
             </div>
           </div>
