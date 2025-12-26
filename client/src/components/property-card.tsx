@@ -38,12 +38,31 @@ interface PropertyCardProps {
 export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
   const [primaryPhoto, setPrimaryPhoto] = useState<PropertyPhoto | null>(null);
   const [photoCount, setPhotoCount] = useState(0);
+  const [photos, setPhotos] = useState<PropertyPhoto[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(true);
   const fallbackImage = property.images?.[0] ? (imageMap[property.images[0]] || property.images[0]) : placeholderExterior;
-  const mainImage = primaryPhoto?.imageUrls.thumbnail || fallbackImage;
+  
+  // Interactive mini-gallery logic
+  const displayImage = photos.length > 0 && isHovered 
+    ? photos[currentImageIndex]?.imageUrls.thumbnail || fallbackImage
+    : primaryPhoto?.imageUrls.thumbnail || fallbackImage;
+
   const { toggleFavorite: toggleFav, isFavorited } = useFavorites();
   const [copied, setCopied] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isHovered && photos.length > 1) {
+      interval = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % Math.min(photos.length, 5));
+      }, 1500);
+    } else {
+      setCurrentImageIndex(0);
+    }
+    return () => clearInterval(interval);
+  }, [isHovered, photos.length]);
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -51,10 +70,11 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
         const response = await fetch(`/api/images/property/${property.id}`);
         if (response.ok) {
           const result = await response.json();
-          const photos = result.data || [];
-          setPhotoCount(photos.length);
+          const photosData = result.data || [];
+          setPhotos(photosData);
+          setPhotoCount(photosData.length);
           
-          const primary = photos[0] || null;
+          const primary = photosData[0] || null;
           if (primary) {
             setPrimaryPhoto(primary);
           }
@@ -124,7 +144,7 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
 
   return (
     <Card 
-      className="overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 dark:hover:shadow-black/60 border-none bg-card/50 backdrop-blur-sm"
+      className="overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 dark:hover:shadow-black/60 border border-transparent hover:border-white/20 bg-card/50 backdrop-blur-md relative"
       onClick={() => onQuickView?.(property)}
       onMouseEnter={() => {
         setIsHovered(true);
@@ -133,20 +153,35 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
       onMouseLeave={() => setIsHovered(false)}
       data-testid={`card-property-${property.id}`}
     >
+      {/* Visual Glint Effect */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none z-20" />
+
       {/* Image with enhanced hover effects */}
       <div className="relative aspect-[1.6/1] overflow-hidden bg-muted">
         <Link href={`/property/${property.id}`}>
           <span className="block w-full h-full" onClick={(e) => e.stopPropagation()}>
             <img
-              src={mainImage}
+              src={displayImage}
               alt={property.title}
               loading="lazy"
               decoding="async"
-              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
+              className="object-cover w-full h-full group-hover:scale-110 transition-all duration-1000 ease-in-out"
               data-testid="img-property-preview"
             />
           </span>
         </Link>
+        
+        {/* Interactive Gallery Progress Dots */}
+        {isHovered && photos.length > 1 && (
+          <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-1 z-20 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {photos.slice(0, 5).map((_, i) => (
+              <div 
+                key={i} 
+                className={`h-1 rounded-full transition-all duration-300 ${i === currentImageIndex ? 'w-4 bg-white' : 'w-1 bg-white/40'}`}
+              />
+            ))}
+          </div>
+        )}
         
         {/* Dark wash gradient for readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
