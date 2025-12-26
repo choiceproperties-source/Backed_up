@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Bed, Bath, Maximize, Heart, CheckCircle2, Share2, Image as ImageIcon, Home, ArrowRight } from "lucide-react";
+import { Bed, Bath, Maximize, Heart } from "lucide-react";
 import type { Property } from "@/lib/types";
 import { useFavorites } from "@/hooks/use-favorites";
 import { queryClient } from "@/lib/queryClient";
@@ -36,33 +35,15 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const [primaryPhoto, setPrimaryPhoto] = useState<PropertyPhoto | null>(null);
-  const [photoCount, setPhotoCount] = useState(0);
   const [photos, setPhotos] = useState<PropertyPhoto[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isLoadingPhotos, setIsLoadingPhotos] = useState(true);
   const fallbackImage = property.images?.[0] ? (imageMap[property.images[0]] || property.images[0]) : placeholderExterior;
   
-  // Interactive mini-gallery logic
-  const displayImage = photos.length > 0 && isHovered 
-    ? photos[currentImageIndex]?.imageUrls.thumbnail || fallbackImage
+  const displayImage = photos.length > 0 
+    ? photos[0]?.imageUrls.thumbnail || fallbackImage
     : primaryPhoto?.imageUrls.thumbnail || fallbackImage;
 
   const { toggleFavorite: toggleFav, isFavorited } = useFavorites();
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isHovered && photos.length > 1) {
-      interval = setInterval(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % Math.min(photos.length, 5));
-      }, 1500);
-    } else {
-      setCurrentImageIndex(0);
-    }
-    return () => clearInterval(interval);
-  }, [isHovered, photos.length]);
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -72,19 +53,13 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
           const result = await response.json();
           const photosData = result.data || [];
           setPhotos(photosData);
-          setPhotoCount(photosData.length);
-          
           const primary = photosData[0] || null;
           if (primary) {
             setPrimaryPhoto(primary);
           }
-        } else {
-          setPhotoCount(0);
         }
       } catch (err) {
-        setPhotoCount(0);
-      } finally {
-        setIsLoadingPhotos(false);
+        console.error("Error fetching photos:", err);
       }
     };
 
@@ -98,7 +73,6 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
   };
 
   const prefetchDetails = () => {
-    // Prefetch property details
     queryClient.prefetchQuery({
       queryKey: ['/api/v2/properties', property.id],
       queryFn: async () => {
@@ -111,53 +85,86 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
         };
       },
     });
-    
-    // Prefetch photos in parallel
-    queryClient.prefetchQuery({
-      queryKey: ['/api/v2/images/property', property.id],
-      queryFn: async () => {
-        const res = await fetch(`/api/v2/images/property/${property.id}`);
-        const json = await res.json();
-        return json?.data ?? [];
-      },
-    });
-
-    // Prefetch reviews for faster display
-    queryClient.prefetchQuery({
-      queryKey: ['/api/v2/reviews/property', property.id],
-      queryFn: async () => {
-        const res = await fetch(`/api/v2/reviews/property/${property.id}`);
-        const json = await res.json();
-        return json?.data ?? [];
-      },
-    });
   };
 
-  const handleShare = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const url = `${window.location.origin}/property/${property.id}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  // Calculate estimated total based on property details
+  const monthlyPrice = parseFloat(property.price || "0");
+  const estimatedUtilities = Math.round(monthlyPrice * 0.02); // Estimate utilities as 2% of rent
+  const estimatedTotal = monthlyPrice + estimatedUtilities;
 
   return (
     <Card 
-      className="overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 dark:hover:shadow-black/60 border border-transparent hover:border-white/20 bg-card/50 backdrop-blur-md relative flex flex-col h-full"
+      className="overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-lg border-0 shadow-sm bg-white dark:bg-gray-900 flex flex-col h-full"
       onClick={() => onQuickView?.(property)}
-      onMouseEnter={() => {
-        setIsHovered(true);
-        prefetchDetails();
-      }}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={prefetchDetails}
       data-testid={`card-property-${property.id}`}
     >
-      {/* Visual Glint Effect */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none z-20" />
+      {/* Top Section - Info */}
+      <div className="p-4 space-y-3 border-b border-gray-100 dark:border-gray-800">
+        {/* Status Badge */}
+        <div>
+          <Badge 
+            className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-0 font-bold text-xs px-2.5 py-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+            data-testid="badge-status"
+          >
+            {property.status === 'available' ? 'Available Now' : property.status === 'pending' ? 'Lease Starting' : 'Rented'}
+          </Badge>
+        </div>
 
-      {/* Image Section - Strict 16:9 ratio */}
-      <div className="relative aspect-video overflow-hidden bg-muted">
+        {/* Address and Price Row */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-gray-900 dark:text-white truncate" title={property.address}>
+              {property.address}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              {property.city}, {property.state || 'GA'}
+            </p>
+          </div>
+          <div className="flex-shrink-0 text-right">
+            <div className="text-lg font-black text-gray-900 dark:text-white leading-none">
+              ${property.price ? Math.round(parseFloat(property.price)).toLocaleString() : 'N/A'}
+            </div>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-bold">/ mo</span>
+          </div>
+        </div>
+
+        {/* Estimated Total */}
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-gray-500 dark:text-gray-400 font-medium">est. total</span>
+          <span className="text-gray-900 dark:text-white font-bold">
+            ${Math.round(estimatedTotal).toLocaleString()} / mo
+            <button 
+              className="ml-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 inline-flex"
+              title="Includes estimated utilities"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </span>
+        </div>
+
+        {/* Quick Facts */}
+        <div className="flex items-center justify-start gap-4 pt-2 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900 dark:text-white">
+            <Bed className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+            <span>{property.bedrooms || 0} Beds</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900 dark:text-white">
+            <Bath className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+            <span>{property.bathrooms || '0'} Baths</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900 dark:text-white">
+            <Maximize className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+            <span>{property.square_feet ? Math.round(property.square_feet).toLocaleString() : '0'} Sqft.</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Section - Image with Heart */}
+      <div className="relative flex-1 overflow-hidden bg-gray-100 dark:bg-gray-800">
         <Link href={`/property/${property.id}`}>
           <span className="block w-full h-full" onClick={(e) => e.stopPropagation()}>
             <img
@@ -165,118 +172,28 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
               alt={`${property.title} - ${property.property_type || 'Property'}`}
               loading="lazy"
               decoding="async"
-              className="object-cover w-full h-full group-hover:scale-105 transition-all duration-700 ease-in-out"
+              className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ease-in-out rounded-b-2xl"
               data-testid="img-property-preview"
             />
           </span>
         </Link>
-        
-        {/* Interactive Gallery Progress Dots */}
-        {isHovered && photos.length > 1 && (
-          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1 z-20 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {photos.slice(0, 5).map((_, i) => (
-              <div 
-                key={i} 
-                className={`h-1 rounded-full transition-all duration-300 ${i === currentImageIndex ? 'w-4 bg-white' : 'w-1 bg-white/40'}`}
-              />
-            ))}
-          </div>
-        )}
-        
-        {/* Dark wash gradient for readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
-        
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-2 transition-all duration-500">
-          <Badge className="bg-primary/90 backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-lg px-2 py-1" data-testid="badge-status">
-            {property.status === 'available' ? 'Available' : property.status === 'pending' ? 'Pending' : 'Rented'}
-          </Badge>
-          {photoCount > 1 && (
-            <Badge className="bg-black/40 backdrop-blur-md text-white font-bold text-[10px] shadow-lg border border-white/10 px-2 py-1 flex items-center gap-1">
-              <ImageIcon className="h-3 w-3" />
-              {photoCount}
-            </Badge>
-          )}
-        </div>
 
-        {/* Action buttons */}
-        <div className="absolute top-3 right-3 flex gap-2 z-10 transition-all duration-500" onClick={(e) => e.stopPropagation()} style={{
-          opacity: isHovered ? 1 : 0,
-          transform: isHovered ? 'translateY(0)' : 'translateY(-10px)'
-        }}>
-          <button 
-            onClick={handleShare}
-            className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-xl"
-            title={copied ? "Copied!" : "Share property"}
-            data-testid="button-share-card"
-          >
-            <Share2 className="h-3.5 w-3.5" />
-          </button>
-          <button 
-            onClick={handleToggleFavorite}
-            className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-xl"
-            title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
-            data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
-          >
-            <Heart className={`h-3.5 w-3.5 transition-all duration-300 ${isFavorited(property.id) ? 'fill-red-500 text-red-500' : ''}`} />
-          </button>
-        </div>
-
-        {/* Price Tag Overlay - High Visibility */}
-        <div className="absolute bottom-3 left-3 flex items-baseline gap-1 text-white z-10 [text-shadow:_0_2px_8px_rgba(0,0,0,0.8)]">
-          <span className="text-2xl font-black tracking-tighter">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
-          <span className="text-white/80 text-[10px] font-bold uppercase tracking-widest">/mo</span>
-        </div>
+        {/* Heart Icon - Top Left */}
+        <button
+          onClick={handleToggleFavorite}
+          className="absolute top-3 left-3 p-2 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all active:scale-90 z-10 flex items-center justify-center"
+          title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
+          data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
+        >
+          <Heart 
+            className={`h-5 w-5 transition-all duration-300 ${
+              isFavorited(property.id) 
+                ? 'fill-red-500 text-red-500' 
+                : 'text-gray-700 dark:text-gray-300'
+            }`}
+          />
+        </button>
       </div>
-
-      <CardContent className="p-4 flex flex-col flex-1 gap-3">
-        {/* Title & Type */}
-        <div className="space-y-0.5">
-          <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em]">{property.property_type || 'Property'}</p>
-          <h3 className="text-base font-bold text-foreground truncate" title={property.title}>
-            {property.title}
-          </h3>
-        </div>
-
-        {/* Stats Row - Icon based, single row */}
-        <div className="flex items-center gap-4 py-2 border-y border-border/40">
-          <div className="flex items-center gap-1.5" title="Bedrooms">
-            <Bed className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-bold">{property.bedrooms || 0}</span>
-          </div>
-          <div className="flex items-center gap-1.5" title="Bathrooms">
-            <Bath className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-bold">{property.bathrooms || 0}</span>
-          </div>
-          <div className="flex items-center gap-1.5" title="Square Feet">
-            <Maximize className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-bold">{property.square_feet ? Math.round(property.square_feet).toLocaleString() : '0'} <span className="text-[10px] text-muted-foreground uppercase font-black">sf</span></span>
-          </div>
-        </div>
-
-        {/* Address */}
-        <div className="flex-1">
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <Home className="h-3 w-3 shrink-0" />
-            <p className="text-[10px] font-black uppercase tracking-widest leading-none">Location</p>
-          </div>
-          <p className="text-sm font-medium text-muted-foreground truncate capitalize mt-1">
-            {property.address.toLowerCase()}, {property.city?.toLowerCase() || 'N/A'}
-          </p>
-        </div>
-
-        {/* CTA Section */}
-        <Link href={`/property/${property.id}`}>
-          <button 
-            className="w-full h-11 bg-secondary hover:bg-secondary/90 text-primary-foreground font-black text-[11px] uppercase tracking-widest rounded-xl shadow-lg hover-elevate active-elevate-2 transition-all flex items-center justify-center gap-2 group"
-            onClick={(e) => e.stopPropagation()}
-            data-testid="button-view-details"
-          >
-            View Details
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </button>
-        </Link>
-      </CardContent>
     </Card>
   );
 }
