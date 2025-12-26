@@ -23,7 +23,6 @@ import { CredibilityBar } from "@/components/trust-badges";
 import { useFavorites } from "@/hooks/use-favorites";
 import { CostCalculator } from "@/components/cost-calculator";
 import { EnhancedTrustBadges, TrustBadgeInline } from "@/components/enhanced-trust-badges";
-import { ScheduleTourCalendar } from "@/components/schedule-tour-calendar";
 import { StickyActionBar } from "@/components/sticky-action-bar";
 import { useNearbyPlaces } from "@/hooks/use-nearby-places";
 import { AmenitiesGrid } from "@/components/amenities-grid";
@@ -61,7 +60,6 @@ export default function PropertyDetails() {
     location: false,
     management: false,
   });
-  const [showScheduleTour, setShowScheduleTour] = useState(false);
 
   const { data: propertyData, isLoading } = useQuery<{ property: Property; owner: Owner | null }>({
     queryKey: ['/api/v2/properties', id],
@@ -763,10 +761,6 @@ export default function PropertyDetails() {
                         Apply Now
                       </Button>
                     </Link>
-                    <Button variant="outline" className="w-full h-14 text-lg font-bold hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl border-2 hover-elevate" size="lg" onClick={() => setShowScheduleTour(true)} data-testid="button-schedule-tour">
-                      <Calendar className="h-5 w-5 mr-2" />
-                      Schedule Tour
-                    </Button>
                   </div>
                   
                   <div className="relative py-2">
@@ -831,14 +825,6 @@ export default function PropertyDetails() {
         </div>
       </div>
 
-      {/* Schedule Tour Dialog */}
-      <ScheduleTourCalendar
-        propertyId={property.id}
-        propertyTitle={property.title}
-        propertyAddress={`${property.address}, ${property.city}, ${property.state}`}
-        open={showScheduleTour}
-        onOpenChange={setShowScheduleTour}
-      />
 
       {/* Mobile Sticky Action Bar */}
       <StickyActionBar
@@ -846,7 +832,7 @@ export default function PropertyDetails() {
         propertyId={property.id}
         propertyTitle={property.title}
         onContactClick={() => {}}
-        onScheduleClick={() => setShowScheduleTour(true)}
+        onScheduleClick={() => {}}
         onCallClick={owner?.phone ? () => window.open(`tel:${owner.phone}`) : undefined}
         isFavorited={isFavorited(property.id)}
         onFavoriteClick={() => toggleFavorite(property.id)}
