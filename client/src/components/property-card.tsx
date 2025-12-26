@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Bed, Bath, Maximize, Heart, CheckCircle2, Share2, Image as ImageIcon } from "lucide-react";
+import { Bed, Bath, Maximize, Heart, CheckCircle2, Share2, Image as ImageIcon, Home, ArrowRight } from "lucide-react";
 import type { Property } from "@/lib/types";
 import { useFavorites } from "@/hooks/use-favorites";
 import { queryClient } from "@/lib/queryClient";
