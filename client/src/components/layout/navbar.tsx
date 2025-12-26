@@ -47,7 +47,7 @@ export function Navbar() {
       <div className="container flex h-16 items-center justify-between mx-auto px-4">
         <Link href="/">
           <span 
-            className="flex items-center space-x-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md" 
+            className="flex items-center space-x-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-none" 
             aria-label="Choice Properties home"
             tabIndex={0}
             data-testid="link-home-logo"
