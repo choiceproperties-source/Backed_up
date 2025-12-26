@@ -108,7 +108,7 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
               alt={`${property.title} - ${property.property_type || 'Property'}`}
               loading="lazy"
               decoding="async"
-              className="w-full aspect-video object-cover group-hover:scale-105 transition-all duration-500 ease-in-out rounded-3xl"
+              className="w-full aspect-video object-cover group-hover:scale-105 transition-all duration-500 ease-in-out"
               data-testid="img-property-preview"
             />
           </span>
