@@ -78,6 +78,7 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
   };
 
   const prefetchDetails = () => {
+    // Prefetch property details
     queryClient.prefetchQuery({
       queryKey: ['/api/v2/properties', property.id],
       queryFn: async () => {
@@ -91,11 +92,21 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
       },
     });
     
-    // Also prefetch photos
+    // Prefetch photos in parallel
     queryClient.prefetchQuery({
       queryKey: ['/api/v2/images/property', property.id],
       queryFn: async () => {
         const res = await fetch(`/api/v2/images/property/${property.id}`);
+        const json = await res.json();
+        return json?.data ?? [];
+      },
+    });
+
+    // Prefetch reviews for faster display
+    queryClient.prefetchQuery({
+      queryKey: ['/api/v2/reviews/property', property.id],
+      queryFn: async () => {
+        const res = await fetch(`/api/v2/reviews/property/${property.id}`);
         const json = await res.json();
         return json?.data ?? [];
       },
