@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Phone, MessageCircle, Calendar, Heart, Share2, ChevronUp } from "lucide-react";
+import { Phone, MessageCircle, Heart, Share2, ChevronUp } from "lucide-react";
 import { formatPrice } from "@/lib/types";
 
 interface StickyActionBarProps {
@@ -98,16 +98,7 @@ export function StickyActionBar({
             </Button>
           </div>
           
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              onClick={onScheduleClick}
-              variant="outline"
-              className="flex items-center gap-2"
-              data-testid="button-sticky-schedule"
-            >
-              <Calendar className="h-4 w-4" />
-              Schedule Tour
-            </Button>
+          <div className="grid grid-cols-1 gap-3">
             <Button
               onClick={onContactClick}
               className="flex items-center gap-2 bg-primary"
@@ -151,18 +142,7 @@ export function DesktopActionCard({
 
         <div className="space-y-3">
           <Button
-            onClick={onScheduleClick}
-            className="w-full flex items-center justify-center gap-2"
-            size="lg"
-            data-testid="button-desktop-schedule"
-          >
-            <Calendar className="h-5 w-5" />
-            Schedule a Tour
-          </Button>
-          
-          <Button
             onClick={onContactClick}
-            variant="outline"
             className="w-full flex items-center justify-center gap-2"
             size="lg"
             data-testid="button-desktop-contact"
