@@ -140,7 +140,7 @@ export function EnhancedPropertyCard({
 
   return (
     <Card 
-      className="overflow-hidden group cursor-pointer transition-all duration-700 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:-translate-y-3 dark:hover:shadow-black/60 border border-white/5 hover:border-white/20 bg-card/40 backdrop-blur-xl relative"
+      className="overflow-hidden group cursor-pointer transition-all duration-700 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:-translate-y-3 dark:hover:shadow-black/60 border border-white/5 hover:border-white/20 bg-card/40 backdrop-blur-xl relative flex flex-col h-full"
       onClick={() => onQuickView?.(property)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -149,16 +149,16 @@ export function EnhancedPropertyCard({
       {/* Visual Glint Effect */}
       <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1500 pointer-events-none z-20" />
 
-      {/* Image with enhanced hover effects and gradient overlay */}
-      <div className="relative aspect-[1.6/1] overflow-hidden bg-muted">
+      {/* Image Section - Strict 16:9 ratio */}
+      <div className="relative aspect-video overflow-hidden bg-muted">
         <Link href={`/property/${property.id}`}>
           <span className="block w-full h-full" onClick={(e) => e.stopPropagation()}>
             <img
               src={displayImage}
-              alt={property.title}
+              alt={`${property.title} - ${property.property_type || 'Property'}`}
               loading="lazy"
               decoding="async"
-              className="object-cover w-full h-full group-hover:scale-110 transition-all duration-1000 ease-in-out"
+              className="object-cover w-full h-full group-hover:scale-105 transition-all duration-700 ease-in-out"
               data-testid="img-property-preview"
             />
           </span>
@@ -166,7 +166,7 @@ export function EnhancedPropertyCard({
         
         {/* Interactive Gallery Progress Dots */}
         {isHovered && photos.length > 1 && (
-          <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-1.5 z-20 animate-in fade-in slide-in-from-bottom-3 duration-700">
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20 animate-in fade-in slide-in-from-bottom-3 duration-700">
             {photos.slice(0, 5).map((_, i) => (
               <div 
                 key={i} 
@@ -177,28 +177,28 @@ export function EnhancedPropertyCard({
         )}
         
         {/* Gradient Overlay for better badge readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none opacity-70 group-hover:opacity-90 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none opacity-70 group-hover:opacity-90 transition-opacity duration-500" />
         
-        {/* Top Left Badges */}
-        <div className="absolute top-4 left-4 flex flex-wrap gap-2 max-w-[70%] z-10">
-          <Badge className="bg-secondary/90 backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-2xl px-3 py-1.5">
-            For Rent
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex flex-wrap gap-2 max-w-[70%] z-10">
+          <Badge className="bg-primary/90 backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-2xl px-3 py-1.5">
+            {property.status === 'available' ? 'Available' : property.status === 'pending' ? 'Pending' : 'Rented'}
           </Badge>
           <Badge className="bg-white/10 backdrop-blur-md dark:bg-card/20 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl border border-white/20 px-3 py-1.5">
             {property.property_type || 'Property'}
           </Badge>
-          {isAvailable && (
-            <Badge className="bg-green-500/80 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5 animate-pulse">
-              <CheckCircle className="h-3.5 w-3.5" />
-              Available
+          {photoCount > 1 && (
+            <Badge className="bg-black/40 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5">
+              <ImageIcon className="h-3.5 w-3.5" />
+              {photoCount}
             </Badge>
           )}
         </div>
         
-        {/* Key Features Badges - Top Right */}
-        <div className="absolute top-4 right-4 flex flex-col gap-2 z-10 transition-all duration-500" style={{
+        {/* Features Badges - Top Right */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2 z-10 transition-all duration-500" style={{
           opacity: isHovered ? 1 : 0,
-          transform: isHovered ? 'translateX(0)' : 'translateX(10px)'
+          transform: isHovered ? 'translateY(0)' : 'translateY(-10px)'
         }}>
           {property.pets_allowed && (
             <Badge className="bg-purple-500/80 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5">
@@ -206,7 +206,7 @@ export function EnhancedPropertyCard({
               Pets
             </Badge>
           )}
-          {property.utilities_included && property.utilities_included.length > 0 && (
+          {(property.utilities_included && property.utilities_included.length > 0) && (
             <Badge className="bg-amber-500/80 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5">
               <Zap className="h-3.5 w-3.5" />
               Bills Incl.
@@ -215,20 +215,20 @@ export function EnhancedPropertyCard({
         </div>
 
         {/* Action buttons */}
-        <div className="absolute top-4 right-4 flex gap-2 z-20" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute top-3 right-3 flex gap-2 z-20" onClick={(e) => e.stopPropagation()}>
           {showCompareButton && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button 
                   onClick={handleCompare}
-                  className={`p-2.5 rounded-full backdrop-blur-md transition-all shadow-2xl border border-white/20 ${
+                  className={`p-2 rounded-full backdrop-blur-md transition-all shadow-2xl border border-white/20 ${
                     isInComparison 
                       ? 'bg-primary text-white scale-110' 
                       : 'bg-white/10 hover:bg-white/20 text-white'
                   }`}
                   data-testid="button-compare-card"
                 >
-                  <Scale className="h-4.5 w-4.5" />
+                  <Scale className="h-4 w-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent className="bg-black/90 text-white border-none font-bold">
@@ -238,117 +238,85 @@ export function EnhancedPropertyCard({
           )}
           <button 
             onClick={handleShare}
-            className="p-2.5 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-2xl"
+            className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-2xl"
             title="Share property"
             data-testid="button-share-card"
           >
-            <Share2 className="h-4.5 w-4.5" />
+            <Share2 className="h-4 w-4" />
           </button>
           <button 
             onClick={handleToggleFavorite}
-            className="p-2.5 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-2xl"
+            className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-2xl"
             title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
             data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
           >
-            {isFavorited(property.id) ? (
-              <Heart className="h-4.5 w-4.5 fill-red-500 text-red-500 transition-all duration-300" />
-            ) : (
-              <Heart className="h-4.5 w-4.5 transition-all duration-300" />
-            )}
+            <Heart className={`h-4 w-4 transition-all duration-300 ${isFavorited(property.id) ? 'fill-red-500 text-red-500' : ''}`} />
           </button>
         </div>
 
-        {/* Rating Badge - Bottom Left */}
-        {averageRating && (
-          <div className="absolute bottom-4 left-4 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-black border border-white/20 shadow-2xl z-10 [text-shadow:_0_1px_4px_rgb(0_0_0_/_40%)]">
-            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-            {averageRating.toFixed(1)}
-            {property.reviews?.length && (
-              <span className="text-white/60 font-bold ml-0.5">({property.reviews.length})</span>
-            )}
-          </div>
-        )}
-
-        {/* Lease Term Badge - Bottom Right */}
-        <div className="absolute bottom-4 right-4 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-black border border-white/20 shadow-2xl z-10 [text-shadow:_0_1px_4px_rgb(0_0_0_/_40%)]">
-          <Calendar className="h-3.5 w-3.5" />
-          {leaseInfo}
+        {/* Price Line - Bottom Left Over Image */}
+        <div className="absolute bottom-3 left-3 flex items-baseline gap-1.5 text-white z-10 [text-shadow:_0_2px_8px_rgba(0,0,0,0.8)]">
+          <span className="text-3xl font-black tracking-tighter">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
+          <span className="text-white/80 text-[11px] font-black uppercase tracking-widest">/mo</span>
         </div>
       </div>
 
-      <CardContent className="p-6">
-        {/* Price Line - High Impact */}
-        <div className="flex items-baseline gap-1.5 mb-5 drop-shadow-sm">
-          <span className="text-3xl font-black tracking-tighter text-primary">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
-          <span className="text-muted-foreground text-[11px] font-black uppercase tracking-widest">per month</span>
+      <CardContent className="p-6 flex flex-col flex-1 gap-4">
+        {/* Title & Type */}
+        <div className="space-y-1">
+          <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em]">{property.property_type || 'Property'}</p>
+          <h3 className="text-lg font-bold text-foreground truncate leading-tight" title={property.title}>
+            {property.title}
+          </h3>
         </div>
 
-        {/* Owner/Agent Info Card - Modern Glassmorphism variant */}
-        <div className="flex items-center gap-3 mb-6 p-4 bg-muted/30 rounded-2xl border border-border/20 backdrop-blur-sm group-hover:bg-muted/50 transition-colors duration-500">
-          <Avatar className="h-10 w-10 ring-4 ring-secondary/10 shadow-xl">
-            {ownerImage ? (
-              <AvatarImage src={ownerImage} alt={ownerName} className="object-cover" />
-            ) : null}
-            <AvatarFallback className="text-xs bg-secondary/10 text-secondary font-black">
-              {ownerInitials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-black text-foreground uppercase tracking-widest mb-1">Verified Host</p>
-            <p className="text-sm font-bold text-foreground truncate">
-              {ownerName}
+        {/* Quick Stats Grid - Single Row */}
+        <div className="flex items-center gap-6 py-3 border-y border-border/40">
+          <div className="flex items-center gap-2" title="Bedrooms">
+            <Bed className="h-4.5 w-4.5 text-muted-foreground" />
+            <span className="text-base font-black">{property.bedrooms || 0}</span>
+          </div>
+          <div className="flex items-center gap-2 border-x border-border/50 px-6" title="Bathrooms">
+            <Bath className="h-4.5 w-4.5 text-muted-foreground" />
+            <span className="text-base font-black">{property.bathrooms || 0}</span>
+          </div>
+          <div className="flex items-center gap-2" title="Square Feet">
+            <Maximize className="h-4.5 w-4.5 text-muted-foreground" />
+            <span className="text-base font-black">
+              {property.square_feet ? Math.round(property.square_feet).toLocaleString() : '0'} 
+              <span className="text-[10px] text-muted-foreground uppercase font-black ml-1">sf</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Location & Rating */}
+        <div className="flex items-start justify-between gap-4 flex-1">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+              <Home className="h-3 w-3 shrink-0" />
+              <p className="text-[10px] font-black uppercase tracking-widest">Location</p>
+            </div>
+            <p className="text-sm font-medium text-muted-foreground truncate capitalize">
+              {property.address.toLowerCase()}, {property.city?.toLowerCase() || 'N/A'}
             </p>
           </div>
-          <div className="bg-secondary/10 px-2 py-1 rounded-lg">
-             <CheckCircle className="h-4 w-4 text-secondary" />
-          </div>
+          {averageRating && (
+            <div className="bg-secondary/10 px-2 py-1 rounded-lg flex items-center gap-1.5 shrink-0">
+              <Star className="h-3.5 w-3.5 fill-secondary text-secondary" />
+              <span className="text-xs font-black">{averageRating.toFixed(1)}</span>
+            </div>
+          )}
         </div>
 
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-3 gap-6 mb-6">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Bed className="h-4 w-4" />
-              <span className="text-[10px] font-black uppercase tracking-widest">Beds</span>
-            </div>
-            <p className="text-lg font-black">{property.bedrooms || 0}</p>
-          </div>
-          <div className="flex flex-col gap-1 border-x border-border/50 px-6">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Bath className="h-4 w-4" />
-              <span className="text-[10px] font-black uppercase tracking-widest">Baths</span>
-            </div>
-            <p className="text-lg font-black">{property.bathrooms || 0}</p>
-          </div>
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Maximize className="h-4 w-4" />
-              <span className="text-[10px] font-black uppercase tracking-widest">Area</span>
-            </div>
-            <p className="text-lg font-black">{property.square_feet ? Math.round(property.square_feet / 100) / 10 : '0'}k <span className="text-xs font-bold text-muted-foreground">sf</span></p>
-          </div>
-        </div>
-
-        {/* Address */}
-        <div className="mb-6">
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Location</p>
-          <p className="text-sm font-bold text-foreground truncate capitalize" data-testid="text-property-address">
-            {property.address.toLowerCase()}, {property.city?.toLowerCase() || 'N/A'}, {property.state?.toUpperCase() || ''}
-          </p>
-        </div>
-
-        {/* Call to Action */}
+        {/* CTA Button */}
         <Link href={`/property/${property.id}`}>
           <Button 
-            className="w-full h-14 bg-secondary hover:bg-secondary/90 text-primary-foreground font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-2xl hover-elevate active-elevate-2 transition-all duration-300 group/btn overflow-hidden relative"
+            className="w-full h-12 bg-secondary hover:bg-secondary/90 text-primary-foreground font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl shadow-xl hover-elevate active-elevate-2 transition-all group/btn"
             data-testid="button-view-property"
             onClick={(e) => e.stopPropagation()}
           >
-            <span className="relative z-10 flex items-center justify-center gap-3">
-              View Property Details
-              <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1.5 transition-transform duration-500" />
-            </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-white/10 to-secondary/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000" />
+            View Details
+            <ArrowRight className="h-4.5 w-4.5 transition-transform group-hover/btn:translate-x-1" />
           </Button>
         </Link>
       </CardContent>

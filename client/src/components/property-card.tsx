@@ -144,7 +144,7 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
 
   return (
     <Card 
-      className="overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 dark:hover:shadow-black/60 border border-transparent hover:border-white/20 bg-card/50 backdrop-blur-md relative"
+      className="overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 dark:hover:shadow-black/60 border border-transparent hover:border-white/20 bg-card/50 backdrop-blur-md relative flex flex-col h-full"
       onClick={() => onQuickView?.(property)}
       onMouseEnter={() => {
         setIsHovered(true);
@@ -156,16 +156,16 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
       {/* Visual Glint Effect */}
       <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none z-20" />
 
-      {/* Image with enhanced hover effects */}
-      <div className="relative aspect-[1.6/1] overflow-hidden bg-muted">
+      {/* Image Section - Maintain 16:9 ratio */}
+      <div className="relative aspect-video overflow-hidden bg-muted">
         <Link href={`/property/${property.id}`}>
           <span className="block w-full h-full" onClick={(e) => e.stopPropagation()}>
             <img
               src={displayImage}
-              alt={property.title}
+              alt={`${property.title} - ${property.property_type || 'Property'}`}
               loading="lazy"
               decoding="async"
-              className="object-cover w-full h-full group-hover:scale-110 transition-all duration-1000 ease-in-out"
+              className="object-cover w-full h-full group-hover:scale-105 transition-all duration-700 ease-in-out"
               data-testid="img-property-preview"
             />
           </span>
@@ -173,7 +173,7 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
         
         {/* Interactive Gallery Progress Dots */}
         {isHovered && photos.length > 1 && (
-          <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-1 z-20 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1 z-20 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {photos.slice(0, 5).map((_, i) => (
               <div 
                 key={i} 
@@ -184,123 +184,98 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
         )}
         
         {/* Dark wash gradient for readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
         
-        {/* Badges with smooth animation */}
-        <div className="absolute top-4 left-4 flex flex-wrap gap-2 transition-all duration-500" style={{
-          opacity: isHovered ? 1 : 0.9,
-          transform: isHovered ? 'translateY(0)' : 'translateY(2px)'
-        }}>
-          <Badge className="bg-secondary/90 backdrop-blur-md text-primary-foreground font-bold text-[10px] uppercase tracking-widest border-none shadow-xl px-2.5 py-1" data-testid="badge-for-rent">
-            For Rent
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex flex-wrap gap-2 transition-all duration-500">
+          <Badge className="bg-primary/90 backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-lg px-2 py-1" data-testid="badge-status">
+            {property.status === 'available' ? 'Available' : property.status === 'pending' ? 'Pending' : 'Rented'}
           </Badge>
-          <Badge className="bg-white/10 backdrop-blur-md dark:bg-card/20 text-white font-bold text-[10px] uppercase tracking-widest shadow-xl border border-white/20 px-2.5 py-1" data-testid="badge-property-type">
-            {property.property_type || 'Property'}
-          </Badge>
-        </div>
-
-        {/* Action buttons with enhanced visibility */}
-        <div className="absolute top-4 right-4 flex gap-2 z-10 transition-all duration-500" onClick={(e) => e.stopPropagation()} style={{
-          opacity: isHovered ? 1 : 0,
-          transform: isHovered ? 'translateX(0)' : 'translateX(10px)'
-        }}>
-          <button 
-            onClick={handleShare}
-            className="p-2.5 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-2xl hover-elevate"
-            title={copied ? "Copied!" : "Share property"}
-            data-testid="button-share-card"
-          >
-            <Share2 className="h-4 w-4" />
-          </button>
-          <button 
-            onClick={handleToggleFavorite}
-            className="p-2.5 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-2xl hover-elevate"
-            title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
-            data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
-          >
-            {isFavorited(property.id) ? (
-              <Heart className="h-4 w-4 fill-red-500 text-red-500 transition-all duration-300" />
-            ) : (
-              <Heart className="h-4 w-4 transition-all duration-300" />
-            )}
-          </button>
-        </div>
-
-        {/* Price Tag Overlay - Bottom Left */}
-        <div className="absolute bottom-4 left-4 flex items-baseline gap-1 text-white z-10 [text-shadow:_0_1px_4px_rgb(0_0_0_/_60%)]">
-          <span className="text-2xl font-black tracking-tight">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
-          <span className="text-white/90 text-[10px] font-bold uppercase tracking-wider">/ mo</span>
-        </div>
-      </div>
-
-      <CardContent className="p-5">
-        {/* Host Info & Stats */}
-        <div className="flex justify-between items-center mb-5">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9 ring-2 ring-secondary/20 shadow-inner">
-              <AvatarFallback className="bg-secondary/10 text-secondary text-xs font-black">
-                VH
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-[11px] font-black text-foreground uppercase tracking-wider leading-none mb-1">Verified Host</p>
-              <div className="flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3 text-secondary" />
-                <p className="text-[10px] text-muted-foreground font-bold">Identity Confirmed</p>
-              </div>
-            </div>
-          </div>
-          
-          {photoCount > 0 && (
-            <div className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-full border border-border/50">
-              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-[11px] font-black text-foreground">{photoCount}</span>
-            </div>
+          {photoCount > 1 && (
+            <Badge className="bg-black/40 backdrop-blur-md text-white font-bold text-[10px] shadow-lg border border-white/10 px-2 py-1 flex items-center gap-1">
+              <ImageIcon className="h-3 w-3" />
+              {photoCount}
+            </Badge>
           )}
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-4 mb-5 p-3 rounded-2xl bg-muted/30 border border-border/20">
-            <div className="flex flex-col items-center gap-1 border-r border-border/50">
-                <Bed className="h-4 w-4 text-secondary/70" />
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-xs font-black">{property.bedrooms || 0}</span>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase">Beds</span>
-                </div>
-            </div>
-            <div className="flex flex-col items-center gap-1 border-r border-border/50">
-                <Bath className="h-4 w-4 text-secondary/70" />
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-xs font-black">{property.bathrooms || 0}</span>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase">Baths</span>
-                </div>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-                <Maximize className="h-4 w-4 text-secondary/70" />
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-xs font-black">{property.square_feet ? Math.round(property.square_feet / 100) / 10 : '0'}k</span>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase">Sqft</span>
-                </div>
-            </div>
+        {/* Action buttons */}
+        <div className="absolute top-3 right-3 flex gap-2 z-10 transition-all duration-500" onClick={(e) => e.stopPropagation()} style={{
+          opacity: isHovered ? 1 : 0,
+          transform: isHovered ? 'translateY(0)' : 'translateY(-10px)'
+        }}>
+          <button 
+            onClick={handleShare}
+            className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-xl"
+            title={copied ? "Copied!" : "Share property"}
+            data-testid="button-share-card"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+          </button>
+          <button 
+            onClick={handleToggleFavorite}
+            className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-xl"
+            title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
+            data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
+          >
+            <Heart className={`h-3.5 w-3.5 transition-all duration-300 ${isFavorited(property.id) ? 'fill-red-500 text-red-500' : ''}`} />
+          </button>
         </div>
 
-        {/* Address & Quick View */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 text-muted-foreground mb-0.5">
-              <Home className="h-3 w-3 shrink-0" />
-              <p className="text-[10px] font-bold uppercase tracking-widest truncate">Location</p>
-            </div>
-            <p className="text-sm font-bold text-foreground truncate capitalize" data-testid="text-property-address">
-              {property.address.toLowerCase()}, {property.city?.toLowerCase() || 'N/A'}, {property.state?.toUpperCase() || ''}
-            </p>
-          </div>
-          <Link href={`/property/${property.id}`}>
-            <button className="h-10 w-10 rounded-full bg-secondary text-primary-foreground flex items-center justify-center shadow-xl hover-elevate active-elevate-2 transition-all">
-              <ArrowRight className="h-5 w-5" />
-            </button>
-          </Link>
+        {/* Price Tag Overlay - High Visibility */}
+        <div className="absolute bottom-3 left-3 flex items-baseline gap-1 text-white z-10 [text-shadow:_0_2px_8px_rgba(0,0,0,0.8)]">
+          <span className="text-2xl font-black tracking-tighter">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
+          <span className="text-white/80 text-[10px] font-bold uppercase tracking-widest">/mo</span>
         </div>
+      </div>
+
+      <CardContent className="p-4 flex flex-col flex-1 gap-3">
+        {/* Title & Type */}
+        <div className="space-y-0.5">
+          <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em]">{property.property_type || 'Property'}</p>
+          <h3 className="text-base font-bold text-foreground truncate" title={property.title}>
+            {property.title}
+          </h3>
+        </div>
+
+        {/* Stats Row - Icon based, single row */}
+        <div className="flex items-center gap-4 py-2 border-y border-border/40">
+          <div className="flex items-center gap-1.5" title="Bedrooms">
+            <Bed className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-bold">{property.bedrooms || 0}</span>
+          </div>
+          <div className="flex items-center gap-1.5" title="Bathrooms">
+            <Bath className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-bold">{property.bathrooms || 0}</span>
+          </div>
+          <div className="flex items-center gap-1.5" title="Square Feet">
+            <Maximize className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-bold">{property.square_feet ? Math.round(property.square_feet).toLocaleString() : '0'} <span className="text-[10px] text-muted-foreground uppercase font-black">sf</span></span>
+          </div>
+        </div>
+
+        {/* Address */}
+        <div className="flex-1">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Home className="h-3 w-3 shrink-0" />
+            <p className="text-[10px] font-black uppercase tracking-widest leading-none">Location</p>
+          </div>
+          <p className="text-sm font-medium text-muted-foreground truncate capitalize mt-1">
+            {property.address.toLowerCase()}, {property.city?.toLowerCase() || 'N/A'}
+          </p>
+        </div>
+
+        {/* CTA Section */}
+        <Link href={`/property/${property.id}`}>
+          <button 
+            className="w-full h-11 bg-secondary hover:bg-secondary/90 text-primary-foreground font-black text-[11px] uppercase tracking-widest rounded-xl shadow-lg hover-elevate active-elevate-2 transition-all flex items-center justify-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+            data-testid="button-view-details"
+          >
+            View Details
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </button>
+        </Link>
       </CardContent>
     </Card>
   );
