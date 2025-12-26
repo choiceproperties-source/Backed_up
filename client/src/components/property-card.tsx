@@ -124,7 +124,7 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
 
   return (
     <Card 
-      className="overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 dark:hover:shadow-2xl dark:hover:shadow-black/50"
+      className="overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 dark:hover:shadow-black/60 border-none bg-card/50 backdrop-blur-sm"
       onClick={() => onQuickView?.(property)}
       onMouseEnter={() => {
         setIsHovered(true);
@@ -142,41 +142,36 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
               alt={property.title}
               loading="lazy"
               decoding="async"
-              className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500 ease-out"
+              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
               data-testid="img-property-preview"
             />
           </span>
         </Link>
         
         {/* Dark wash gradient for readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
         
         {/* Badges with smooth animation */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-2 transition-all duration-300" style={{
-          opacity: isHovered ? 0.9 : 1,
-          transform: isHovered ? 'translateY(-2px)' : 'translateY(0)'
+        <div className="absolute top-4 left-4 flex flex-wrap gap-2 transition-all duration-500" style={{
+          opacity: isHovered ? 1 : 0.9,
+          transform: isHovered ? 'translateY(0)' : 'translateY(2px)'
         }}>
-          <Badge className="bg-secondary text-primary-foreground font-bold text-[10px] uppercase tracking-wider border border-secondary shadow-md" data-testid="badge-for-rent">
+          <Badge className="bg-secondary/90 backdrop-blur-md text-primary-foreground font-bold text-[10px] uppercase tracking-widest border-none shadow-xl px-2.5 py-1" data-testid="badge-for-rent">
             For Rent
           </Badge>
-          <Badge className="bg-white/90 dark:bg-card text-primary font-bold text-[10px] uppercase tracking-wider shadow-sm" data-testid="badge-property-type">
+          <Badge className="bg-white/10 backdrop-blur-md dark:bg-card/20 text-white font-bold text-[10px] uppercase tracking-widest shadow-xl border border-white/20 px-2.5 py-1" data-testid="badge-property-type">
             {property.property_type || 'Property'}
           </Badge>
-          {photoCount > 0 && (
-            <Badge className="bg-blue-500/90 text-white font-bold text-[10px] flex items-center gap-1 shadow-md" data-testid="badge-photo-count">
-              <ImageIcon className="h-3 w-3" />
-              {photoCount}
-            </Badge>
-          )}
         </div>
 
         {/* Action buttons with enhanced visibility */}
-        <div className="absolute top-3 right-3 flex gap-2 z-10 transition-all duration-300" onClick={(e) => e.stopPropagation()} style={{
-          opacity: isHovered ? 1 : 0.8,
+        <div className="absolute top-4 right-4 flex gap-2 z-10 transition-all duration-500" onClick={(e) => e.stopPropagation()} style={{
+          opacity: isHovered ? 1 : 0,
+          transform: isHovered ? 'translateX(0)' : 'translateX(10px)'
         }}>
           <button 
             onClick={handleShare}
-            className="p-2 rounded-full bg-black/40 hover:bg-black/60 active:scale-95 transition-all text-white shadow-lg hover-elevate"
+            className="p-2.5 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-2xl hover-elevate"
             title={copied ? "Copied!" : "Share property"}
             data-testid="button-share-card"
           >
@@ -184,65 +179,90 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
           </button>
           <button 
             onClick={handleToggleFavorite}
-            className="p-2 rounded-full bg-black/40 hover:bg-black/60 active:scale-95 transition-all text-white shadow-lg hover-elevate"
+            className="p-2.5 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 active:scale-90 transition-all text-white border border-white/20 shadow-2xl hover-elevate"
             title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
             data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
           >
             {isFavorited(property.id) ? (
-              <Heart className="h-4 w-4 fill-red-500 text-red-500 transition-all duration-200" />
+              <Heart className="h-4 w-4 fill-red-500 text-red-500 transition-all duration-300" />
             ) : (
-              <Heart className="h-4 w-4 transition-all duration-200" />
+              <Heart className="h-4 w-4 transition-all duration-300" />
             )}
           </button>
         </div>
+
+        {/* Price Tag Overlay - Bottom Left */}
+        <div className="absolute bottom-4 left-4 flex items-baseline gap-1 text-white z-10 drop-shadow-lg">
+          <span className="text-2xl font-black tracking-tight">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
+          <span className="text-white/80 text-[10px] font-bold uppercase tracking-wider">/ mo</span>
+        </div>
       </div>
 
-      <CardContent className="p-4 pb-3">
-        {/* Price and Host Info */}
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-primary">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
-            <span className="text-muted-foreground text-xs font-medium">/mo</span>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <div className="text-right hidden sm:block">
-              <p className="text-[10px] font-bold text-foreground leading-tight">Verified Host</p>
-              <p className="text-[9px] text-muted-foreground leading-tight">Fast Response</p>
-            </div>
-            <Avatar className="h-7 w-7 border-2 border-background shadow-sm">
-              <AvatarFallback className="bg-secondary/20 text-secondary text-[10px] font-bold">
+      <CardContent className="p-5">
+        {/* Host Info & Stats */}
+        <div className="flex justify-between items-center mb-5">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-9 w-9 ring-2 ring-secondary/20 shadow-inner">
+              <AvatarFallback className="bg-secondary/10 text-secondary text-xs font-black">
                 VH
               </AvatarFallback>
             </Avatar>
+            <div>
+              <p className="text-[11px] font-black text-foreground uppercase tracking-wider leading-none mb-1">Verified Host</p>
+              <div className="flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3 text-secondary" />
+                <p className="text-[10px] text-muted-foreground font-bold">Identity Confirmed</p>
+              </div>
+            </div>
           </div>
+          
+          {photoCount > 0 && (
+            <div className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-full border border-border/50">
+              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-[11px] font-black text-foreground">{photoCount}</span>
+            </div>
+          )}
         </div>
 
-        {/* Stats Line */}
-        <div className="flex items-center gap-3 text-sm mb-3 font-medium border-b border-border/50 pb-3">
-            <div className="flex items-center gap-1">
-                <Bed className="h-4 w-4 text-secondary" />
-                <span className="font-bold">{property.bedrooms || 0}</span>
-                <span className="font-normal text-muted-foreground text-xs">bds</span>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-3 gap-4 mb-5 p-3 rounded-2xl bg-muted/30 border border-border/20">
+            <div className="flex flex-col items-center gap-1 border-r border-border/50">
+                <Bed className="h-4 w-4 text-secondary/70" />
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-xs font-black">{property.bedrooms || 0}</span>
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase">Beds</span>
+                </div>
             </div>
-            <div className="w-px h-3 bg-border"></div>
-            <div className="flex items-center gap-1">
-                <Bath className="h-4 w-4 text-secondary" />
-                <span className="font-bold">{property.bathrooms || 0}</span>
-                <span className="font-normal text-muted-foreground text-xs">ba</span>
+            <div className="flex flex-col items-center gap-1 border-r border-border/50">
+                <Bath className="h-4 w-4 text-secondary/70" />
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-xs font-black">{property.bathrooms || 0}</span>
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase">Baths</span>
+                </div>
             </div>
-            <div className="w-px h-3 bg-border"></div>
-            <div className="flex items-center gap-1">
-                <Maximize className="h-4 w-4 text-secondary" />
-                <span className="font-bold">{property.square_feet ? property.square_feet.toLocaleString() : 'N/A'}</span>
-                <span className="font-normal text-muted-foreground text-xs">sqft</span>
+            <div className="flex flex-col items-center gap-1">
+                <Maximize className="h-4 w-4 text-secondary/70" />
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-xs font-black">{property.square_feet ? Math.round(property.square_feet / 100) / 10 : '0'}k</span>
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase">Sqft</span>
+                </div>
             </div>
         </div>
 
-        {/* Address */}
-        <div className="text-sm text-muted-foreground truncate flex items-center gap-1" data-testid="text-property-address">
-            <span className="w-1 h-1 rounded-full bg-secondary shrink-0" />
-            {property.address}, {property.city || 'N/A'}, {property.state || ''}
+        {/* Address & Quick View */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 text-muted-foreground mb-0.5">
+              <Home className="h-3 w-3 shrink-0" />
+              <p className="text-[10px] font-bold uppercase tracking-widest truncate">Location</p>
+            </div>
+            <p className="text-sm font-bold text-foreground truncate" data-testid="text-property-address">
+              {property.address}
+            </p>
+          </div>
+          <button className="h-10 w-10 rounded-full bg-secondary text-primary-foreground flex items-center justify-center shadow-xl hover-elevate active-elevate-2 transition-all">
+            <ArrowRight className="h-5 w-5" />
+          </button>
         </div>
       </CardContent>
     </Card>
