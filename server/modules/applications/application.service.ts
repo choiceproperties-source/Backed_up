@@ -48,11 +48,17 @@ export async function createApplication(
 
   const { propertyId } = validation.data;
 
+  // Fetch property to get snapshots
+  const property = await applicationRepository.getProperty(propertyId as string);
+  if (!property) {
+    return { error: "Property not found" };
+  }
+
   // Prevent duplicate application per user per property
   const duplicateCheck =
     await applicationRepository.checkDuplicateApplication(
       input.userId,
-      propertyId
+      propertyId as string
     );
 
   if (duplicateCheck.exists) {
@@ -66,6 +72,26 @@ export async function createApplication(
     ...validation.data,
     user_id: input.userId,
     status: "submitted",
+    // Snapshot pricing & lease terms
+    rentSnapshot: property.price ? property.price.toString() : "0.00",
+    depositSnapshot: property.price ? property.price.toString() : "0.00", 
+    applicationFeeSnapshot: property.application_fee || "50.00",
+    leaseTermSnapshot: property.lease_term || "12 Months",
+    availableDateSnapshot: property.available_date || null,
+    // Property Context
+    propertyTitleSnapshot: property.title,
+    propertyAddressSnapshot: property.address,
+    propertyTypeSnapshot: property.property_type || "Residential",
+    // Rules & Policies
+    policiesSnapshot: {
+      petPolicy: property.pets_allowed ? "Pets Allowed" : "No Pets",
+      smokingPolicy: "No Smoking",
+      occupancyLimit: 2,
+      utilitiesIncluded: property.utilities_included || [],
+      hoaRules: null,
+    },
+    propertyVersionSnapshot: property.version || 1,
+    propertyStatusAtApplyTime: property.listing_status || property.status || "available",
     status_history: [
       {
         status: "submitted",
@@ -82,9 +108,8 @@ export async function createApplication(
     return { error: "Failed to create application" };
   }
 
-  const [user, property] = await Promise.all([
+  const [user] = await Promise.all([
     applicationRepository.getUser(input.userId),
-    applicationRepository.getProperty(propertyId),
   ]);
 
   /* ------------------------------------------------ */

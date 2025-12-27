@@ -167,7 +167,7 @@ export async function getProperty(id: string) {
 
   const { data, error } = await supabase
     .from("properties")
-    .select("id, owner_id, title")
+    .select("*")
     .eq("id", id)
     .maybeSingle();
 
