@@ -8,13 +8,18 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { Property, Review, Owner } from "@/lib/types";
 import { formatPrice, parseDecimal } from "@/lib/types";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   MapPin, Bed, Bath, Maximize, X, ChevronLeft, ChevronRight, Grid3X3, 
   Building2, Video, Heart, Shield, Clock, Eye, Star, Share2, Zap,
-  Trees, Wifi, Lock, Home, DollarSign
+  Trees, Wifi, Lock, Home, DollarSign, Calculator, BookOpen, TrendingUp,
+  Send, CheckCircle, AlertCircle
 } from "lucide-react";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useNearbyPlaces } from "@/hooks/use-nearby-places";
@@ -43,9 +48,14 @@ export default function PropertyDetails() {
   const id = params?.id;
   const { user } = useAuth();
   const { isFavorited, toggleFavorite } = useFavorites();
+  const { toast } = useToast();
   const [showFullGallery, setShowFullGallery] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showVideoTour, setShowVideoTour] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
+  const [monthlyPayment, setMonthlyPayment] = useState(0);
+  const [inquiryForm, setInquiryForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [submittingInquiry, setSubmittingInquiry] = useState(false);
 
   const { data: propertyData, isLoading } = useQuery<{ property: Property; owner: Owner | null }>({
     queryKey: ['/api/v2/properties', id],
@@ -83,6 +93,11 @@ export default function PropertyDetails() {
   const bedrooms = property?.bedrooms || 0;
   const bathrooms = property ? Math.round(parseDecimal(property.bathrooms)) : 0;
   const sqft = property?.square_feet || 0;
+
+  useEffect(() => {
+    const rent = parseFloat(String(property?.price || 0));
+    setMonthlyPayment(rent);
+  }, [property?.price]);
   
   useEffect(() => {
     if (property) {
@@ -104,6 +119,28 @@ export default function PropertyDetails() {
       ? property.images!.map(img => imageMap[img] || img)
       : [placeholderExterior, placeholderLiving, placeholderKitchen, placeholderBedroom];
 
+  const handleInquiry = async () => {
+    if (!inquiryForm.name || !inquiryForm.email) {
+      toast({ title: "Error", description: "Please fill in name and email", variant: "destructive" });
+      return;
+    }
+    setSubmittingInquiry(true);
+    try {
+      await apiRequest("POST", `/api/inquiries`, {
+        propertyId: property?.id,
+        senderName: inquiryForm.name,
+        senderEmail: inquiryForm.email,
+        senderPhone: inquiryForm.phone,
+        message: inquiryForm.message
+      });
+      toast({ title: "Success", description: "Your inquiry has been sent!" });
+      setInquiryForm({ name: "", email: "", phone: "", message: "" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to send inquiry", variant: "destructive" });
+    }
+    setSubmittingInquiry(false);
+  };
+
   if (!match) return <NotFound />;
   if (isLoading || !property) {
     return (
@@ -121,19 +158,31 @@ export default function PropertyDetails() {
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col selection:bg-primary/20">
       <Navbar />
 
-      {/* Premium Hero Section */}
-      <section className="relative h-screen w-full overflow-hidden bg-black group/hero">
+      {/* Premium Hero with Image Carousel */}
+      <section className="relative h-screen w-full overflow-hidden bg-black">
         <div className="absolute inset-0 overflow-hidden">
           <img
-            src={allImages[0]}
+            src={allImages[currentImageIndex]}
             alt={property.title}
-            className="w-full h-full object-cover transition-transform duration-[15000ms] ease-out scale-100 group-hover/hero:scale-105"
+            className="w-full h-full object-cover transition-all duration-700 scale-100 hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
         </div>
 
-        {/* Corner Badge */}
+        {/* Carousel Controls */}
+        <Button variant="ghost" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-14 w-14 rounded-lg z-20" onClick={() => setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length)} data-testid="button-prev-hero">
+          <ChevronLeft className="h-6 w-6" />
+        </Button>
+        <Button variant="ghost" size="icon" className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-14 w-14 rounded-lg z-20" onClick={() => setCurrentImageIndex(prev => (prev + 1) % allImages.length)} data-testid="button-next-hero">
+          <ChevronRight className="h-6 w-6" />
+        </Button>
+
+        {/* Image Counter */}
+        <div className="absolute top-6 right-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-lg font-black text-sm z-20">
+          {currentImageIndex + 1} / {allImages.length}
+        </div>
+
+        {/* Status Badge */}
         <div className="absolute top-8 left-8 z-20">
           <Badge className="bg-white/95 backdrop-blur-md text-black hover:bg-white px-4 py-2 rounded-full font-black text-xs uppercase tracking-[0.15em] border-none shadow-2xl">
             {property.status || 'Featured'}
@@ -154,11 +203,10 @@ export default function PropertyDetails() {
             </div>
           </div>
 
-          {/* CTA Buttons */}
           <div className="flex flex-wrap gap-3 animate-in fade-in slide-in-from-bottom-16 duration-1200 delay-200">
             <Button 
               size="lg" 
-              className="h-14 px-8 rounded-lg font-bold shadow-2xl bg-white text-black hover:bg-gray-100 border-none transition-all hover:shadow-white/30"
+              className="h-14 px-8 rounded-lg font-bold shadow-2xl bg-white text-black hover:bg-gray-100 border-none transition-all"
               onClick={() => window.location.href = `/apply/${property.id}`}
               data-testid="button-apply-now"
             >
@@ -186,9 +234,18 @@ export default function PropertyDetails() {
             </Button>
           </div>
         </div>
+
+        {/* Thumbnail Strip */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 flex gap-2 overflow-x-auto justify-center bg-gradient-to-t from-black via-black/50 to-transparent backdrop-blur-sm">
+          {allImages.map((img, i) => (
+            <button key={i} onClick={() => setCurrentImageIndex(i)} className={`h-16 w-24 flex-shrink-0 rounded-lg border-2 transition-all overflow-hidden ${i === currentImageIndex ? 'border-blue-500 shadow-lg shadow-blue-500/50' : 'border-transparent opacity-50 hover:opacity-70'}`} data-testid={`carousel-thumb-${i}`}>
+              <img src={img} className="w-full h-full object-cover" alt={`Thumbnail ${i}`} />
+            </button>
+          ))}
+        </div>
       </section>
 
-      {/* Floating Info Bar */}
+      {/* Sticky Info Bar */}
       <div className="sticky top-16 z-40 w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-lg">
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-4 flex items-center justify-between gap-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -232,12 +289,7 @@ export default function PropertyDetails() {
             >
               <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
             </Button>
-            <Button 
-              size="icon" 
-              variant="outline" 
-              className="rounded-lg h-12 w-12 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
-              data-testid="button-share"
-            >
+            <Button size="icon" variant="outline" className="rounded-lg h-12 w-12 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800" data-testid="button-share">
               <Share2 className="h-5 w-5" />
             </Button>
           </div>
@@ -247,7 +299,7 @@ export default function PropertyDetails() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto w-full px-6 md:px-8 py-20 space-y-32">
         
-        {/* Overview Cards */}
+        {/* Key Stats Cards */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800 rounded-xl">
             <CardContent className="pt-6">
@@ -272,16 +324,16 @@ export default function PropertyDetails() {
           </Card>
           <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200 dark:border-orange-800 rounded-xl">
             <CardContent className="pt-6">
-              <Trees className="h-8 w-8 text-orange-600 mb-3" />
-              <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Amenities</p>
-              <p className="text-lg font-black text-gray-900 dark:text-white">Premium</p>
+              <TrendingUp className="h-8 w-8 text-orange-600 mb-3" />
+              <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Market Value</p>
+              <p className="text-lg font-black text-gray-900 dark:text-white">Strong</p>
             </CardContent>
           </Card>
         </section>
 
         {/* About Section */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div className="space-y-8 animate-in fade-in slide-in-from-left-8 duration-1000">
+          <div className="space-y-8">
             <div className="space-y-4">
               <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">About the property</Badge>
               <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
@@ -289,7 +341,7 @@ export default function PropertyDetails() {
               </h2>
             </div>
             <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
-              {property.description || "Experience living at its finest in this meticulously designed space. Every corner has been crafted to offer a blend of luxury, comfort, and functionality. Modern amenities meet timeless elegance."}
+              {property.description || "Experience living at its finest in this meticulously designed space. Every corner has been crafted to offer a blend of luxury, comfort, and functionality."}
             </p>
             <div className="grid grid-cols-2 gap-4 pt-6">
               <div className="space-y-2">
@@ -303,8 +355,7 @@ export default function PropertyDetails() {
             </div>
           </div>
 
-          {/* Image Grid */}
-          <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-right-8 duration-1000">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-4">
               <div className="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300 cursor-pointer group">
                 <img src={allImages[1] || placeholderLiving} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-1" />
@@ -321,23 +372,209 @@ export default function PropertyDetails() {
           </div>
         </section>
 
-        {/* Features Section */}
+        {/* Property Details Tabs */}
         <section className="space-y-12">
           <div className="space-y-4">
-            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Lifestyle Features</Badge>
-            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Premium Amenities</h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">Everything you need for modern comfortable living</p>
+            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Property Details</Badge>
+            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Complete Information</h2>
           </div>
+          
+          <div className="flex gap-4 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
+            {[
+              { id: 'details', label: 'Details', icon: Building2 },
+              { id: 'features', label: 'Features', icon: Star },
+              { id: 'pricing', label: 'Pricing', icon: DollarSign }
+            ].map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-6 py-4 font-bold flex items-center gap-2 border-b-2 transition-all ${activeTab === tab.id ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                  data-testid={`tab-${tab.id}`}
+                >
+                  <Icon className="h-5 w-5" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {activeTab === 'details' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Unit Layout</p><p className="text-lg font-semibold text-gray-900 dark:text-white">{bedrooms} Bed • {bathrooms} Bath</p></div>
+                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Square Footage</p><p className="text-lg font-semibold text-gray-900 dark:text-white">{sqft.toLocaleString()} sq ft</p></div>
+                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Year Built</p><p className="text-lg font-semibold text-gray-900 dark:text-white">2022</p></div>
+              </div>
+              <div className="space-y-6">
+                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Pet Policy</p><p className="text-lg font-semibold text-gray-900 dark:text-white">{property.petsAllowed ? 'Pets Welcome' : 'No Pets'}</p></div>
+                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Furnished</p><p className="text-lg font-semibold text-gray-900 dark:text-white">{property.furnished ? 'Yes' : 'Unfurnished'}</p></div>
+                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Parking</p><p className="text-lg font-semibold text-gray-900 dark:text-white">Included</p></div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'features' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AmenitiesGrid amenities={property.amenities || []} />
+            </div>
+          )}
+
+          {activeTab === 'pricing' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="p-6 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm font-black uppercase text-gray-500 mb-2">Monthly Rent</p>
+                  <p className="text-4xl font-black text-blue-600">{formatPrice(property.price)}</p>
+                </div>
+                <div className="p-6 bg-green-50 dark:bg-green-950/30 rounded-xl border border-green-200 dark:border-green-800">
+                  <p className="text-sm font-black uppercase text-gray-500 mb-2">Security Deposit</p>
+                  <p className="text-3xl font-black text-green-600">{formatPrice(property.price)}</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="p-6 bg-purple-50 dark:bg-purple-950/30 rounded-xl border border-purple-200 dark:border-purple-800">
+                  <p className="text-sm font-black uppercase text-gray-500 mb-2">Application Fee</p>
+                  <p className="text-3xl font-black text-purple-600">$45.00</p>
+                </div>
+                <div className="p-6 bg-orange-50 dark:bg-orange-950/30 rounded-xl border border-orange-200 dark:border-orange-800">
+                  <p className="text-sm font-black uppercase text-gray-500 mb-2">Available Date</p>
+                  <p className="text-2xl font-black text-orange-600">Immediately</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Financing Calculator */}
+        <section className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl p-8 md:p-12 space-y-8">
+          <div className="flex items-center gap-3">
+            <Calculator className="h-8 w-8 text-blue-600" />
+            <h2 className="text-4xl font-black text-gray-900 dark:text-white">Financing Calculator</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">Monthly Rent</p>
+              <p className="text-3xl font-black text-blue-600">{formatPrice(monthlyPayment)}</p>
+            </div>
+            <div>
+              <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">Annual Cost</p>
+              <p className="text-3xl font-black text-green-600">{formatPrice(monthlyPayment * 12)}</p>
+            </div>
+            <div>
+              <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">12-Month Total</p>
+              <p className="text-3xl font-black text-purple-600">{formatPrice((monthlyPayment * 12) + parseFloat(String(property.price || 0)))}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Schools Section */}
+        <section className="space-y-12">
+          <div className="flex items-center gap-3">
+            <BookOpen className="h-8 w-8 text-blue-600" />
+            <h2 className="text-5xl font-black text-gray-900 dark:text-white">Schools Nearby</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { name: "Lincoln High School", grade: "9-12", rating: 4.5, distance: "0.8 mi" },
+              { name: "Central Middle School", grade: "6-8", rating: 4.2, distance: "0.5 mi" },
+              { name: "Riverside Elementary", grade: "K-5", rating: 4.7, distance: "0.3 mi" }
+            ].map((school, i) => (
+              <Card key={i} className="hover:shadow-lg transition-shadow duration-300 rounded-xl border border-gray-200 dark:border-gray-800">
+                <CardContent className="pt-6 space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-black text-gray-900 dark:text-white">{school.name}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Grades {school.grade}</p>
+                  </div>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800">
+                    <div className="flex items-center gap-2">
+                      {[...Array(5)].map((_, j) => (
+                        <Star key={j} className={`h-4 w-4 ${j < Math.round(school.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                      ))}
+                    </div>
+                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">{school.distance}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* Price Trends */}
+        <section className="space-y-12">
+          <div className="flex items-center gap-3">
+            <TrendingUp className="h-8 w-8 text-blue-600" />
+            <h2 className="text-5xl font-black text-gray-900 dark:text-white">Price Trends</h2>
+          </div>
+
+          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl">
+            <CardContent className="pt-8 space-y-6">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-gray-600 dark:text-gray-400">12 months ago</span>
+                  <span className="text-lg font-black text-gray-900 dark:text-white">$2,200</span>
+                </div>
+                <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2">
+                  <div className="bg-blue-600 h-2 rounded-full" style={{width: "75%"}}></div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Today</span>
+                  <span className="text-lg font-black text-gray-900 dark:text-white">{formatPrice(property.price)}</span>
+                </div>
+                <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2">
+                  <div className="bg-green-600 h-2 rounded-full" style={{width: "100%"}}></div>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 pt-4">Market price increased 5.2% over the last year</p>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Similar Properties Carousel */}
+        <section className="space-y-12">
+          <h2 className="text-5xl font-black text-gray-900 dark:text-white">Similar Properties</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1,2,3].map(i => (
+              <Card key={i} className="hover:shadow-lg transition-shadow duration-300 cursor-pointer rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800">
+                <div className="aspect-video bg-gray-300 dark:bg-gray-700 relative overflow-hidden">
+                  <img src={allImages[i % allImages.length]} className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" alt={`Similar property ${i}`} />
+                  <Badge className="absolute top-4 right-4 bg-white/90 text-black">Similar</Badge>
+                </div>
+                <CardContent className="pt-4 space-y-4">
+                  <h3 className="text-lg font-black text-gray-900 dark:text-white line-clamp-2">Modern Apartment #{2800 + i}</h3>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
+                    <MapPin className="h-4 w-4" />
+                    <span>{property.city}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 pt-2">
+                    <div><p className="text-[10px] font-bold uppercase text-gray-500">Beds</p><p className="text-lg font-black">{bedrooms}</p></div>
+                    <div><p className="text-[10px] font-bold uppercase text-gray-500">Baths</p><p className="text-lg font-black">{bathrooms}</p></div>
+                    <div><p className="text-[10px] font-bold uppercase text-gray-500">Sqft</p><p className="text-lg font-black">{(sqft/1000).toFixed(1)}k</p></div>
+                  </div>
+                  <p className="text-2xl font-black text-blue-600 pt-2">{formatPrice(parseFloat(String(property.price || 0)) + (i * 50))}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="space-y-12">
+          <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Lifestyle Features</Badge>
+          <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Premium Amenities</h2>
           <AmenitiesGrid amenities={property.amenities || []} />
         </section>
 
-        {/* Location & Neighborhood */}
+        {/* Neighborhood Map */}
         <section className="space-y-12">
-          <div className="space-y-4">
-            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Neighborhood</Badge>
-            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Explore the Area</h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">Discover nearby attractions, restaurants, and amenities</p>
-          </div>
+          <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Neighborhood</Badge>
+          <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Explore the Area</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
             <div className="lg:col-span-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xl">
               <InteractiveMap latitude={lat} longitude={lng} />
@@ -348,7 +585,80 @@ export default function PropertyDetails() {
           </div>
         </section>
 
-        {/* Trust & Verification */}
+        {/* Inquiry Form - Zillow/OpenDoor Standard */}
+        <section className="space-y-12">
+          <div className="space-y-4">
+            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Contact</Badge>
+            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Interested in this property?</h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400">Send an inquiry to the property manager</p>
+          </div>
+
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl">
+            <CardContent className="pt-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-black uppercase text-gray-700 dark:text-gray-300">Full Name</label>
+                  <Input 
+                    placeholder="Your name"
+                    value={inquiryForm.name}
+                    onChange={(e) => setInquiryForm({...inquiryForm, name: e.target.value})}
+                    className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
+                    data-testid="input-inquiry-name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-black uppercase text-gray-700 dark:text-gray-300">Email</label>
+                  <Input 
+                    type="email"
+                    placeholder="your@email.com"
+                    value={inquiryForm.email}
+                    onChange={(e) => setInquiryForm({...inquiryForm, email: e.target.value})}
+                    className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
+                    data-testid="input-inquiry-email"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-black uppercase text-gray-700 dark:text-gray-300">Phone (Optional)</label>
+                <Input 
+                  placeholder="(555) 123-4567"
+                  value={inquiryForm.phone}
+                  onChange={(e) => setInquiryForm({...inquiryForm, phone: e.target.value})}
+                  className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
+                  data-testid="input-inquiry-phone"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-black uppercase text-gray-700 dark:text-gray-300">Message</label>
+                <Textarea 
+                  placeholder="Tell us why you're interested in this property..."
+                  value={inquiryForm.message}
+                  onChange={(e) => setInquiryForm({...inquiryForm, message: e.target.value})}
+                  className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 min-h-24"
+                  data-testid="textarea-inquiry-message"
+                />
+              </div>
+              <Button 
+                size="lg"
+                className="w-full rounded-lg font-bold h-12 bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={handleInquiry}
+                disabled={submittingInquiry}
+                data-testid="button-send-inquiry"
+              >
+                {submittingInquiry ? (
+                  <>Sending...</>
+                ) : (
+                  <>
+                    <Send className="h-5 w-5 mr-2" />
+                    Send Inquiry
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Trust Section */}
         <section className="py-16 px-8 md:px-16 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-800">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 items-center">
             <div className="space-y-6">
@@ -357,20 +667,6 @@ export default function PropertyDetails() {
                 <h3 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Verified Safe</h3>
               </div>
               <p className="text-gray-600 dark:text-gray-400 font-medium leading-relaxed">This property has been manually inspected and verified for accuracy and premium quality standards.</p>
-              <div className="flex items-center gap-4 pt-4">
-                <div className="flex -space-x-3">
-                  {[1,2,3,4].map(i => (
-                    <Avatar key={i} className="border-4 border-white dark:border-gray-900 h-12 w-12 rounded-full">
-                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i+10}`} />
-                      <AvatarFallback>U{i}</AvatarFallback>
-                    </Avatar>
-                  ))}
-                </div>
-                <div>
-                  <p className="text-sm font-black text-gray-900 dark:text-white">42 applications</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">this week</p>
-                </div>
-              </div>
             </div>
             <div className="lg:col-span-2">
               <EnhancedTrustBadges />
@@ -378,14 +674,11 @@ export default function PropertyDetails() {
           </div>
         </section>
 
-        {/* Owner Contact Card */}
+        {/* Owner Contact */}
         {owner && (
           <section className="space-y-12">
-            <div className="space-y-4">
-              <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Property Manager</Badge>
-              <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Get in Touch</h2>
-            </div>
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800 rounded-2xl">
+            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Property Manager</Badge>
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl">
               <CardContent className="pt-8 flex flex-col md:flex-row items-start md:items-center gap-8 justify-between">
                 <div className="flex items-center gap-6">
                   <Avatar className="h-20 w-20 rounded-xl border-4 border-white dark:border-gray-900">
@@ -397,7 +690,7 @@ export default function PropertyDetails() {
                     <p className="text-gray-600 dark:text-gray-400 font-medium">{owner.role === 'landlord' ? 'Property Owner' : 'Leasing Manager'}</p>
                     <div className="flex items-center gap-2 pt-2">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`h-4 w-4 fill-yellow-400 text-yellow-400`} />
+                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       ))}
                       <span className="text-sm font-bold text-gray-600 dark:text-gray-400">4.9/5</span>
                     </div>
@@ -416,13 +709,7 @@ export default function PropertyDetails() {
       {showVideoTour && (
         <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-lg flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="absolute top-4 right-4 text-white hover:bg-white/20 z-10 rounded-lg"
-              onClick={() => setShowVideoTour(false)}
-              data-testid="button-close-video"
-            >
+            <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-white hover:bg-white/20 z-10 rounded-lg" onClick={() => setShowVideoTour(false)} data-testid="button-close-video">
               <X className="h-6 w-6" />
             </Button>
             <div className="w-full h-full flex flex-col items-center justify-center text-white space-y-4">
@@ -438,13 +725,11 @@ export default function PropertyDetails() {
         </div>
       )}
 
-      {/* Photo Gallery Modal */}
+      {/* Full Gallery Modal */}
       {showFullGallery && (
         <div className="fixed inset-0 z-[100] bg-black flex flex-col animate-in fade-in duration-300">
           <div className="flex justify-between items-center p-6 border-b border-gray-800 bg-black/50 backdrop-blur-md">
-            <div className="text-white">
-              <p className="text-lg font-black">{currentImageIndex + 1} / {allImages.length}</p>
-            </div>
+            <p className="text-lg font-black text-white">{currentImageIndex + 1} / {allImages.length}</p>
             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-lg" onClick={() => setShowFullGallery(false)} data-testid="button-close-gallery">
               <X className="h-6 w-6" />
             </Button>
