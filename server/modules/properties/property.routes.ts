@@ -94,7 +94,7 @@ router.get("/:id", async (req, res) => {
 /**
  * Property analytics (views, saves, applications)
  */
-router.get("/:id/analytics", authenticateToken, async (req, res) => {
+router.get("/:id/analytics", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const analytics = await propertyService.getPropertyAnalytics(req.params.id);
     return res.json(success(analytics, "Analytics fetched"));
@@ -112,7 +112,7 @@ router.get("/:id/analytics", authenticateToken, async (req, res) => {
 /**
  * Owner properties
  */
-router.get("/user/:userId", authenticateToken, async (req, res) => {
+router.get("/user/:userId", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const data = await propertyService.getPropertiesByOwner(req.params.userId);
     return res.json(success(data, "Owner properties fetched"));
@@ -360,7 +360,7 @@ router.delete(
   "/:id",
   authenticateToken,
   requireOwnership("property"),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     try {
       await propertyService.deleteProperty(req.params.id);
       return res.json(success(null, "Property deleted successfully"));

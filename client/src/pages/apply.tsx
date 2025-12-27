@@ -35,10 +35,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import { Navbar } from "@/components/layout/navbar";
+import { Footer } from "@/components/layout/footer";
 import PrivacyNotice from "@/components/shared/PrivacyNotice";
 import SecurityBadges from "@/components/shared/SecurityBadges";
+import type { Property } from "@shared/schema";
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
 
 const applyFormSchema = z.object({
   propertyId: z.string(),
@@ -73,10 +80,12 @@ export default function Apply() {
 
   const propertyId = params?.id;
 
-  const { data: property, isLoading: isLoadingProperty } = useQuery({
+  const { data: propertyResponse, isLoading: isLoadingProperty } = useQuery<ApiResponse<Property>>({
     queryKey: ["/api/v2/properties", propertyId],
     enabled: !!propertyId,
   });
+  
+  const property = propertyResponse?.data;
 
   const form = useForm<ApplyFormValues>({
     resolver: zodResolver(applyFormSchema),
@@ -217,12 +226,12 @@ export default function Apply() {
               {property && (
                 <div className="flex items-center gap-4 mt-4 p-4 bg-white/10 backdrop-blur-md rounded-none border border-white/20">
                   <div className="h-20 w-32 flex-shrink-0 bg-gray-800">
-                    {property.images?.[0] && (
-                      <img src={property.images[0]} alt="" className="h-full w-full object-cover" />
+                    {Array.isArray(property.images) && property.images[0] && (
+                      <img src={property.images[0] as string} alt="" className="h-full w-full object-cover" />
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-black uppercase tracking-widest text-accent">{property.property_type || 'Residential'}</p>
+                    <p className="text-sm font-black uppercase tracking-widest text-accent">{property.propertyType || 'Residential'}</p>
                     <h2 className="text-xl font-bold leading-tight">{property.title}</h2>
                     <p className="text-white/80 text-sm flex items-center gap-1 mt-1">
                       <MapPin className="h-3 w-3" />
@@ -231,7 +240,7 @@ export default function Apply() {
                   </div>
                   <div className="text-right border-l border-white/20 pl-4">
                     <p className="text-[10px] font-black uppercase tracking-widest text-accent mb-1">Monthly Rent</p>
-                    <p className="text-2xl font-black">${parseFloat(property.price).toLocaleString()}</p>
+                    <p className="text-2xl font-black">${parseFloat(String(property.price || 0)).toLocaleString()}</p>
                   </div>
                 </div>
               )}
@@ -282,15 +291,15 @@ export default function Apply() {
                     <CardContent className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500 font-medium">Monthly Rent</span>
-                        <span className="font-bold text-primary">${parseFloat(property.price).toLocaleString()}</span>
+                        <span className="font-bold text-primary">${parseFloat(String(property.price || 0)).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500 font-medium">Security Deposit</span>
-                        <span className="font-bold text-primary">${parseFloat(property.price).toLocaleString()}</span>
+                        <span className="font-bold text-primary">${parseFloat(String(property.price || 0)).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500 font-medium">Lease Term</span>
-                        <span className="font-bold capitalize">{property.lease_term || '12 Months'}</span>
+                        <span className="font-bold capitalize">{property.leaseTerm || '12 Months'}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -305,7 +314,7 @@ export default function Apply() {
                     <CardContent className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500 font-medium">Pet Policy</span>
-                        <span className="font-bold">{property.pets_allowed ? "Pets Allowed" : "No Pets"}</span>
+                        <span className="font-bold">{property.petsAllowed ? "Pets Allowed" : "No Pets"}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500 font-medium">Smoking</span>
