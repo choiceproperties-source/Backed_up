@@ -63,6 +63,10 @@ const applyFormSchema = z.object({
   emergencyContactName: z.string().min(2, "Emergency contact name is required"),
   emergencyContactPhone: z.string().min(10, "Emergency contact phone is required"),
   emergencyContactRelationship: z.string().min(2, "Relationship is required"),
+  acknowledgePetPolicy: z.boolean().refine(val => val === true, "You must acknowledge the pet policy"),
+  acknowledgeSmokingPolicy: z.boolean().refine(val => val === true, "You must acknowledge the smoking policy"),
+  acknowledgeOccupancyLimit: z.boolean().refine(val => val === true, "You must acknowledge the occupancy limit"),
+  acknowledgeUtilities: z.boolean().refine(val => val === true, "You must acknowledge the utilities policy"),
   agreeToBackgroundCheck: z.boolean().refine(val => val === true, "You must agree to the background check"),
   agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms"),
   signature: z.string().min(2, "Electronic signature is required"),
@@ -105,6 +109,10 @@ export default function Apply() {
       emergencyContactName: "",
       emergencyContactPhone: "",
       emergencyContactRelationship: "",
+      acknowledgePetPolicy: false,
+      acknowledgeSmokingPolicy: false,
+      acknowledgeOccupancyLimit: false,
+      acknowledgeUtilities: false,
       agreeToBackgroundCheck: false,
       agreeToTerms: false,
       signature: "",
@@ -121,7 +129,8 @@ export default function Apply() {
     { id: 1, label: "Personal Information" },
     { id: 2, label: "Employment & Income" },
     { id: 3, label: "Emergency Contact" },
-    { id: 4, label: "Review & Submit" },
+    { id: 4, label: "Property Policies" },
+    { id: 5, label: "Review & Submit" },
   ];
 
   const nextStep = async () => {
@@ -146,6 +155,8 @@ export default function Apply() {
         return ["employerName", "jobTitle", "monthlyIncome", "employmentDuration"];
       case 3:
         return ["emergencyContactName", "emergencyContactPhone", "emergencyContactRelationship"];
+      case 4:
+        return ["acknowledgePetPolicy", "acknowledgeSmokingPolicy", "acknowledgeOccupancyLimit", "acknowledgeUtilities"];
       default:
         return [];
     }
@@ -587,7 +598,111 @@ export default function Apply() {
                   </Card>
                 )}
 
-                {currentStep === 4 && (
+                {currentStep === 4 && property && (
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl">
+                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
+                      <CardTitle className="text-2xl font-black tracking-tight">Property Policies & Rules</CardTitle>
+                      <CardDescription className="text-gray-500 font-medium">Please acknowledge and agree to the property policies before proceeding.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-8 space-y-4">
+                      <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 p-4 rounded-md mb-6">
+                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                          These terms are locked at the time of application submission. Future changes to the property listing will not affect your application.
+                        </p>
+                      </div>
+                      
+                      <FormField
+                        control={form.control}
+                        name="acknowledgePetPolicy"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 border border-gray-100 dark:border-gray-800 p-4">
+                            <FormControl>
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-pet-policy" />
+                            </FormControl>
+                            <div className="space-y-1 leading-none flex-1">
+                              <FormLabel className="text-sm font-semibold">Pet Policy</FormLabel>
+                              <FormDescription className="text-xs">
+                                {property.petsAllowed 
+                                  ? "Pets are allowed at this property. You acknowledge and agree to any additional pet-related fees or restrictions."
+                                  : "No pets are allowed at this property. You acknowledge and agree to this policy."}
+                              </FormDescription>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="acknowledgeSmokingPolicy"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 border border-gray-100 dark:border-gray-800 p-4">
+                            <FormControl>
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-smoking-policy" />
+                            </FormControl>
+                            <div className="space-y-1 leading-none flex-1">
+                              <FormLabel className="text-sm font-semibold">Smoking Policy</FormLabel>
+                              <FormDescription className="text-xs">
+                                This is a non-smoking property. You acknowledge and agree to this policy and understand that violations may result in lease termination.
+                              </FormDescription>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="acknowledgeOccupancyLimit"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 border border-gray-100 dark:border-gray-800 p-4">
+                            <FormControl>
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-occupancy-limit" />
+                            </FormControl>
+                            <div className="space-y-1 leading-none flex-1">
+                              <FormLabel className="text-sm font-semibold">Occupancy Limit</FormLabel>
+                              <FormDescription className="text-xs">
+                                The maximum occupancy limit for this property is 2 persons. You acknowledge and agree that additional occupants will require written approval from the property owner.
+                              </FormDescription>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="acknowledgeUtilities"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 border border-gray-100 dark:border-gray-800 p-4">
+                            <FormControl>
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-utilities" />
+                            </FormControl>
+                            <div className="space-y-1 leading-none flex-1">
+                              <FormLabel className="text-sm font-semibold">Utilities & Services</FormLabel>
+                              <FormDescription className="text-xs">
+                                {property.utilitiesIncluded && Array.isArray(property.utilitiesIncluded) && property.utilitiesIncluded.length > 0
+                                  ? `The following utilities are included: ${property.utilitiesIncluded.join(", ")}. You are responsible for any utilities not listed.`
+                                  : "All utilities and services are the tenant's responsibility. You acknowledge and agree to pay for all utility bills."}
+                              </FormDescription>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                    <CardFooter className="justify-between pt-6 border-t bg-gray-50/50 dark:bg-gray-900/50">
+                      <Button type="button" variant="outline" onClick={prevStep} disabled={isProcessing} className="font-black uppercase tracking-widest h-12 rounded-none" data-testid="button-back-policies">
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                      </Button>
+                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-12 px-8 rounded-none" data-testid="button-next-review">
+                        Next Step <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                )}
+
+                {currentStep === 5 && (
                   <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl">
                     <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
                       <CardTitle className="text-2xl font-black tracking-tight">Review & Submit</CardTitle>
