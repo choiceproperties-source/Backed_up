@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import type { Property, Review, Owner } from "@/lib/types";
 import { formatPrice, parseDecimal } from "@/lib/types";
 import { useAuth } from "@/lib/auth-context";
 import { 
   MapPin, Bed, Bath, Maximize, X, ChevronLeft, ChevronRight, Grid3X3, 
-  Building2, Video, Heart, Shield, Clock, Eye, Star, Share2
+  Building2, Video, Heart, Shield, Clock, Eye, Star, Share2, Zap,
+  Trees, Wifi, Lock, Home, DollarSign
 } from "lucide-react";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useNearbyPlaces } from "@/hooks/use-nearby-places";
@@ -85,7 +87,7 @@ export default function PropertyDetails() {
   useEffect(() => {
     if (property) {
       updateMetaTags({
-        title: `${property.title} - Exclusive Listing`,
+        title: `${property.title} - Premium Listing`,
         description: property.description || '',
         image: photosData?.[0]?.imageUrls?.gallery || placeholderExterior,
         url: window.location.href,
@@ -119,186 +121,255 @@ export default function PropertyDetails() {
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col selection:bg-primary/20">
       <Navbar />
 
-      {/* Stunning Hero Section */}
-      <section className="relative h-[85vh] w-full overflow-hidden bg-black group/hero">
+      {/* Premium Hero Section */}
+      <section className="relative h-screen w-full overflow-hidden bg-black group/hero">
         <div className="absolute inset-0 overflow-hidden">
           <img
             src={allImages[0]}
             alt={property.title}
-            className="w-full h-full object-cover transition-transform duration-[10000ms] ease-out scale-100 group-hover/hero:scale-110"
+            className="w-full h-full object-cover transition-transform duration-[15000ms] ease-out scale-100 group-hover/hero:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
         </div>
 
-        <div className="absolute inset-0 flex flex-col justify-end items-center pb-24 px-4 text-center max-w-5xl mx-auto space-y-6">
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <Badge className="bg-primary/90 text-primary-foreground hover:bg-primary px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-[0.2em] border-none shadow-2xl backdrop-blur-md">
-              {property.status || 'Exclusive Listing'}
-            </Badge>
-            <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter leading-tight drop-shadow-2xl">
+        {/* Corner Badge */}
+        <div className="absolute top-8 left-8 z-20">
+          <Badge className="bg-white/95 backdrop-blur-md text-black hover:bg-white px-4 py-2 rounded-full font-black text-xs uppercase tracking-[0.15em] border-none shadow-2xl">
+            {property.status || 'Featured'}
+          </Badge>
+        </div>
+
+        {/* Content */}
+        <div className="absolute inset-0 flex flex-col justify-end items-start pb-32 px-8 md:px-16 max-w-5xl space-y-8">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-12 duration-1200">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-[0.9] drop-shadow-2xl max-w-4xl">
               {property.title}
             </h1>
-            <div className="flex items-center justify-center gap-3 text-gray-200/90 font-medium text-lg md:text-xl drop-shadow-lg">
-              <MapPin className="h-5 w-5 text-secondary" />
-              <span>{property.address}, {property.city}</span>
+            <div className="flex items-center gap-2 text-white/90 font-semibold text-lg drop-shadow-lg">
+              <MapPin className="h-5 w-5 text-blue-300" />
+              <span>{property.address}</span>
+              <span className="text-white/60">•</span>
+              <span>{property.city}</span>
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-4 pt-4 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap gap-3 animate-in fade-in slide-in-from-bottom-16 duration-1200 delay-200">
             <Button 
               size="lg" 
-              className="h-14 px-8 rounded-none font-black text-base shadow-2xl bg-white text-black hover:bg-gray-100 border-none transition-all hover:scale-105"
-              onClick={() => setShowVideoTour(true)}
+              className="h-14 px-8 rounded-lg font-bold shadow-2xl bg-white text-black hover:bg-gray-100 border-none transition-all hover:shadow-white/30"
+              onClick={() => window.location.href = `/apply/${property.id}`}
+              data-testid="button-apply-now"
             >
-              <Video className="h-5 w-5 mr-2" />
-              Watch Experience
+              Apply Now
             </Button>
             <Button 
               size="lg" 
               variant="outline"
-              className="h-14 px-8 rounded-none font-black text-base shadow-2xl border-white/30 text-white bg-white/10 backdrop-blur-xl hover:bg-white/20 transition-all hover:scale-105"
+              className="h-14 px-8 rounded-lg font-bold shadow-xl border-white/40 text-white bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all"
+              onClick={() => setShowVideoTour(true)}
+              data-testid="button-video-tour"
+            >
+              <Video className="h-5 w-5 mr-2" />
+              Tour
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="h-14 px-8 rounded-lg font-bold shadow-xl border-white/40 text-white bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all"
               onClick={() => setShowFullGallery(true)}
+              data-testid="button-view-photos"
             >
               <Grid3X3 className="h-5 w-5 mr-2" />
-              View All Photos
+              Photos
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Floating Property Bar */}
-      <div className="sticky top-16 z-40 w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-2xl border-b border-gray-100 dark:border-gray-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-8">
-          <div className="hidden md:flex items-center gap-12">
+      {/* Floating Info Bar */}
+      <div className="sticky top-16 z-40 w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-lg">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-4 flex items-center justify-between gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="flex items-center gap-3">
-              <Bed className="h-5 w-5 text-primary" />
-              <div className="leading-none">
-                <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Beds</p>
-                <p className="text-lg font-black">{bedrooms}</p>
+              <Bed className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-[10px] font-black uppercase text-gray-500">Bedrooms</p>
+                <p className="text-lg font-black text-gray-900 dark:text-white">{bedrooms}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Bath className="h-5 w-5 text-primary" />
-              <div className="leading-none">
-                <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Baths</p>
-                <p className="text-lg font-black">{bathrooms}</p>
+              <Bath className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-[10px] font-black uppercase text-gray-500">Bathrooms</p>
+                <p className="text-lg font-black text-gray-900 dark:text-white">{bathrooms}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Maximize className="h-5 w-5 text-primary" />
-              <div className="leading-none">
-                <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Area</p>
-                <p className="text-lg font-black">{sqft.toLocaleString()} <span className="text-sm text-gray-400">ft²</span></p>
+            <div className="hidden md:flex items-center gap-3">
+              <Maximize className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-[10px] font-black uppercase text-gray-500">Area</p>
+                <p className="text-lg font-black text-gray-900 dark:text-white">{sqft.toLocaleString()} ft²</p>
+              </div>
+            </div>
+            <div className="hidden md:flex items-center gap-3">
+              <DollarSign className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-[10px] font-black uppercase text-gray-500">Monthly</p>
+                <p className="text-lg font-black text-blue-600">{formatPrice(property.price)}</p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-6 flex-1 md:flex-none justify-between md:justify-end">
-            <div className="text-right">
-              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Monthly Price</p>
-              <p className="text-2xl font-black text-primary leading-none">{formatPrice(property.price)}</p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                size="lg" 
-                className="rounded-none px-8 font-black shadow-lg shadow-primary/20 hover:scale-105 transition-all"
-                onClick={() => window.location.href = `/apply/${property.id}`}
-              >
-                Apply Now
-              </Button>
-              <Button 
-                size="icon" 
-                variant="outline" 
-                className={`rounded-none h-12 w-12 border-gray-200 transition-all ${isFavorited(property.id) ? 'bg-red-50 text-red-500 border-red-100' : ''}`}
-                onClick={() => toggleFavorite(property.id)}
-              >
-                <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
-              </Button>
-            </div>
+          <div className="flex gap-2">
+            <Button 
+              size="icon" 
+              variant="outline" 
+              className={`rounded-lg h-12 w-12 border-gray-200 dark:border-gray-700 transition-all ${isFavorited(property.id) ? 'bg-red-50 dark:bg-red-950 text-red-600 border-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+              onClick={() => toggleFavorite(property.id)}
+              data-testid="button-favorite"
+            >
+              <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
+            </Button>
+            <Button 
+              size="icon" 
+              variant="outline" 
+              className="rounded-lg h-12 w-12 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+              data-testid="button-share"
+            >
+              <Share2 className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto w-full px-4 md:px-8 py-16 space-y-24">
-        {/* About & Narrative Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto w-full px-6 md:px-8 py-20 space-y-32">
+        
+        {/* Overview Cards */}
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800 rounded-xl">
+            <CardContent className="pt-6">
+              <Zap className="h-8 w-8 text-blue-600 mb-3" />
+              <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Utilities</p>
+              <p className="text-lg font-black text-gray-900 dark:text-white">Included</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800 rounded-xl">
+            <CardContent className="pt-6">
+              <Lock className="h-8 w-8 text-green-600 mb-3" />
+              <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Security</p>
+              <p className="text-lg font-black text-gray-900 dark:text-white">24/7</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800 rounded-xl">
+            <CardContent className="pt-6">
+              <Wifi className="h-8 w-8 text-purple-600 mb-3" />
+              <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Internet</p>
+              <p className="text-lg font-black text-gray-900 dark:text-white">High-Speed</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200 dark:border-orange-800 rounded-xl">
+            <CardContent className="pt-6">
+              <Trees className="h-8 w-8 text-orange-600 mb-3" />
+              <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Amenities</p>
+              <p className="text-lg font-black text-gray-900 dark:text-white">Premium</p>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* About Section */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8 animate-in fade-in slide-in-from-left-8 duration-1000">
             <div className="space-y-4">
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-primary">About the home</h2>
-              <h3 className="text-4xl md:text-5xl font-black tracking-tighter leading-[1.1]">
-                Modern elegance meets <br />
-                <span className="text-gray-400">urban sophistication.</span>
-              </h3>
+              <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">About the property</Badge>
+              <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
+                Premium Living Space
+              </h2>
             </div>
-            <p className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
-              {property.description || "Experience living at its finest in this meticulously designed space. Every corner has been crafted to offer a blend of luxury, comfort, and functionality, making it the perfect sanctuary for modern living."}
+            <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
+              {property.description || "Experience living at its finest in this meticulously designed space. Every corner has been crafted to offer a blend of luxury, comfort, and functionality. Modern amenities meet timeless elegance."}
             </p>
+            <div className="grid grid-cols-2 gap-4 pt-6">
+              <div className="space-y-2">
+                <p className="text-sm font-black uppercase text-gray-500">Property Type</p>
+                <p className="text-xl font-black text-gray-900 dark:text-white">{property.property_type || 'Apartment'}</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-black uppercase text-gray-500">Lease Term</p>
+                <p className="text-xl font-black text-gray-900 dark:text-white">{property.lease_term || '12 Months'}</p>
+              </div>
+            </div>
           </div>
 
+          {/* Image Grid */}
           <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-right-8 duration-1000">
             <div className="space-y-4">
-              <div className="aspect-[4/5] rounded-none overflow-hidden shadow-2xl">
-                <img src={allImages[1]} className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+              <div className="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300 cursor-pointer group">
+                <img src={allImages[1] || placeholderLiving} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-1" />
               </div>
-              <div className="aspect-square rounded-none overflow-hidden shadow-xl">
-                <img src={allImages[2]} className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+              <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
+                <img src={allImages[2] || placeholderKitchen} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-2" />
               </div>
             </div>
             <div className="pt-12 space-y-4">
-              <div className="aspect-square rounded-none overflow-hidden shadow-xl">
-                <img src={allImages[3]} className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
-              </div>
-              <div className="aspect-[4/5] rounded-none overflow-hidden shadow-2xl">
-                <img src={allImages[4]} className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+              <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
+                <img src={allImages[3] || placeholderBedroom} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-3" />
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Features Section */}
         <section className="space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-4">
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-primary">Lifestyle Features</h2>
-            <h3 className="text-4xl font-black tracking-tighter">Everything you need, <br /> and then some.</h3>
+          <div className="space-y-4">
+            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Lifestyle Features</Badge>
+            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Premium Amenities</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">Everything you need for modern comfortable living</p>
           </div>
-          <AmenitiesGrid amenities={property.amenities} />
+          <AmenitiesGrid amenities={property.amenities || []} />
         </section>
 
-        {/* Neighborhood Section */}
+        {/* Location & Neighborhood */}
         <section className="space-y-12">
-          <div className="flex flex-col md:flex-row justify-between items-end gap-6">
-            <div className="space-y-4 max-w-xl">
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-primary">The Neighborhood</h2>
-              <h3 className="text-4xl font-black tracking-tighter">Explore the local vibe and <br /> hotspots nearby.</h3>
-            </div>
-            <Button variant="outline" className="rounded-none px-8 font-bold border-gray-200">View Full Area Map</Button>
+          <div className="space-y-4">
+            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Neighborhood</Badge>
+            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Explore the Area</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">Discover nearby attractions, restaurants, and amenities</p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
-            <div className="lg:col-span-2 rounded-none overflow-hidden border border-gray-100 dark:border-gray-800 shadow-2xl">
-              <InteractiveMap lat={lat} lng={lng} />
+            <div className="lg:col-span-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xl">
+              <InteractiveMap latitude={lat} longitude={lng} />
             </div>
-            <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-4 overflow-y-auto pr-3 custom-scrollbar">
               <NearbyPlaces places={nearbyPlaces} />
             </div>
           </div>
         </section>
 
-        {/* Trust Section */}
-        <section className="py-16 bg-gray-50 dark:bg-gray-900 rounded-none px-8 md:px-16 border border-gray-100 dark:border-gray-800">
+        {/* Trust & Verification */}
+        <section className="py-16 px-8 md:px-16 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-800">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 items-center">
             <div className="space-y-6">
-              <h3 className="text-3xl font-black tracking-tight">Choice Verified™</h3>
-              <p className="text-gray-500 font-medium">This property has been manually inspected and verified for accuracy and high-quality standards.</p>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <Shield className="h-8 w-8 text-blue-600" />
+                <h3 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Verified Safe</h3>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 font-medium leading-relaxed">This property has been manually inspected and verified for accuracy and premium quality standards.</p>
+              <div className="flex items-center gap-4 pt-4">
                 <div className="flex -space-x-3">
                   {[1,2,3,4].map(i => (
-                    <Avatar key={i} className="border-4 border-gray-50 dark:border-gray-900 h-12 w-12 rounded-none">
+                    <Avatar key={i} className="border-4 border-white dark:border-gray-900 h-12 w-12 rounded-full">
                       <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i+10}`} />
-                      <AvatarFallback>U</AvatarFallback>
+                      <AvatarFallback>U{i}</AvatarFallback>
                     </Avatar>
                   ))}
                 </div>
-                <span className="text-sm font-bold text-gray-400">42 people applied this week</span>
+                <div>
+                  <p className="text-sm font-black text-gray-900 dark:text-white">42 applications</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">this week</p>
+                </div>
               </div>
             </div>
             <div className="lg:col-span-2">
@@ -306,27 +377,61 @@ export default function PropertyDetails() {
             </div>
           </div>
         </section>
+
+        {/* Owner Contact Card */}
+        {owner && (
+          <section className="space-y-12">
+            <div className="space-y-4">
+              <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Property Manager</Badge>
+              <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Get in Touch</h2>
+            </div>
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800 rounded-2xl">
+              <CardContent className="pt-8 flex flex-col md:flex-row items-start md:items-center gap-8 justify-between">
+                <div className="flex items-center gap-6">
+                  <Avatar className="h-20 w-20 rounded-xl border-4 border-white dark:border-gray-900">
+                    <AvatarImage src={owner.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${owner.id}`} />
+                    <AvatarFallback>{owner.full_name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-black text-gray-900 dark:text-white">{owner.full_name}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">{owner.role === 'landlord' ? 'Property Owner' : 'Leasing Manager'}</p>
+                    <div className="flex items-center gap-2 pt-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`h-4 w-4 fill-yellow-400 text-yellow-400`} />
+                      ))}
+                      <span className="text-sm font-bold text-gray-600 dark:text-gray-400">4.9/5</span>
+                    </div>
+                  </div>
+                </div>
+                <Button size="lg" className="rounded-lg font-bold h-12 px-8 bg-blue-600 hover:bg-blue-700" data-testid="button-contact-owner">
+                  Contact Owner
+                </Button>
+              </CardContent>
+            </Card>
+          </section>
+        )}
       </div>
 
       {/* Video Tour Modal */}
       {showVideoTour && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4">
-          <div className="relative w-full max-w-5xl aspect-video bg-black rounded-none overflow-hidden shadow-2xl border border-white/10">
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-lg flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10">
             <Button 
               variant="ghost" 
               size="icon" 
-              className="absolute top-4 right-4 text-white hover:bg-white/20 z-10"
+              className="absolute top-4 right-4 text-white hover:bg-white/20 z-10 rounded-lg"
               onClick={() => setShowVideoTour(false)}
+              data-testid="button-close-video"
             >
               <X className="h-6 w-6" />
             </Button>
             <div className="w-full h-full flex flex-col items-center justify-center text-white space-y-4">
               <div className="p-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
-                <Video className="h-16 w-16 text-primary animate-pulse" />
+                <Video className="h-16 w-16 text-blue-400 animate-pulse" />
               </div>
               <div className="text-center space-y-2">
-                <h3 className="text-2xl font-black">Experience {property.title}</h3>
-                <p className="text-gray-400 font-medium max-w-md">The cinematic video tour is being prepared. In a production environment, this would load a high-resolution 4K walkthrough.</p>
+                <h3 className="text-2xl font-black">{property.title} Tour</h3>
+                <p className="text-gray-400 font-medium max-w-md">Premium 4K video tour with immersive walkthrough coming soon</p>
               </div>
             </div>
           </div>
@@ -335,28 +440,28 @@ export default function PropertyDetails() {
 
       {/* Photo Gallery Modal */}
       {showFullGallery && (
-        <div className="fixed inset-0 z-[100] bg-black flex flex-col">
-          <div className="flex justify-between items-center p-6 border-b border-white/10">
+        <div className="fixed inset-0 z-[100] bg-black flex flex-col animate-in fade-in duration-300">
+          <div className="flex justify-between items-center p-6 border-b border-gray-800 bg-black/50 backdrop-blur-md">
             <div className="text-white">
               <p className="text-lg font-black">{currentImageIndex + 1} / {allImages.length}</p>
             </div>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => setShowFullGallery(false)}>
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-lg" onClick={() => setShowFullGallery(false)} data-testid="button-close-gallery">
               <X className="h-6 w-6" />
             </Button>
           </div>
           <div className="flex-1 flex items-center justify-center relative">
-            <Button variant="ghost" size="icon" className="absolute left-4 text-white hover:bg-white/10 h-16 w-16" onClick={() => setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length)}>
+            <Button variant="ghost" size="icon" className="absolute left-4 text-white hover:bg-white/10 h-16 w-16 rounded-lg" onClick={() => setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length)} data-testid="button-prev-image">
               <ChevronLeft className="h-10 w-10" />
             </Button>
-            <img src={allImages[currentImageIndex]} className="max-h-[80vh] max-w-full object-contain" />
-            <Button variant="ghost" size="icon" className="absolute right-4 text-white hover:bg-white/10 h-16 w-16" onClick={() => setCurrentImageIndex(prev => (prev + 1) % allImages.length)}>
+            <img src={allImages[currentImageIndex]} className="max-h-[80vh] max-w-full object-contain" alt={`Gallery ${currentImageIndex + 1}`} />
+            <Button variant="ghost" size="icon" className="absolute right-4 text-white hover:bg-white/10 h-16 w-16 rounded-lg" onClick={() => setCurrentImageIndex(prev => (prev + 1) % allImages.length)} data-testid="button-next-image">
               <ChevronRight className="h-10 w-10" />
             </Button>
           </div>
-          <div className="p-6 overflow-x-auto flex gap-4 justify-center bg-black/50">
+          <div className="p-6 overflow-x-auto flex gap-4 justify-center bg-black/50 backdrop-blur-md border-t border-gray-800">
             {allImages.map((img, i) => (
-              <button key={i} onClick={() => setCurrentImageIndex(i)} className={`h-16 w-24 flex-shrink-0 border-2 transition-all ${i === currentImageIndex ? 'border-primary' : 'border-transparent opacity-50'}`}>
-                <img src={img} className="w-full h-full object-cover" />
+              <button key={i} onClick={() => setCurrentImageIndex(i)} className={`h-16 w-24 flex-shrink-0 rounded-lg border-2 transition-all overflow-hidden ${i === currentImageIndex ? 'border-blue-500 shadow-lg shadow-blue-500/50' : 'border-transparent opacity-40 hover:opacity-70'}`} data-testid={`thumbnail-${i}`}>
+                <img src={img} className="w-full h-full object-cover" alt={`Thumbnail ${i}`} />
               </button>
             ))}
           </div>
