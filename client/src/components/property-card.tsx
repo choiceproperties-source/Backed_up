@@ -108,16 +108,16 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
               alt={`${property.title} - ${property.property_type || 'Property'}`}
               loading="lazy"
               decoding="async"
-              className="w-full aspect-video object-cover group-hover:scale-105 transition-all duration-500 ease-in-out"
+              className="w-full aspect-video object-cover group-hover:scale-105 transition-all duration-500 ease-in-out rounded-none"
               data-testid="img-property-preview"
             />
           </span>
         </Link>
 
-        {/* Heart Icon - Top Left in White Circle */}
+        {/* Heart Icon - Top Left */}
         <button
           onClick={handleToggleFavorite}
-          className="absolute top-3 left-3 p-2.5 rounded-full bg-white dark:bg-gray-200 shadow-lg hover:shadow-xl transition-all active:scale-90 z-10 flex items-center justify-center"
+          className="absolute top-3 left-3 p-2.5 rounded-none bg-white dark:bg-gray-200 shadow-lg hover:shadow-xl transition-all active:scale-90 z-10 flex items-center justify-center"
           title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
           data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
         >
@@ -129,6 +129,13 @@ export function PropertyCard({ property, onQuickView }: PropertyCardProps) {
             }`}
           />
         </button>
+
+        {/* Exclusive Badge Overlay */}
+        <div className="absolute top-3 right-3 z-10">
+          <Badge className="bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-none border-none shadow-xl">
+            {property.status || 'Exclusive'}
+          </Badge>
+        </div>
       </div>
 
       {/* Info Section Below Image */}
