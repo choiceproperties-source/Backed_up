@@ -119,6 +119,17 @@ export default function PropertyDetails() {
       ? property.images!.map(img => imageMap[img] || img)
       : [placeholderExterior, placeholderLiving, placeholderKitchen, placeholderBedroom];
 
+  useEffect(() => {
+    if (!showFullGallery) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length);
+      if (e.key === 'ArrowRight') setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+      if (e.key === 'Escape') setShowFullGallery(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showFullGallery, allImages.length]);
+
   const handleInquiry = async () => {
     if (!inquiryForm.name || !inquiryForm.email) {
       toast({ title: "Error", description: "Please fill in name and email", variant: "destructive" });
@@ -408,7 +419,7 @@ export default function PropertyDetails() {
                 <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Year Built</p><p className="text-lg font-semibold text-gray-900 dark:text-white">2022</p></div>
               </div>
               <div className="space-y-6">
-                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Pet Policy</p><p className="text-lg font-semibold text-gray-900 dark:text-white">{property.petsAllowed ? 'Pets Welcome' : 'No Pets'}</p></div>
+                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Pet Policy</p><p className="text-lg font-semibold text-gray-900 dark:text-white">{property.pets_allowed ? 'Pets Welcome' : 'No Pets'}</p></div>
                 <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Furnished</p><p className="text-lg font-semibold text-gray-900 dark:text-white">{property.furnished ? 'Yes' : 'Unfurnished'}</p></div>
                 <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Parking</p><p className="text-lg font-semibold text-gray-900 dark:text-white">Included</p></div>
               </div>
@@ -577,7 +588,7 @@ export default function PropertyDetails() {
           <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Explore the Area</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
             <div className="lg:col-span-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xl">
-              <InteractiveMap latitude={lat} longitude={lng} />
+              <InteractiveMap lat={lat} lng={lng} />
             </div>
             <div className="space-y-4 overflow-y-auto pr-3 custom-scrollbar">
               <NearbyPlaces places={nearbyPlaces} />
@@ -725,30 +736,143 @@ export default function PropertyDetails() {
         </div>
       )}
 
-      {/* Full Gallery Modal */}
+      {/* Zillow-Style Gallery Modal */}
       {showFullGallery && (
         <div className="fixed inset-0 z-[100] bg-black flex flex-col animate-in fade-in duration-300">
-          <div className="flex justify-between items-center p-6 border-b border-gray-800 bg-black/50 backdrop-blur-md">
-            <p className="text-lg font-black text-white">{currentImageIndex + 1} / {allImages.length}</p>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-lg" onClick={() => setShowFullGallery(false)} data-testid="button-close-gallery">
-              <X className="h-6 w-6" />
-            </Button>
+          {/* Header Bar */}
+          <div className="flex justify-between items-center px-8 py-4 bg-black/80 backdrop-blur-md border-b border-gray-800">
+            <div className="flex items-center gap-4">
+              <p className="text-white font-bold text-lg">{currentImageIndex + 1} of {allImages.length}</p>
+              <span className="text-gray-400">•</span>
+              <p className="text-gray-300 font-medium">{property.title}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-lg" data-testid="button-share-gallery">
+                <Share2 className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-lg" onClick={() => setShowFullGallery(false)} data-testid="button-close-gallery">
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
           </div>
-          <div className="flex-1 flex items-center justify-center relative">
-            <Button variant="ghost" size="icon" className="absolute left-4 text-white hover:bg-white/10 h-16 w-16 rounded-lg" onClick={() => setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length)} data-testid="button-prev-image">
-              <ChevronLeft className="h-10 w-10" />
-            </Button>
-            <img src={allImages[currentImageIndex]} className="max-h-[80vh] max-w-full object-contain" alt={`Gallery ${currentImageIndex + 1}`} />
-            <Button variant="ghost" size="icon" className="absolute right-4 text-white hover:bg-white/10 h-16 w-16 rounded-lg" onClick={() => setCurrentImageIndex(prev => (prev + 1) % allImages.length)} data-testid="button-next-image">
-              <ChevronRight className="h-10 w-10" />
-            </Button>
-          </div>
-          <div className="p-6 overflow-x-auto flex gap-4 justify-center bg-black/50 backdrop-blur-md border-t border-gray-800">
-            {allImages.map((img, i) => (
-              <button key={i} onClick={() => setCurrentImageIndex(i)} className={`h-16 w-24 flex-shrink-0 rounded-lg border-2 transition-all overflow-hidden ${i === currentImageIndex ? 'border-blue-500 shadow-lg shadow-blue-500/50' : 'border-transparent opacity-40 hover:opacity-70'}`} data-testid={`thumbnail-${i}`}>
-                <img src={img} className="w-full h-full object-cover" alt={`Thumbnail ${i}`} />
-              </button>
-            ))}
+
+          {/* Main Gallery Area */}
+          <div className="flex-1 flex gap-4 overflow-hidden p-4">
+            {/* Left Info Panel - Zillow Style */}
+            <div className="w-80 flex-shrink-0 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-6 overflow-y-auto space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-2xl font-black text-white">{property.title}</h3>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-gray-300 text-sm">{property.address}</p>
+                      <p className="text-gray-300 text-sm">{property.city}, {property.state || 'CA'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-white/10 pt-6 space-y-4">
+                <div className="bg-blue-600 rounded-lg p-4">
+                  <p className="text-gray-200 text-xs font-bold uppercase mb-1">Monthly Rent</p>
+                  <p className="text-white text-3xl font-black">{formatPrice(property.price)}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                    <p className="text-gray-400 text-[10px] font-bold uppercase">Beds</p>
+                    <p className="text-white text-2xl font-black">{bedrooms}</p>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                    <p className="text-gray-400 text-[10px] font-bold uppercase">Baths</p>
+                    <p className="text-white text-2xl font-black">{bathrooms}</p>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                  <p className="text-gray-400 text-[10px] font-bold uppercase">Square Feet</p>
+                  <p className="text-white text-xl font-black">{sqft.toLocaleString()} ft²</p>
+                </div>
+              </div>
+
+              <div className="border-t border-white/10 pt-6">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg h-12" data-testid="button-apply-from-gallery">
+                  Apply Now
+                </Button>
+              </div>
+
+              <div className="text-gray-400 text-xs text-center pt-4 border-t border-white/10">
+                <p>Use arrow keys to navigate</p>
+              </div>
+            </div>
+
+            {/* Main Image Viewer - Zillow Style */}
+            <div className="flex-1 flex flex-col gap-4">
+              {/* Large Image */}
+              <div className="flex-1 rounded-xl overflow-hidden bg-black relative group">
+                <img 
+                  src={allImages[currentImageIndex]} 
+                  className="w-full h-full object-cover transition-transform duration-300"
+                  alt={`Gallery ${currentImageIndex + 1}`} 
+                  data-testid="gallery-main-image"
+                />
+
+                {/* Navigation Arrows - Zillow Style */}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="absolute left-6 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-14 w-14 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" 
+                  onClick={() => setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length)} 
+                  data-testid="button-prev-image"
+                >
+                  <ChevronLeft className="h-8 w-8" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="absolute right-6 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-14 w-14 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" 
+                  onClick={() => setCurrentImageIndex(prev => (prev + 1) % allImages.length)} 
+                  data-testid="button-next-image"
+                >
+                  <ChevronRight className="h-8 w-8" />
+                </Button>
+
+                {/* Image Counter Badge */}
+                <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-lg text-sm font-bold">
+                  {currentImageIndex + 1}/{allImages.length}
+                </div>
+              </div>
+
+              {/* Thumbnail Strip - Zillow Style */}
+              <div className="h-32 bg-black/40 rounded-xl border border-white/10 overflow-hidden">
+                <div className="flex h-full gap-2 overflow-x-auto p-2 scroll-smooth">
+                  {allImages.map((img, i) => (
+                    <button 
+                      key={i} 
+                      onClick={() => setCurrentImageIndex(i)}
+                      className={`flex-shrink-0 h-28 w-40 rounded-lg overflow-hidden border-2 transition-all cursor-pointer hover:border-blue-400 ${
+                        i === currentImageIndex 
+                          ? 'border-blue-500 shadow-lg shadow-blue-500/50 ring-2 ring-blue-500' 
+                          : 'border-gray-700 opacity-70 hover:opacity-100'
+                      }`}
+                      data-testid={`thumbnail-${i}`}
+                    >
+                      <img 
+                        src={img} 
+                        className="w-full h-full object-cover" 
+                        alt={`Thumbnail ${i + 1}`} 
+                      />
+                      {i === 14 && allImages.length > 15 && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold">
+                          +{allImages.length - 15}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
