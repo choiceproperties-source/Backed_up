@@ -355,6 +355,24 @@ export const applications = pgTable("applications", {
   }>(),
   // Custom answers to property-specific questions
   customAnswers: jsonb("custom_answers").$type<Record<string, string>>(),
+  // Snapshot data for auditing and consistency
+  rentSnapshot: decimal("rent_snapshot", { precision: 12, scale: 2 }),
+  depositSnapshot: decimal("deposit_snapshot", { precision: 12, scale: 2 }),
+  applicationFeeSnapshot: decimal("application_fee_snapshot", { precision: 8, scale: 2 }),
+  leaseTermSnapshot: text("lease_term_snapshot"),
+  availableDateSnapshot: date("available_date_snapshot"),
+  propertyTitleSnapshot: text("property_title_snapshot"),
+  propertyAddressSnapshot: text("property_address_snapshot"),
+  propertyTypeSnapshot: text("property_type_snapshot"),
+  policiesSnapshot: jsonb("policies_snapshot").$type<{
+    petPolicy?: string;
+    smokingPolicy?: string;
+    occupancyLimit?: number;
+    utilitiesIncluded?: string[];
+    hoaRules?: string;
+  }>(),
+  propertyVersionSnapshot: integer("property_version_snapshot").default(1),
+  propertyStatusAtApplyTime: text("property_status_at_apply_time"),
   // Conversation link for messaging
   conversationId: uuid("conversation_id"),
   // Last step saved for auto-save tracking
