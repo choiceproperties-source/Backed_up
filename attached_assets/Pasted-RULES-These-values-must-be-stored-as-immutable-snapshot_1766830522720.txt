@@ -1,0 +1,99 @@
+RULES:
+• These values must be stored as immutable snapshots
+• Future listing edits must NOT affect submitted applications
+• Display snapshots clearly in both applicant and landlord views
+
+--------------------------------------------------
+3) PROPERTY RULES & POLICIES (ACKNOWLEDGED)
+--------------------------------------------------
+Auto-fetch and display:
+
+• pet_policy
+• smoking_policy
+• occupancy_limit
+• utilities_included
+• HOA_rules (if applicable)
+
+UI REQUIREMENTS:
+• Show as read-only policy cards or bullet sections
+• Require explicit checkbox acknowledgment before submission
+
+--------------------------------------------------
+4) OWNER / MANAGER CONTEXT (LIMITED DISPLAY)
+--------------------------------------------------
+Auto-fetch:
+
+• owner_name OR management_company
+• contact method (platform messaging only)
+
+SECURITY:
+• Do NOT expose private emails or phone numbers
+• Route all communication through the platform
+
+--------------------------------------------------
+5) APPLICATION METADATA (HIDDEN, STORED)
+--------------------------------------------------
+Automatically store:
+
+• application_created_at
+• property_status_at_apply_time
+• property_version_snapshot
+
+PURPOSE:
+• Auditing
+• Analytics
+• Customer support debugging
+• Dispute resolution
+
+--------------------------------------------------
+6) SIMPLIFY APPLICANT INPUT
+--------------------------------------------------
+ONLY collect applicant-specific information:
+
+• personal details
+• employment & income
+• rental history
+• references
+• documents
+
+DO NOT ask for:
+• address
+• rent
+• lease term
+• property type
+• owner info
+
+--------------------------------------------------
+7) UX & BEHAVIOR STANDARDS
+--------------------------------------------------
+• Clear step-by-step application flow
+• Progress indicator
+• Disabled submit button during submission
+• Inline validation with clear error messages
+• Professional empty/loading states
+
+--------------------------------------------------
+8) DATA MODEL REQUIREMENT
+--------------------------------------------------
+Use a snapshot-based application structure:
+
+Application {
+  id
+  user_id
+  property_id
+
+  rent_snapshot
+  deposit_snapshot
+  lease_term_snapshot
+  policies_snapshot
+
+  applicant_data
+  status
+  created_at
+}
+
+--------------------------------------------------
+EXPECTED RESULT:
+A modern, high-trust, low-friction application system that feels identical
+to top real-estate platforms and scales cleanly for future features
+(scoring, comparisons, approvals, analytics).
