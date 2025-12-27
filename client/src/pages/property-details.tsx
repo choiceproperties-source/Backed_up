@@ -188,9 +188,9 @@ export default function PropertyDetails() {
           <ChevronRight className="h-6 w-6" />
         </Button>
 
-        {/* Image Counter */}
-        <div className="absolute top-6 right-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-lg font-black text-sm z-20">
-          {currentImageIndex + 1} / {allImages.length}
+        {/* Image Counter - Subtle Lower Right */}
+        <div className="absolute bottom-24 right-6 bg-black/40 backdrop-blur-sm text-white px-3 py-1 rounded-lg font-medium text-xs z-20 opacity-80">
+          {currentImageIndex + 1}/{allImages.length}
         </div>
 
         {/* Status Badge */}
@@ -203,44 +203,78 @@ export default function PropertyDetails() {
         {/* Content */}
         <div className="absolute inset-0 flex flex-col justify-end items-start pb-32 px-8 md:px-16 max-w-5xl space-y-8">
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-12 duration-1200">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-[0.9] drop-shadow-2xl max-w-4xl">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tighter leading-[1] drop-shadow-2xl max-w-4xl">
               {property.title}
             </h1>
-            <div className="flex items-center gap-2 text-white/90 font-semibold text-lg drop-shadow-lg">
-              <MapPin className="h-5 w-5 text-blue-300" />
-              <span>{property.address}</span>
-              <span className="text-white/60">•</span>
-              <span>{property.city}</span>
+            
+            {/* Address - Professional Formatting */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-start gap-3 text-white/90 font-medium text-base drop-shadow-lg max-w-3xl">
+                <MapPin className="h-5 w-5 text-blue-300 flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="text-white font-semibold">{property.address}</span>
+                  <span className="text-white/70">{property.city}, {property.state || 'CA'}</span>
+                </div>
+              </div>
+              
+              {/* Property Info at a Glance */}
+              <div className="flex flex-wrap gap-4 pt-2 text-sm">
+                <div className="flex items-center gap-2 text-white/90">
+                  <DollarSign className="h-4 w-4 text-yellow-300" />
+                  <span className="font-bold">{formatPrice(property.price)}/mo</span>
+                </div>
+                <span className="text-white/50">•</span>
+                <div className="flex items-center gap-2 text-white/90">
+                  <Bed className="h-4 w-4 text-blue-300" />
+                  <span>{bedrooms} Bed{bedrooms !== 1 ? 's' : ''}</span>
+                </div>
+                <span className="text-white/50">•</span>
+                <div className="flex items-center gap-2 text-white/90">
+                  <Bath className="h-4 w-4 text-blue-300" />
+                  <span>{bathrooms} Bath{bathrooms !== 1 ? 's' : ''}</span>
+                </div>
+                <span className="text-white/50">•</span>
+                <div className="flex items-center gap-2 text-white/90">
+                  <Maximize className="h-4 w-4 text-blue-300" />
+                  <span>{sqft.toLocaleString()} sqft</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3 animate-in fade-in slide-in-from-bottom-16 duration-1200 delay-200">
+          {/* CTA Hierarchy - Primary, Secondary, Tertiary */}
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 animate-in fade-in slide-in-from-bottom-16 duration-1200 delay-200">
+            {/* PRIMARY CTA */}
             <Button 
               size="lg" 
-              className="h-14 px-8 rounded-lg font-bold shadow-2xl bg-white text-black hover:bg-gray-100 border-none transition-all"
+              className="px-8 rounded-lg font-bold shadow-2xl bg-white text-black hover:bg-gray-100 border-none transition-all h-12 sm:h-14"
               onClick={() => window.location.href = `/apply/${property.id}`}
               data-testid="button-apply-now"
             >
               Apply Now
             </Button>
+            
+            {/* SECONDARY CTA */}
             <Button 
               size="lg" 
               variant="outline"
-              className="h-14 px-8 rounded-lg font-bold shadow-xl border-white/40 text-white bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all"
+              className="px-8 rounded-lg font-bold shadow-xl border-white/40 text-white bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all h-12 sm:h-14"
               onClick={() => setShowVideoTour(true)}
               data-testid="button-video-tour"
             >
-              <Video className="h-5 w-5 mr-2" />
+              <Video className="h-4 w-4 mr-2" />
               Tour
             </Button>
+            
+            {/* TERTIARY CTA */}
             <Button 
               size="lg" 
-              variant="outline"
-              className="h-14 px-8 rounded-lg font-bold shadow-xl border-white/40 text-white bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all"
+              variant="ghost"
+              className="px-6 rounded-lg font-semibold text-white hover:bg-white/10 transition-all h-12 sm:h-14"
               onClick={() => setShowFullGallery(true)}
               data-testid="button-view-photos"
             >
-              <Grid3X3 className="h-5 w-5 mr-2" />
+              <Grid3X3 className="h-4 w-4 mr-2" />
               Photos
             </Button>
           </div>
@@ -588,7 +622,7 @@ export default function PropertyDetails() {
           <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Explore the Area</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
             <div className="lg:col-span-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xl">
-              <InteractiveMap lat={lat} lng={lng} />
+              <InteractiveMap center={[lat, lng]} title={property.title} address={`${property.address}, ${property.city}`} />
             </div>
             <div className="space-y-4 overflow-y-auto pr-3 custom-scrollbar">
               <NearbyPlaces places={nearbyPlaces} />
