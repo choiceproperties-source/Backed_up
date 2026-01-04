@@ -119,6 +119,8 @@ export default function PropertyDetails() {
       ? (property.images as string[]).map(img => imageMap[img] || img)
       : [];
 
+  const displayImages = allImages.length > 0 ? allImages : ["https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=2000"]; // Neutral placeholder if really empty
+
   useEffect(() => {
     if (!showFullGallery) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -173,7 +175,7 @@ export default function PropertyDetails() {
       <section className="relative h-screen w-full overflow-hidden bg-black">
         <div className="absolute inset-0 overflow-hidden">
           <img
-            src={allImages[currentImageIndex]}
+            src={displayImages[currentImageIndex]}
             alt={property.title}
             className="w-full h-full object-cover transition-all duration-700 scale-100 hover:scale-105"
           />
@@ -195,9 +197,11 @@ export default function PropertyDetails() {
 
         {/* Status Badge */}
         <div className="absolute top-8 left-8 z-20">
-          <Badge className="bg-white/95 backdrop-blur-md text-black hover:bg-white px-4 py-2 rounded-full font-black text-xs uppercase tracking-[0.15em] border-none shadow-2xl">
-            {property.status || 'Featured'}
-          </Badge>
+          {property.visibility === 'featured' && (
+            <Badge className="bg-white/95 backdrop-blur-md text-black hover:bg-white px-4 py-2 rounded-full font-black text-xs uppercase tracking-[0.15em] border-none shadow-2xl">
+              Featured
+            </Badge>
+          )}
         </div>
 
         {/* Content */}
@@ -223,10 +227,12 @@ export default function PropertyDetails() {
               
               {/* Property Info at a Glance */}
               <div className="flex flex-wrap gap-4 pt-2 text-sm">
-                <div className="flex items-center gap-2 text-white/90">
-                  <DollarSign className="h-4 w-4 text-yellow-300" />
-                  <span className="font-bold">{formatPrice(property.price)}/mo</span>
-                </div>
+                {property.price && (
+                  <div className="flex items-center gap-2 text-white/90">
+                    <DollarSign className="h-4 w-4 text-yellow-300" />
+                    <span className="font-bold">{formatPrice(property.price)}/mo</span>
+                  </div>
+                )}
                 {bedrooms !== undefined && bedrooms !== null && (
                   <>
                     <span className="text-white/50">•</span>
@@ -271,16 +277,18 @@ export default function PropertyDetails() {
             </Button>
             
             {/* SECONDARY CTA */}
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="px-8 rounded-lg font-bold shadow-xl border-white/40 text-white bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all h-12 sm:h-14"
-              onClick={() => setShowVideoTour(true)}
-              data-testid="button-video-tour"
-            >
-              <Video className="h-4 w-4 mr-2" />
-              Tour
-            </Button>
+            {(property as any).video_tour_url && (
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="px-8 rounded-lg font-bold shadow-xl border-white/40 text-white bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all h-12 sm:h-14"
+                onClick={() => setShowVideoTour(true)}
+                data-testid="button-video-tour"
+              >
+                <Video className="h-4 w-4 mr-2" />
+                Tour
+              </Button>
+            )}
             
             {/* TERTIARY CTA */}
             <Button 
@@ -426,6 +434,8 @@ export default function PropertyDetails() {
           </div>
         </section>
 
+        {/* Removed Year Built Placeholder Section */}
+
         {/* Property Details Tabs */}
         <section className="space-y-12">
           <div className="space-y-4">
@@ -475,6 +485,12 @@ export default function PropertyDetails() {
                 )}
               </div>
               <div className="space-y-6">
+                {(property as any).year_built && (
+                  <div>
+                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Year Built</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">{(property as any).year_built}</p>
+                  </div>
+                )}
                 {property.pets_allowed !== null && (
                   <div>
                     <p className="text-sm font-black uppercase text-gray-500 mb-2">Pet Policy</p>
