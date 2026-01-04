@@ -172,150 +172,119 @@ export default function PropertyDetails() {
       <Navbar />
 
       {/* Premium Hero with Image Carousel */}
-      <section className="relative h-screen w-full overflow-hidden bg-black">
+      <section className="relative h-[60vh] w-full overflow-hidden bg-black">
         <div className="absolute inset-0 overflow-hidden">
           <img
             src={displayImages[currentImageIndex]}
             alt={property.title}
             className="w-full h-full object-cover transition-all duration-700 scale-100 hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+        </div>
+
+        {/* Floating Map Icon */}
+        <div className="absolute bottom-6 right-6 z-30 group cursor-pointer" onClick={() => setActiveTab("map")} data-testid="floating-map-button">
+          <div className="bg-white p-3 rounded-2xl shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1">
+            <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+              <MapPin className="text-white h-5 w-5" />
+            </div>
+          </div>
         </div>
 
         {/* Carousel Controls */}
-        <Button variant="ghost" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-14 w-14 rounded-lg z-20" onClick={() => setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length)} data-testid="button-prev-hero">
+        <Button variant="ghost" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-10 w-10 rounded-full z-20" onClick={() => setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length)} data-testid="button-prev-hero">
           <ChevronLeft className="h-6 w-6" />
         </Button>
-        <Button variant="ghost" size="icon" className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-14 w-14 rounded-lg z-20" onClick={() => setCurrentImageIndex(prev => (prev + 1) % allImages.length)} data-testid="button-next-hero">
+        <Button variant="ghost" size="icon" className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-10 w-10 rounded-full z-20" onClick={() => setCurrentImageIndex(prev => (prev + 1) % allImages.length)} data-testid="button-next-hero">
           <ChevronRight className="h-6 w-6" />
         </Button>
 
-        {/* Image Counter - Subtle Lower Right */}
-        <div className="absolute bottom-24 right-6 bg-black/40 backdrop-blur-sm text-white px-3 py-1 rounded-lg font-medium text-xs z-20 opacity-80">
-          {currentImageIndex + 1}/{allImages.length}
+        {/* Dots Indicator */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+          {allImages.map((_, i) => (
+            <div 
+              key={i} 
+              className={`h-2 rounded-full transition-all ${i === currentImageIndex ? 'w-8 bg-white' : 'w-2 bg-white/50'}`}
+            />
+          ))}
         </div>
 
         {/* Status Badge */}
-        <div className="absolute top-8 left-8 z-20">
-          {property.visibility === 'featured' && (
-            <Badge className="bg-white/95 backdrop-blur-md text-black hover:bg-white px-4 py-2 rounded-full font-black text-xs uppercase tracking-[0.15em] border-none shadow-2xl">
+        <div className="absolute top-6 left-6 z-20">
+          {(property as any).visibility === 'featured' && (
+            <Badge className="bg-white/95 backdrop-blur-md text-black px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-wider border-none shadow-xl">
               Featured
             </Badge>
           )}
         </div>
+      </section>
 
-        {/* Content */}
-        <div className="absolute inset-0 flex flex-col justify-end items-start pb-32 px-8 md:px-16 max-w-5xl space-y-8">
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-12 duration-1200">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tighter leading-[1] drop-shadow-2xl max-w-4xl">
-              {property.title}
-            </h1>
-            
-            {/* Address - Professional Formatting */}
-            <div className="flex flex-col gap-3">
-              <div className="flex items-start gap-3 text-white/90 font-medium text-base drop-shadow-lg max-w-3xl">
-                <MapPin className="h-5 w-5 text-blue-300 flex-shrink-0 mt-0.5" />
-                <div className="flex flex-col">
-                  <span className="text-white font-semibold">{property.address}</span>
-                  {(property.city || property.state) && (
-                    <span className="text-white/70">
-                      {property.city}{property.city && property.state ? ', ' : ''}{property.state}
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              {/* Property Info at a Glance */}
-              <div className="flex flex-wrap gap-4 pt-2 text-sm">
-                {property.price && (
-                  <div className="flex items-center gap-2 text-white/90">
-                    <DollarSign className="h-4 w-4 text-yellow-300" />
-                    <span className="font-bold">{formatPrice(property.price)}/mo</span>
-                  </div>
-                )}
-                {bedrooms !== undefined && bedrooms !== null && (
-                  <>
-                    <span className="text-white/50">•</span>
-                    <div className="flex items-center gap-2 text-white/90">
-                      <Bed className="h-4 w-4 text-blue-300" />
-                      <span>{bedrooms} Bed{bedrooms !== 1 ? 's' : ''}</span>
-                    </div>
-                  </>
-                )}
-                {bathrooms !== undefined && bathrooms !== null && (
-                  <>
-                    <span className="text-white/50">•</span>
-                    <div className="flex items-center gap-2 text-white/90">
-                      <Bath className="h-4 w-4 text-blue-300" />
-                      <span>{bathrooms} Bath{bathrooms !== 1 ? 's' : ''}</span>
-                    </div>
-                  </>
-                )}
-                {sqft && (
-                  <>
-                    <span className="text-white/50">•</span>
-                    <div className="flex items-center gap-2 text-white/90">
-                      <Maximize className="h-4 w-4 text-blue-300" />
-                      <span>{sqft.toLocaleString()} sqft</span>
-                    </div>
-                  </>
-                )}
-              </div>
+      {/* Hero Info Section - Mimicking the provided image */}
+      <section className="bg-white dark:bg-gray-950 px-6 py-10 border-b border-gray-100 dark:border-gray-900">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-8">
+          <div className="space-y-6 flex-1">
+            <div className="space-y-1">
+              <h1 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight leading-tight border-b-2 border-gray-900 dark:border-white w-fit pr-4 pb-1">
+                {property.address}
+              </h1>
+              <p className="text-2xl md:text-4xl font-semibold text-gray-400 dark:text-gray-500 underline decoration-dotted decoration-2 underline-offset-8">
+                {property.city}, {property.state} {property.zip_code || (property as any).zip}
+              </p>
             </div>
-          </div>
 
-          {/* CTA Hierarchy - Primary, Secondary, Tertiary */}
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 animate-in fade-in slide-in-from-bottom-16 duration-1200 delay-200">
-            {/* PRIMARY CTA */}
-            <Button 
-              size="lg" 
-              className="px-8 rounded-lg font-bold shadow-2xl bg-white text-black hover:bg-gray-100 border-none transition-all h-12 sm:h-14"
-              onClick={() => window.location.href = `/apply/${property.id}`}
-              data-testid="button-apply-now"
-            >
-              Apply Now
-            </Button>
+            <div className="pt-4">
+              <h2 className="text-7xl font-bold text-gray-900 dark:text-white tracking-tighter">
+                {formatPrice(property.price)}
+              </h2>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xl text-gray-500 dark:text-gray-400 font-medium">
+              {bedrooms !== undefined && bedrooms !== null && (
+                <span>{bedrooms} bds</span>
+              )}
+              {bathrooms !== undefined && bathrooms !== null && (
+                <>
+                  <span className="text-gray-300">•</span>
+                  <span>{bathrooms} ba</span>
+                </>
+              )}
+              {sqft && (
+                <>
+                  <span className="text-gray-300">•</span>
+                  <span>{(sqft as number).toLocaleString()} sqft</span>
+                </>
+              )}
+              {property.price && (
+                <>
+                  <span className="text-gray-300">•</span>
+                  <span>{formatPrice(Math.round(parseFloat(String(property.price)) / 200))}/month est.</span>
+                </>
+              )}
+            </div>
             
-            {/* SECONDARY CTA */}
-            {(property as any).video_tour_url && (
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="px-8 rounded-lg font-bold shadow-xl border-white/40 text-white bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all h-12 sm:h-14"
-                onClick={() => setShowVideoTour(true)}
-                data-testid="button-video-tour"
-              >
-                <Video className="h-4 w-4 mr-2" />
-                Tour
-              </Button>
+            {(property as any).school_district && (
+              <p className="text-2xl text-gray-500 dark:text-gray-400 font-medium">
+                {(property as any).school_district}
+              </p>
             )}
-            
-            {/* TERTIARY CTA */}
+          </div>
+
+          <div className="flex items-center pt-2">
             <Button 
-              size="lg" 
-              variant="ghost"
-              className="px-6 rounded-lg font-semibold text-white hover:bg-white/10 transition-all h-12 sm:h-14"
-              onClick={() => setShowFullGallery(true)}
-              data-testid="button-view-photos"
+              size="icon" 
+              variant="outline" 
+              className={`h-24 w-24 rounded-3xl border-gray-200 dark:border-gray-800 transition-all shadow-sm ${isFavorited(property.id) ? 'text-red-600' : 'hover:bg-gray-50 dark:hover:bg-gray-900'}`}
+              onClick={() => toggleFavorite(property.id)}
+              data-testid="button-favorite"
             >
-              <Grid3X3 className="h-4 w-4 mr-2" />
-              Photos
+              <Heart className={`h-10 w-10 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
             </Button>
           </div>
-        </div>
-
-        {/* Thumbnail Strip */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 flex gap-2 overflow-x-auto justify-center bg-gradient-to-t from-black via-black/50 to-transparent backdrop-blur-sm">
-          {allImages.map((img, i) => (
-            <button key={i} onClick={() => setCurrentImageIndex(i)} className={`h-16 w-24 flex-shrink-0 rounded-lg border-2 transition-all overflow-hidden ${i === currentImageIndex ? 'border-blue-500 shadow-lg shadow-blue-500/50' : 'border-transparent opacity-50 hover:opacity-70'}`} data-testid={`carousel-thumb-${i}`}>
-              <img src={img} className="w-full h-full object-cover" alt={`Thumbnail ${i}`} />
-            </button>
-          ))}
         </div>
       </section>
 
       {/* Sticky Info Bar */}
-      <div className="sticky top-16 z-40 w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-lg">
+      <div className="sticky top-16 z-40 w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-lg hidden md:block">
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-4 flex items-center justify-between gap-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="flex items-center gap-3">
@@ -354,7 +323,7 @@ export default function PropertyDetails() {
               variant="outline" 
               className={`rounded-lg h-12 w-12 border-gray-200 dark:border-gray-700 transition-all ${isFavorited(property.id) ? 'bg-red-50 dark:bg-red-950 text-red-600 border-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
               onClick={() => toggleFavorite(property.id)}
-              data-testid="button-favorite"
+              data-testid="button-favorite-sticky"
             >
               <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
             </Button>
