@@ -114,7 +114,7 @@ export default function PropertyDetails() {
       ? (property.images as string[]).map(img => imageMap[img] || img)
       : [];
 
-  const displayImages = allImages.length > 0 ? allImages : ["https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=2000"]; // Neutral placeholder if really empty
+  const displayImages = allImages.length > 0 ? allImages : ["https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=2000"]; 
 
   useEffect(() => {
     if (!showFullGallery) return;
@@ -215,8 +215,8 @@ export default function PropertyDetails() {
         </div>
       </section>
 
-      {/* Hero Info Section - Mimicking the provided image */}
-      <section className="bg-white dark:bg-gray-950 px-6 py-10 border-b border-gray-100 dark:border-gray-900">
+      {/* Hero Info Section */}
+      <section className="bg-white dark:bg-gray-950 px-6 py-10 border-b border-gray-100 dark:border-gray-900 sticky top-0 z-40 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-8">
           <div className="space-y-6 flex-1">
             <div className="space-y-1">
@@ -250,12 +250,6 @@ export default function PropertyDetails() {
                   <span>{(sqft as number).toLocaleString()} sqft</span>
                 </>
               )}
-              {property.price && (
-                <>
-                  <span className="text-gray-300">•</span>
-                  <span>{formatPrice(Math.round(parseFloat(String(property.price)) / 200))}/month est.</span>
-                </>
-              )}
             </div>
             
             {(property as any).school_district && (
@@ -270,7 +264,7 @@ export default function PropertyDetails() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 items-center pt-2">
+          <div className="hidden md:flex flex-col gap-4 items-center pt-2 sticky top-10">
             <Button 
               size="icon" 
               variant="outline" 
@@ -281,31 +275,26 @@ export default function PropertyDetails() {
               <Heart className={`h-10 w-10 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
             </Button>
             
-            {/* Share and Apply actions */}
-            <div className="flex gap-2 w-full">
-              <Button 
-                variant="outline" 
-                className="flex-1 rounded-xl h-12 font-bold"
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: property.title,
-                      text: property.description,
-                      url: window.location.href
-                    }).catch(() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      toast({ title: "Copied!", description: "Link copied to clipboard" });
-                    });
-                  } else {
-                    navigator.clipboard.writeText(window.location.href);
-                    toast({ title: "Copied!", description: "Link copied to clipboard" });
-                  }
-                }}
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-            </div>
+            <Card className="w-80 shadow-xl border-gray-100 dark:border-gray-800">
+              <CardContent className="p-6 space-y-4">
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">Inquiry</p>
+                  <p className="text-lg font-bold">Contact Agent</p>
+                </div>
+                <div className="space-y-4">
+                  <Input placeholder="Full Name" value={inquiryForm.name} onChange={e => setInquiryForm(prev => ({...prev, name: e.target.value}))} />
+                  <Input placeholder="Email Address" value={inquiryForm.email} onChange={e => setInquiryForm(prev => ({...prev, email: e.target.value}))} />
+                  <Input placeholder="Phone (Optional)" value={inquiryForm.phone} onChange={e => setInquiryForm(prev => ({...prev, phone: e.target.value}))} />
+                  <Textarea placeholder="I'm interested in this property..." value={inquiryForm.message} onChange={e => setInquiryForm(prev => ({...prev, message: e.target.value}))} className="h-32" />
+                  <Button className="w-full h-12 font-bold bg-blue-600 hover:bg-blue-700 text-white" onClick={handleInquiry} disabled={submittingInquiry}>
+                    {submittingInquiry ? "Sending..." : "Send Inquiry"}
+                  </Button>
+                  <Button variant="outline" className="w-full h-12 font-bold" onClick={() => window.location.href = `/apply/${property.id}`}>
+                    Apply Now
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -384,57 +373,57 @@ export default function PropertyDetails() {
         )}
 
         {/* About Section */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">About the property</Badge>
-              <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
-                {property.title}
-              </h2>
-            </div>
-            {property.description && (
+        {property.description && (
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">About the property</Badge>
+                <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
+                  {property.title}
+                </h2>
+              </div>
               <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
                 {property.description}
               </p>
-            )}
-            <div className="grid grid-cols-2 gap-4 pt-6">
-              {property.property_type && (
-                <div className="space-y-2">
-                  <p className="text-sm font-black uppercase text-gray-500">Property Type</p>
-                  <p className="text-xl font-black text-gray-900 dark:text-white">{property.property_type}</p>
-                </div>
-              )}
-              {property.lease_term && (
-                <div className="space-y-2">
-                  <p className="text-sm font-black uppercase text-gray-500">Lease Term</p>
-                  <p className="text-xl font-black text-gray-900 dark:text-white">{property.lease_term}</p>
-                </div>
-              )}
+              <div className="grid grid-cols-2 gap-4 pt-6">
+                {property.property_type && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-black uppercase text-gray-500">Property Type</p>
+                    <p className="text-xl font-black text-gray-900 dark:text-white">{property.property_type}</p>
+                  </div>
+                )}
+                {property.lease_term && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-black uppercase text-gray-500">Lease Term</p>
+                    <p className="text-xl font-black text-gray-900 dark:text-white">{property.lease_term}</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-4">
-              {allImages[1] && (
-                <div className="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300 cursor-pointer group">
-                  <img src={allImages[1]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-1" />
-                </div>
-              )}
-              {allImages[2] && (
-                <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
-                  <img src={allImages[2]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-2" />
-                </div>
-              )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                {allImages[1] && (
+                  <div className="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300 cursor-pointer group">
+                    <img src={allImages[1]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-1" />
+                  </div>
+                )}
+                {allImages[2] && (
+                  <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
+                    <img src={allImages[2]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-2" />
+                  </div>
+                )}
+              </div>
+              <div className="pt-12 space-y-4">
+                {allImages[3] && (
+                  <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
+                    <img src={allImages[3]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-3" />
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="pt-12 space-y-4">
-              {allImages[3] && (
-                <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
-                  <img src={allImages[3]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-3" />
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Removed Year Built Placeholder Section */}
 
@@ -860,6 +849,29 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
+
+      {/* Floating CTA Card for Desktop */}
+      <div className="hidden lg:block fixed top-32 right-8 z-40 animate-in fade-in slide-in-from-right duration-500">
+        <Card className="w-80 shadow-2xl border-gray-100 dark:border-gray-800 bg-white/90 dark:bg-gray-950/90 backdrop-blur-md">
+          <CardContent className="p-6 space-y-4">
+            <div className="flex justify-between items-end">
+              <div>
+                <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">Price</p>
+                <p className="text-3xl font-black text-gray-900 dark:text-white">{formatPrice(property.price)}</p>
+              </div>
+              <Badge variant="outline" className="mb-1">Active</Badge>
+            </div>
+            <div className="flex gap-2">
+              <Button className="flex-1 h-12 font-bold bg-blue-600 hover:bg-blue-700 text-white" onClick={() => window.location.href = `/apply/${property.id}`}>
+                Apply Now
+              </Button>
+              <Button size="icon" variant="outline" className={`h-12 w-12 rounded-xl ${isFavorited(property.id) ? 'text-red-600' : ''}`} onClick={() => toggleFavorite(property.id)}>
+                <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Footer />
     </div>

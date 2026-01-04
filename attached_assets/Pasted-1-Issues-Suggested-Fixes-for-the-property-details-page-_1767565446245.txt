@@ -1,0 +1,17 @@
+1. Issues & Suggested Fixes for the property details page only 
+* Redundant Layout Elements: The "Sticky Info Bar" (lines 377-425) duplicates info (Beds/Baths/Sqft) already shown in the massive "Hero Info Section" (lines 225-265). This creates visual clutter.
+    * Fix: Remove the secondary sticky info bar and instead make the primary "Hero Info Section" transition into a more compact sticky header as the user scrolls.
+* Empty State Visuals: If a property has no description or amenities, there are large "About Section" gaps.
+    * Fix: Implement stricter conditional rendering to collapse these entire sections (and their corresponding padding/margin) if data is missing.
+* Inquiry Form Visibility: The "About Section" and "Tabs" take up significant vertical space, pushing the contact form very far down.
+    * Fix: Move the inquiry/contact form into a right-hand sidebar (for desktop) to keep it visible alongside the property details.
+2. What's Not Useful / Needed
+* Manual "monthlyPayment" State (lines 57, 98-101): You have a dedicated CostCalculator component now, so this local state and its basic calculation are redundant and potentially confusing if they differ from the calculator's output.
+    * Fix: Remove the local monthlyPayment state and use the CostCalculator as the single source of truth for financial estimates.
+* Hardcoded "placeholder-*" image mapping (lines 39-45): This is useful for development but clutters the production logic.
+    * Fix: Consolidate this into a utility or simply handle it within the displayImages logic to keep the component clean.
+3. Proposed Improvements
+* Tab Navigation vs. Scroll: Currently, users have to click tabs to see "Features" or "Pricing". Most real estate users prefer a continuous scroll with "Jump Links" or an "Active Tab" that highlights based on scroll position.
+* Map Integration: The "Floating Map Icon" currently just switches a tab. It would be better if it scrolled the user down to an expanded Neighborhood section with the InteractiveMap and NearbyPlaces pre-loaded.
+* "Apply Now" prominence: On desktop, there is no high-visibility "Call to Action" (CTA) that follows the user.
+    * Fix: Add a "Floating CTA" or a sidebar card that keeps the price and "Apply Now" button always in view.
