@@ -27,6 +27,7 @@ import { AmenitiesGrid } from "@/components/amenities-grid";
 import { InteractiveMap } from "@/components/interactive-map";
 import { NearbyPlaces } from "@/components/nearby-places";
 import { EnhancedTrustBadges } from "@/components/enhanced-trust-badges";
+import { CostCalculator } from "@/components/cost-calculator";
 import { updateMetaTags, getPropertyStructuredData, addStructuredData, removeStructuredData } from "@/lib/seo";
 import { PropertyDetailsSkeleton } from "@/components/property-details-skeleton";
 import NotFound from "@/pages/not-found";
@@ -172,12 +173,13 @@ export default function PropertyDetails() {
       <Navbar />
 
       {/* Premium Hero with Image Carousel */}
-      <section className="relative h-[60vh] w-full overflow-hidden bg-black">
-        <div className="absolute inset-0 overflow-hidden">
+      <section className="relative h-[60vh] w-full overflow-hidden bg-black group/hero">
+        <div className="absolute inset-0 overflow-hidden" onClick={() => setShowFullGallery(true)}>
           <img
             src={displayImages[currentImageIndex]}
             alt={property.title}
-            className="w-full h-full object-cover transition-all duration-700 scale-100 hover:scale-105"
+            className="w-full h-full object-cover transition-all duration-1000 scale-100 hover:scale-105 cursor-zoom-in"
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
         </div>
@@ -267,9 +269,14 @@ export default function PropertyDetails() {
                 {(property as any).school_district}
               </p>
             )}
+
+            {/* Mortgage Calculator Section */}
+            <div className="mt-8 pt-8 border-t border-gray-100 dark:border-gray-900">
+              <CostCalculator price={parseFloat(String(property.price))} />
+            </div>
           </div>
 
-          <div className="flex items-center pt-2">
+          <div className="flex flex-col gap-4 items-center pt-2">
             <Button 
               size="icon" 
               variant="outline" 
@@ -279,9 +286,92 @@ export default function PropertyDetails() {
             >
               <Heart className={`h-10 w-10 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
             </Button>
+            
+            {/* Share and Apply actions */}
+            <div className="flex gap-2 w-full">
+              <Button 
+                variant="outline" 
+                className="flex-1 rounded-xl h-12 font-bold"
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: property.title,
+                      text: property.description,
+                      url: window.location.href
+                    }).catch(() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast({ title: "Copied!", description: "Link copied to clipboard" });
+                    });
+                  } else {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast({ title: "Copied!", description: "Link copied to clipboard" });
+                  }
+                }}
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* Full Gallery Modal / Lightbox */}
+      {showFullGallery && (
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex flex-col animate-in fade-in duration-300">
+          <div className="flex items-center justify-between p-6 text-white">
+            <h3 className="text-xl font-bold">{property.title} - Gallery</h3>
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 h-12 w-12 rounded-full" onClick={() => setShowFullGallery(false)}>
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+          
+          <div className="flex-1 relative flex items-center justify-center p-4">
+            <img 
+              src={allImages[currentImageIndex]} 
+              className="max-h-[85vh] max-w-full object-contain shadow-2xl animate-in zoom-in-95 duration-500"
+              alt={`Property image ${currentImageIndex + 1}`}
+            />
+            
+            <Button variant="ghost" size="icon" className="absolute left-6 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-16 w-16 rounded-full" onClick={(e) => {
+              e.stopPropagation();
+              setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length);
+            }}>
+              <ChevronLeft className="h-10 w-10" />
+            </Button>
+            <Button variant="ghost" size="icon" className="absolute right-6 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-16 w-16 rounded-full" onClick={(e) => {
+              e.stopPropagation();
+              setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+            }}>
+              <ChevronRight className="h-10 w-10" />
+            </Button>
+          </div>
+
+          <div className="p-8 flex gap-3 overflow-x-auto bg-black/50 backdrop-blur-md border-t border-white/10">
+            {allImages.map((img, i) => (
+              <button key={i} onClick={() => setCurrentImageIndex(i)} className={`h-24 w-36 flex-shrink-0 rounded-xl border-2 transition-all overflow-hidden ${i === currentImageIndex ? 'border-blue-500 scale-105 shadow-lg shadow-blue-500/50' : 'border-transparent opacity-40 hover:opacity-100'}`}>
+                <img src={img} className="w-full h-full object-cover" alt={`Gallery thumb ${i}`} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Sticky Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-t border-gray-200 dark:border-gray-800 p-4 md:hidden animate-in slide-in-from-bottom duration-500">
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Price</p>
+            <p className="text-xl font-black text-gray-900 dark:text-white leading-none">{formatPrice(property.price)}</p>
+          </div>
+          <Button 
+            className="flex-[2] h-14 rounded-2xl font-bold text-lg bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+            onClick={() => window.location.href = `/apply/${property.id}`}
+          >
+            Apply Now
+          </Button>
+        </div>
+      </div>
 
       {/* Sticky Info Bar */}
       <div className="sticky top-16 z-40 w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-lg hidden md:block">
