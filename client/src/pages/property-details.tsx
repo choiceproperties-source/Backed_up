@@ -54,7 +54,6 @@ export default function PropertyDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showVideoTour, setShowVideoTour] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
-  const [monthlyPayment, setMonthlyPayment] = useState(0);
   const [inquiryForm, setInquiryForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [submittingInquiry, setSubmittingInquiry] = useState(false);
 
@@ -95,11 +94,6 @@ export default function PropertyDetails() {
   const bathrooms = property?.bathrooms ? Math.round(parseDecimal(property.bathrooms)) : null;
   const sqft = property?.square_feet;
 
-  useEffect(() => {
-    const rent = parseFloat(String(property?.price || 0));
-    setMonthlyPayment(rent);
-  }, [property?.price]);
-  
   useEffect(() => {
     if (property) {
       updateMetaTags({
@@ -370,57 +364,6 @@ export default function PropertyDetails() {
           >
             Apply Now
           </Button>
-        </div>
-      </div>
-
-      {/* Sticky Info Bar */}
-      <div className="sticky top-16 z-40 w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-lg hidden md:block">
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-4 flex items-center justify-between gap-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="flex items-center gap-3">
-              <Bed className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-[10px] font-black uppercase text-gray-500">Bedrooms</p>
-                <p className="text-lg font-black text-gray-900 dark:text-white">{bedrooms}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Bath className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-[10px] font-black uppercase text-gray-500">Bathrooms</p>
-                <p className="text-lg font-black text-gray-900 dark:text-white">{bathrooms}</p>
-              </div>
-            </div>
-            <div className="hidden md:flex items-center gap-3">
-              <Maximize className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-[10px] font-black uppercase text-gray-500">Area</p>
-                <p className="text-lg font-black text-gray-900 dark:text-white">{sqft ? `${sqft.toLocaleString()} ft²` : 'N/A'}</p>
-              </div>
-            </div>
-            <div className="hidden md:flex items-center gap-3">
-              <DollarSign className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-[10px] font-black uppercase text-gray-500">Monthly</p>
-                <p className="text-lg font-black text-blue-600">{formatPrice(property.price)}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button 
-              size="icon" 
-              variant="outline" 
-              className={`rounded-lg h-12 w-12 border-gray-200 dark:border-gray-700 transition-all ${isFavorited(property.id) ? 'bg-red-50 dark:bg-red-950 text-red-600 border-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-              onClick={() => toggleFavorite(property.id)}
-              data-testid="button-favorite-sticky"
-            >
-              <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
-            </Button>
-            <Button size="icon" variant="outline" className="rounded-lg h-12 w-12 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800" data-testid="button-share">
-              <Share2 className="h-5 w-5" />
-            </Button>
-          </div>
         </div>
       </div>
 
