@@ -86,13 +86,13 @@ export default function PropertyDetails() {
     select: (res: any) => res?.data ?? [],
   });
 
-  const lat = property?.latitude ? parseFloat(String(property.latitude)) : 34.0522;
-  const lng = property?.longitude ? parseFloat(String(property.longitude)) : -118.2437;
+  const lat = property?.latitude ? parseFloat(String(property.latitude)) : 0;
+  const lng = property?.longitude ? parseFloat(String(property.longitude)) : 0;
   const nearbyPlaces = useNearbyPlaces(lat, lng);
 
-  const bedrooms = property?.bedrooms || 0;
-  const bathrooms = property ? Math.round(parseDecimal(property.bathrooms)) : 0;
-  const sqft = property?.square_feet || 0;
+  const bedrooms = property?.bedrooms;
+  const bathrooms = property?.bathrooms ? Math.round(parseDecimal(property.bathrooms)) : null;
+  const sqft = property?.square_feet;
 
   useEffect(() => {
     const rent = parseFloat(String(property?.price || 0));
@@ -115,9 +115,9 @@ export default function PropertyDetails() {
 
   const allImages = property && photosData && photosData.length > 0
     ? photosData.map(photo => photo.imageUrls.gallery)
-    : property && (property.images || []).length > 0 
-      ? property.images!.map(img => imageMap[img] || img)
-      : [placeholderExterior, placeholderLiving, placeholderKitchen, placeholderBedroom];
+    : property && (property.images as string[] || []).length > 0 
+      ? (property.images as string[]).map(img => imageMap[img] || img)
+      : [];
 
   useEffect(() => {
     if (!showFullGallery) return;
@@ -213,7 +213,11 @@ export default function PropertyDetails() {
                 <MapPin className="h-5 w-5 text-blue-300 flex-shrink-0 mt-0.5" />
                 <div className="flex flex-col">
                   <span className="text-white font-semibold">{property.address}</span>
-                  <span className="text-white/70">{property.city}, {property.state || 'CA'}</span>
+                  {(property.city || property.state) && (
+                    <span className="text-white/70">
+                      {property.city}{property.city && property.state ? ', ' : ''}{property.state}
+                    </span>
+                  )}
                 </div>
               </div>
               
@@ -223,21 +227,33 @@ export default function PropertyDetails() {
                   <DollarSign className="h-4 w-4 text-yellow-300" />
                   <span className="font-bold">{formatPrice(property.price)}/mo</span>
                 </div>
-                <span className="text-white/50">•</span>
-                <div className="flex items-center gap-2 text-white/90">
-                  <Bed className="h-4 w-4 text-blue-300" />
-                  <span>{bedrooms} Bed{bedrooms !== 1 ? 's' : ''}</span>
-                </div>
-                <span className="text-white/50">•</span>
-                <div className="flex items-center gap-2 text-white/90">
-                  <Bath className="h-4 w-4 text-blue-300" />
-                  <span>{bathrooms} Bath{bathrooms !== 1 ? 's' : ''}</span>
-                </div>
-                <span className="text-white/50">•</span>
-                <div className="flex items-center gap-2 text-white/90">
-                  <Maximize className="h-4 w-4 text-blue-300" />
-                  <span>{sqft.toLocaleString()} sqft</span>
-                </div>
+                {bedrooms !== undefined && bedrooms !== null && (
+                  <>
+                    <span className="text-white/50">•</span>
+                    <div className="flex items-center gap-2 text-white/90">
+                      <Bed className="h-4 w-4 text-blue-300" />
+                      <span>{bedrooms} Bed{bedrooms !== 1 ? 's' : ''}</span>
+                    </div>
+                  </>
+                )}
+                {bathrooms !== undefined && bathrooms !== null && (
+                  <>
+                    <span className="text-white/50">•</span>
+                    <div className="flex items-center gap-2 text-white/90">
+                      <Bath className="h-4 w-4 text-blue-300" />
+                      <span>{bathrooms} Bath{bathrooms !== 1 ? 's' : ''}</span>
+                    </div>
+                  </>
+                )}
+                {sqft && (
+                  <>
+                    <span className="text-white/50">•</span>
+                    <div className="flex items-center gap-2 text-white/90">
+                      <Maximize className="h-4 w-4 text-blue-300" />
+                      <span>{sqft.toLocaleString()} sqft</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -312,7 +328,7 @@ export default function PropertyDetails() {
               <Maximize className="h-5 w-5 text-blue-600" />
               <div>
                 <p className="text-[10px] font-black uppercase text-gray-500">Area</p>
-                <p className="text-lg font-black text-gray-900 dark:text-white">{sqft.toLocaleString()} ft²</p>
+                <p className="text-lg font-black text-gray-900 dark:text-white">{sqft ? `${sqft.toLocaleString()} ft²` : 'N/A'}</p>
               </div>
             </div>
             <div className="hidden md:flex items-center gap-3">
@@ -344,37 +360,18 @@ export default function PropertyDetails() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto w-full px-6 md:px-8 py-20 space-y-32">
         
-        {/* Key Stats Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800 rounded-xl">
-            <CardContent className="pt-6">
-              <Zap className="h-8 w-8 text-blue-600 mb-3" />
-              <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Utilities</p>
-              <p className="text-lg font-black text-gray-900 dark:text-white">Included</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800 rounded-xl">
-            <CardContent className="pt-6">
-              <Lock className="h-8 w-8 text-green-600 mb-3" />
-              <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Security</p>
-              <p className="text-lg font-black text-gray-900 dark:text-white">24/7</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800 rounded-xl">
-            <CardContent className="pt-6">
-              <Wifi className="h-8 w-8 text-purple-600 mb-3" />
-              <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Internet</p>
-              <p className="text-lg font-black text-gray-900 dark:text-white">High-Speed</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200 dark:border-orange-800 rounded-xl">
-            <CardContent className="pt-6">
-              <TrendingUp className="h-8 w-8 text-orange-600 mb-3" />
-              <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Market Value</p>
-              <p className="text-lg font-black text-gray-900 dark:text-white">Strong</p>
-            </CardContent>
-          </Card>
-        </section>
+        {/* Key Stats Cards - Removed hardcoded placeholders */}
+        {property.utilities_included && property.utilities_included.length > 0 && (
+          <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800 rounded-xl">
+              <CardContent className="pt-6">
+                <Zap className="h-8 w-8 text-blue-600 mb-3" />
+                <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Utilities</p>
+                <p className="text-lg font-black text-gray-900 dark:text-white">Included</p>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         {/* About Section */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -382,37 +379,49 @@ export default function PropertyDetails() {
             <div className="space-y-4">
               <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">About the property</Badge>
               <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
-                Premium Living Space
+                {property.title}
               </h2>
             </div>
-            <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
-              {property.description || "Experience living at its finest in this meticulously designed space. Every corner has been crafted to offer a blend of luxury, comfort, and functionality."}
-            </p>
+            {property.description && (
+              <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
+                {property.description}
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-4 pt-6">
-              <div className="space-y-2">
-                <p className="text-sm font-black uppercase text-gray-500">Property Type</p>
-                <p className="text-xl font-black text-gray-900 dark:text-white">{property.property_type || 'Apartment'}</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm font-black uppercase text-gray-500">Lease Term</p>
-                <p className="text-xl font-black text-gray-900 dark:text-white">{property.lease_term || '12 Months'}</p>
-              </div>
+              {property.property_type && (
+                <div className="space-y-2">
+                  <p className="text-sm font-black uppercase text-gray-500">Property Type</p>
+                  <p className="text-xl font-black text-gray-900 dark:text-white">{property.property_type}</p>
+                </div>
+              )}
+              {property.lease_term && (
+                <div className="space-y-2">
+                  <p className="text-sm font-black uppercase text-gray-500">Lease Term</p>
+                  <p className="text-xl font-black text-gray-900 dark:text-white">{property.lease_term}</p>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-4">
-              <div className="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300 cursor-pointer group">
-                <img src={allImages[1] || placeholderLiving} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-1" />
-              </div>
-              <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
-                <img src={allImages[2] || placeholderKitchen} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-2" />
-              </div>
+              {allImages[1] && (
+                <div className="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300 cursor-pointer group">
+                  <img src={allImages[1]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-1" />
+                </div>
+              )}
+              {allImages[2] && (
+                <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
+                  <img src={allImages[2]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-2" />
+                </div>
+              )}
             </div>
             <div className="pt-12 space-y-4">
-              <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
-                <img src={allImages[3] || placeholderBedroom} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-3" />
-              </div>
+              {allImages[3] && (
+                <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
+                  <img src={allImages[3]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-3" />
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -448,14 +457,36 @@ export default function PropertyDetails() {
           {activeTab === 'details' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
-                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Unit Layout</p><p className="text-lg font-semibold text-gray-900 dark:text-white">{bedrooms} Bed • {bathrooms} Bath</p></div>
-                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Square Footage</p><p className="text-lg font-semibold text-gray-900 dark:text-white">{sqft.toLocaleString()} sq ft</p></div>
-                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Year Built</p><p className="text-lg font-semibold text-gray-900 dark:text-white">2022</p></div>
+                {(bedrooms !== null || bathrooms !== null) && (
+                  <div>
+                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Unit Layout</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {bedrooms !== null ? `${bedrooms} Bed` : ''}
+                      {bedrooms !== null && bathrooms !== null ? ' • ' : ''}
+                      {bathrooms !== null ? `${bathrooms} Bath` : ''}
+                    </p>
+                  </div>
+                )}
+                {sqft && (
+                  <div>
+                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Square Footage</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">{(sqft as number).toLocaleString()} sq ft</p>
+                  </div>
+                )}
               </div>
               <div className="space-y-6">
-                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Pet Policy</p><p className="text-lg font-semibold text-gray-900 dark:text-white">{property.pets_allowed ? 'Pets Welcome' : 'No Pets'}</p></div>
-                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Furnished</p><p className="text-lg font-semibold text-gray-900 dark:text-white">{property.furnished ? 'Yes' : 'Unfurnished'}</p></div>
-                <div><p className="text-sm font-black uppercase text-gray-500 mb-2">Parking</p><p className="text-lg font-semibold text-gray-900 dark:text-white">Included</p></div>
+                {property.pets_allowed !== null && (
+                  <div>
+                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Pet Policy</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.pets_allowed ? 'Pets Welcome' : 'No Pets'}</p>
+                  </div>
+                )}
+                {property.furnished !== null && (
+                  <div>
+                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Furnished</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.furnished ? 'Yes' : 'Unfurnished'}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -473,162 +504,63 @@ export default function PropertyDetails() {
                   <p className="text-sm font-black uppercase text-gray-500 mb-2">Monthly Rent</p>
                   <p className="text-4xl font-black text-blue-600">{formatPrice(property.price)}</p>
                 </div>
-                <div className="p-6 bg-green-50 dark:bg-green-950/30 rounded-xl border border-green-200 dark:border-green-800">
-                  <p className="text-sm font-black uppercase text-gray-500 mb-2">Security Deposit</p>
-                  <p className="text-3xl font-black text-green-600">{formatPrice(property.price)}</p>
-                </div>
               </div>
               <div className="space-y-4">
-                <div className="p-6 bg-purple-50 dark:bg-purple-950/30 rounded-xl border border-purple-200 dark:border-purple-800">
-                  <p className="text-sm font-black uppercase text-gray-500 mb-2">Application Fee</p>
-                  <p className="text-3xl font-black text-purple-600">$45.00</p>
-                </div>
                 <div className="p-6 bg-orange-50 dark:bg-orange-950/30 rounded-xl border border-orange-200 dark:border-orange-800">
-                  <p className="text-sm font-black uppercase text-gray-500 mb-2">Available Date</p>
-                  <p className="text-2xl font-black text-orange-600">Immediately</p>
+                  <p className="text-sm font-black uppercase text-gray-500 mb-2">Listing Status</p>
+                  <p className="text-2xl font-black text-orange-600 uppercase">{property.status || 'Active'}</p>
                 </div>
               </div>
             </div>
           )}
         </section>
 
-        {/* Financing Calculator */}
-        <section className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl p-8 md:p-12 space-y-8">
-          <div className="flex items-center gap-3">
-            <Calculator className="h-8 w-8 text-blue-600" />
-            <h2 className="text-4xl font-black text-gray-900 dark:text-white">Financing Calculator</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">Monthly Rent</p>
-              <p className="text-3xl font-black text-blue-600">{formatPrice(monthlyPayment)}</p>
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl p-8 md:p-12 space-y-8">
+            <div className="flex items-center gap-3">
+              <Calculator className="h-8 w-8 text-blue-600" />
+              <h2 className="text-4xl font-black text-gray-900 dark:text-white">Estimated Costs</h2>
             </div>
-            <div>
-              <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">Annual Cost</p>
-              <p className="text-3xl font-black text-green-600">{formatPrice(monthlyPayment * 12)}</p>
-            </div>
-            <div>
-              <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">12-Month Total</p>
-              <p className="text-3xl font-black text-purple-600">{formatPrice((monthlyPayment * 12) + parseFloat(String(property.price || 0)))}</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Schools Section */}
-        <section className="space-y-12">
-          <div className="flex items-center gap-3">
-            <BookOpen className="h-8 w-8 text-blue-600" />
-            <h2 className="text-5xl font-black text-gray-900 dark:text-white">Schools Nearby</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { name: "Lincoln High School", grade: "9-12", rating: 4.5, distance: "0.8 mi" },
-              { name: "Central Middle School", grade: "6-8", rating: 4.2, distance: "0.5 mi" },
-              { name: "Riverside Elementary", grade: "K-5", rating: 4.7, distance: "0.3 mi" }
-            ].map((school, i) => (
-              <Card key={i} className="hover:shadow-lg transition-shadow duration-300 rounded-xl border border-gray-200 dark:border-gray-800">
-                <CardContent className="pt-6 space-y-4">
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-black text-gray-900 dark:text-white">{school.name}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Grades {school.grade}</p>
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800">
-                    <div className="flex items-center gap-2">
-                      {[...Array(5)].map((_, j) => (
-                        <Star key={j} className={`h-4 w-4 ${j < Math.round(school.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
-                      ))}
-                    </div>
-                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">{school.distance}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Price Trends */}
-        <section className="space-y-12">
-          <div className="flex items-center gap-3">
-            <TrendingUp className="h-8 w-8 text-blue-600" />
-            <h2 className="text-5xl font-black text-gray-900 dark:text-white">Price Trends</h2>
-          </div>
-
-          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl">
-            <CardContent className="pt-8 space-y-6">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-gray-600 dark:text-gray-400">12 months ago</span>
-                  <span className="text-lg font-black text-gray-900 dark:text-white">$2,200</span>
-                </div>
-                <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2">
-                  <div className="bg-blue-600 h-2 rounded-full" style={{width: "75%"}}></div>
-                </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">Monthly Rent</p>
+                <p className="text-3xl font-black text-blue-600">{formatPrice(monthlyPayment)}</p>
               </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Today</span>
-                  <span className="text-lg font-black text-gray-900 dark:text-white">{formatPrice(property.price)}</span>
-                </div>
-                <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2">
-                  <div className="bg-green-600 h-2 rounded-full" style={{width: "100%"}}></div>
-                </div>
+              <div>
+                <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">Annual Commitment</p>
+                <p className="text-3xl font-black text-green-600">{formatPrice(monthlyPayment * 12)}</p>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 pt-4">Market price increased 5.2% over the last year</p>
-            </CardContent>
+            </div>
           </Card>
-        </section>
 
-        {/* Similar Properties Carousel */}
-        <section className="space-y-12">
-          <h2 className="text-5xl font-black text-gray-900 dark:text-white">Similar Properties</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1,2,3].map(i => (
-              <Card key={i} className="hover:shadow-lg transition-shadow duration-300 cursor-pointer rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800">
-                <div className="aspect-video bg-gray-300 dark:bg-gray-700 relative overflow-hidden">
-                  <img src={allImages[i % allImages.length]} className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" alt={`Similar property ${i}`} />
-                  <Badge className="absolute top-4 right-4 bg-white/90 text-black">Similar</Badge>
-                </div>
-                <CardContent className="pt-4 space-y-4">
-                  <h3 className="text-lg font-black text-gray-900 dark:text-white line-clamp-2">Modern Apartment #{2800 + i}</h3>
-                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
-                    <MapPin className="h-4 w-4" />
-                    <span>{property.city}</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 pt-2">
-                    <div><p className="text-[10px] font-bold uppercase text-gray-500">Beds</p><p className="text-lg font-black">{bedrooms}</p></div>
-                    <div><p className="text-[10px] font-bold uppercase text-gray-500">Baths</p><p className="text-lg font-black">{bathrooms}</p></div>
-                    <div><p className="text-[10px] font-bold uppercase text-gray-500">Sqft</p><p className="text-lg font-black">{(sqft/1000).toFixed(1)}k</p></div>
-                  </div>
-                  <p className="text-2xl font-black text-blue-600 pt-2">{formatPrice(parseFloat(String(property.price || 0)) + (i * 50))}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+        {/* Schools Section - Removed hardcoded placeholders */}
+        {/* Price Trends - Removed hardcoded placeholders */}
+        {/* Similar Properties - Removed hardcoded placeholders */}
 
         {/* Features Section */}
-        <section className="space-y-12">
-          <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Lifestyle Features</Badge>
-          <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Premium Amenities</h2>
-          <AmenitiesGrid amenities={property.amenities || []} />
-        </section>
+        {property.amenities && property.amenities.length > 0 && (
+          <section className="space-y-12">
+            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Lifestyle Features</Badge>
+            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Premium Amenities</h2>
+            <AmenitiesGrid amenities={property.amenities} />
+          </section>
+        )}
 
         {/* Neighborhood Map */}
-        <section className="space-y-12">
-          <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Neighborhood</Badge>
-          <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Explore the Area</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
-            <div className="lg:col-span-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xl">
-              <InteractiveMap center={[lat, lng]} title={property.title} address={`${property.address}, ${property.city}`} />
+        {(lat !== 0 || lng !== 0) && (
+          <section className="space-y-12">
+            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Neighborhood</Badge>
+            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Explore the Area</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
+              <div className="lg:col-span-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xl">
+                <InteractiveMap center={[lat, lng]} title={property.title} address={`${property.address}, ${property.city}`} />
+              </div>
+              <div className="space-y-4 overflow-y-auto pr-3 custom-scrollbar">
+                <NearbyPlaces places={nearbyPlaces} />
+              </div>
             </div>
-            <div className="space-y-4 overflow-y-auto pr-3 custom-scrollbar">
-              <NearbyPlaces places={nearbyPlaces} />
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Inquiry Form - Zillow/OpenDoor Standard */}
         <section className="space-y-12">
