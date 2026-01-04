@@ -244,12 +244,12 @@ export default function PropertyDetails() {
                   <span>{bathrooms} ba</span>
                 </>
               )}
-              {sqft && (
+              {sqft ? (
                 <>
                   <span className="text-gray-300">•</span>
                   <span>{(sqft as number).toLocaleString()} sqft</span>
                 </>
-              )}
+              ) : null}
             </div>
             
             {(property as any).school_district && (
@@ -260,7 +260,11 @@ export default function PropertyDetails() {
 
             {/* Mortgage Calculator Section */}
             <div className="mt-8 pt-8 border-t border-gray-100 dark:border-gray-900">
-              <CostCalculator price={parseFloat(String(property.price))} />
+              <CostCalculator 
+                monthlyRent={parseFloat(String(property.price))}
+                petsAllowed={(property as any).pets_allowed}
+                parkingIncluded={(property as any).parking_included}
+              />
             </div>
           </div>
 
@@ -468,12 +472,12 @@ export default function PropertyDetails() {
                     </p>
                   </div>
                 )}
-                {sqft && (
+                {sqft ? (
                   <div>
                     <p className="text-sm font-black uppercase text-gray-500 mb-2">Square Footage</p>
                     <p className="text-lg font-semibold text-gray-900 dark:text-white">{(sqft as number).toLocaleString()} sq ft</p>
                   </div>
-                )}
+                ) : null}
               </div>
               <div className="space-y-6">
                 {(property as any).year_built && (
@@ -531,11 +535,11 @@ export default function PropertyDetails() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">Monthly Rent</p>
-                <p className="text-3xl font-black text-blue-600">{formatPrice(monthlyPayment)}</p>
+                <p className="text-3xl font-black text-blue-600">{formatPrice(property.price)}</p>
               </div>
               <div>
                 <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">Annual Commitment</p>
-                <p className="text-3xl font-black text-green-600">{formatPrice(monthlyPayment * 12)}</p>
+                <p className="text-3xl font-black text-green-600">{formatPrice(property.price * 12)}</p>
               </div>
             </div>
           </Card>
@@ -765,7 +769,7 @@ export default function PropertyDetails() {
 
                 <div className="bg-white/5 rounded-lg p-3 border border-white/10">
                   <p className="text-gray-400 text-[10px] font-bold uppercase">Square Feet</p>
-                  <p className="text-white text-xl font-black">{sqft.toLocaleString()} ft²</p>
+                  <p className="text-white text-xl font-black">{sqft ? sqft.toLocaleString() : 'N/A'} ft²</p>
                 </div>
               </div>
 
