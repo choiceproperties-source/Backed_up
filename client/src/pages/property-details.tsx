@@ -54,50 +54,82 @@ const PropertyGallery = ({ images, onImageClick }: { images: string[], onImageCl
   if (!images || images.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[500px] mb-12">
-      {/* Main Hero Image */}
-      <div 
-        className="md:col-span-2 md:row-span-2 relative group overflow-hidden rounded-3xl cursor-zoom-in"
-        onClick={() => onImageClick(0)}
-      >
-        <img 
-          src={images[0]} 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-          alt="Main Property View"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
-        <div className="absolute bottom-6 left-6">
-          <Badge className="bg-white/90 backdrop-blur-md text-black border-none px-4 py-2 rounded-full font-bold text-xs uppercase tracking-widest shadow-xl">
-            Main Entrance
-          </Badge>
-        </div>
-      </div>
-
-      {/* Supporting Images */}
-      {images.slice(1, 5).map((img, i) => (
+    <div className="space-y-4 mb-12" id="gallery">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[500px]">
+        {/* Main Hero Image */}
         <div 
-          key={i}
-          className="relative group overflow-hidden rounded-3xl cursor-pointer"
-          onClick={() => onImageClick(i + 1)}
+          className="md:col-span-2 md:row-span-2 relative group overflow-hidden rounded-3xl cursor-zoom-in shadow-2xl"
+          onClick={() => onImageClick(0)}
         >
           <img 
-            src={img} 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-            alt={`Property view ${i + 2}`}
+            src={images[0]} 
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+            alt="Main Property View"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
-          
-          {i === 3 && images.length > 5 && (
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center text-white transition-all group-hover:bg-black/20">
-              <Grid3X3 className="h-8 w-8 mb-2" />
-              <p className="font-black text-xl">+{images.length - 5}</p>
-              <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">View All</p>
+          <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500" />
+          <div className="absolute bottom-6 left-6">
+            <Badge className="bg-white/90 backdrop-blur-md text-black border-none px-4 py-2 rounded-full font-bold text-xs uppercase tracking-widest shadow-xl">
+              Main Residence
+            </Badge>
+          </div>
+        </div>
+
+        {/* Supporting Images */}
+        {images.slice(1, 5).map((img, i) => (
+          <div 
+            key={i}
+            className="relative group overflow-hidden rounded-3xl cursor-pointer shadow-lg"
+            onClick={() => onImageClick(i + 1)}
+          >
+            <img 
+              src={img} 
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+              alt={`Property view ${i + 2}`}
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
+            
+            {i === 3 && images.length > 5 && (
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center text-white transition-all group-hover:bg-black/20">
+                <Grid3X3 className="h-8 w-8 mb-2" />
+                <p className="font-black text-xl">+{images.length - 5}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">View All Photos</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Inline Grid Preview */}
+      {images.length > 5 && (
+        <div className="grid grid-cols-4 md:grid-cols-8 gap-3 pt-4 border-t border-gray-100 dark:border-gray-900">
+          {images.slice(5, 13).map((img, i) => (
+            <div 
+              key={i}
+              className="aspect-square relative group overflow-hidden rounded-xl cursor-pointer shadow-sm hover:shadow-md transition-all"
+              onClick={() => onImageClick(i + 5)}
+            >
+              <img 
+                src={img} 
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                alt={`Gallery preview ${i + 6}`}
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
             </div>
+          ))}
+          {images.length > 13 && (
+            <button 
+              className="aspect-square flex flex-col items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-900 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+              onClick={() => onImageClick(5)}
+            >
+              <Grid3X3 className="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+              <span className="text-[10px] font-black uppercase text-gray-500 mt-1">+{images.length - 13} More</span>
+            </button>
           )}
         </div>
-      ))}
+      )}
     </div>
   );
 };
@@ -467,24 +499,7 @@ export default function PropertyDetails() {
               </div>
             </section>
 
-            {/* 2. Secondary Images */}
-            <section id="gallery" className="space-y-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Property Gallery</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {allImages[1] && (
-                  <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer group">
-                    <img src={allImages[1]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  </div>
-                )}
-                {allImages[2] && (
-                  <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer group">
-                    <img src={allImages[2]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* 3. Amenities */}
+            {/* 2. Secondary Images Section Removed - Merged into Main Gallery above */}
             <section id="amenities" className="space-y-8 pt-8 border-t border-gray-100 dark:border-gray-900">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
