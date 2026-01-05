@@ -479,38 +479,64 @@ export default function PropertyDetails() {
 
       {/* Full Gallery Modal / Lightbox */}
       {showFullGallery && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex flex-col animate-in fade-in duration-300">
-          <div className="flex items-center justify-between p-6 text-white">
-            <h3 className="text-xl font-bold">{property.title} - Gallery</h3>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 h-12 w-12 rounded-full" onClick={() => setShowFullGallery(false)}>
-              <X className="h-6 w-6" />
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl flex flex-col animate-in fade-in duration-500">
+          <div className="flex items-center justify-between p-8 text-white">
+            <div className="space-y-1">
+              <h3 className="text-2xl font-black tracking-tight">{property.title}</h3>
+              <p className="text-sm text-gray-400 font-medium">Image {currentImageIndex + 1} of {allImages.length}</p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:bg-white/10 h-14 w-14 rounded-full transition-all hover:rotate-90" 
+              onClick={() => setShowFullGallery(false)}
+            >
+              <X className="h-8 w-8" />
             </Button>
           </div>
           
           <div className="flex-1 relative flex items-center justify-center p-4">
-            <img 
-              src={allImages[currentImageIndex]} 
-              className="max-h-[85vh] max-w-full object-contain shadow-2xl animate-in zoom-in-95 duration-500"
-              alt={`Property image ${currentImageIndex + 1}`}
-            />
-            
-            <Button variant="ghost" size="icon" className="absolute left-6 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-16 w-16 rounded-full" onClick={(e) => {
-              e.stopPropagation();
-              setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length);
-            }}>
-              <ChevronLeft className="h-10 w-10" />
-            </Button>
-            <Button variant="ghost" size="icon" className="absolute right-6 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-16 w-16 rounded-full" onClick={(e) => {
-              e.stopPropagation();
-              setCurrentImageIndex(prev => (prev + 1) % allImages.length);
-            }}>
-              <ChevronRight className="h-10 w-10" />
-            </Button>
+            <div className="relative group max-h-[75vh] w-full flex items-center justify-center">
+              <img 
+                src={allImages[currentImageIndex]} 
+                className="max-h-full max-w-full object-contain shadow-[0_0_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-700 rounded-2xl"
+                alt={`Property image ${currentImageIndex + 1}`}
+              />
+              
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-8 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="pointer-events-auto text-white hover:bg-white/20 h-20 w-20 rounded-full backdrop-blur-md border border-white/10" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length);
+                  }}
+                >
+                  <ChevronLeft className="h-12 w-12" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="pointer-events-auto text-white hover:bg-white/20 h-20 w-20 rounded-full backdrop-blur-md border border-white/10" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+                  }}
+                >
+                  <ChevronRight className="h-12 w-12" />
+                </Button>
+              </div>
+            </div>
           </div>
 
-          <div className="p-8 flex gap-3 overflow-x-auto bg-black/50 backdrop-blur-md border-t border-white/10">
+          <div className="p-10 flex gap-4 overflow-x-auto bg-black/40 backdrop-blur-2xl border-t border-white/5 scrollbar-hide">
             {allImages.map((img, i) => (
-              <button key={i} onClick={() => setCurrentImageIndex(i)} className={`h-24 w-36 flex-shrink-0 rounded-xl border-2 transition-all overflow-hidden ${i === currentImageIndex ? 'border-blue-500 scale-105 shadow-lg shadow-blue-500/50' : 'border-transparent opacity-40 hover:opacity-100'}`}>
+              <button 
+                key={i} 
+                onClick={() => setCurrentImageIndex(i)} 
+                className={`h-28 w-44 flex-shrink-0 rounded-[1.5rem] border-4 transition-all overflow-hidden ${i === currentImageIndex ? 'border-blue-500 scale-110 shadow-[0_0_30px_rgba(59,130,246,0.5)] z-10' : 'border-transparent opacity-30 hover:opacity-100 hover:scale-105'}`}
+              >
                 <img src={img} className="w-full h-full object-cover" alt={`Gallery thumb ${i}`} />
               </button>
             ))}
