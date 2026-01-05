@@ -50,6 +50,7 @@ export interface Property {
   pets_allowed: boolean | null;
   lease_term: string | null;
   utilities_included: string[] | null;
+  year_built: number | null;
   status: string | null;
   created_at: string;
   updated_at: string | null;

@@ -509,7 +509,7 @@ export default function PropertyDetails() {
                 {(property as any).year_built && (
                   <div>
                     <p className="text-sm font-black uppercase text-gray-500 mb-2">Year Built</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">{(property as any).year_built}</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.year_built}</p>
                   </div>
                 )}
                 {property.pets_allowed !== null && (
@@ -545,7 +545,7 @@ export default function PropertyDetails() {
               <div className="space-y-4">
                 <div className="p-6 bg-orange-50 dark:bg-orange-950/30 rounded-xl border border-orange-200 dark:border-orange-800">
                   <p className="text-sm font-black uppercase text-gray-500 mb-2">Listing Status</p>
-                  <p className="text-2xl font-black text-orange-600 uppercase">{property.status || 'Active'}</p>
+                  <p className="text-2xl font-black text-orange-600 uppercase">{property.status || 'Status unavailable'}</p>
                 </div>
               </div>
             </div>
@@ -889,7 +889,7 @@ export default function PropertyDetails() {
                 <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">Price</p>
                 <p className="text-3xl font-black text-gray-900 dark:text-white">{formatPrice(property.price)}</p>
               </div>
-              <Badge variant="outline" className="mb-1">Active</Badge>
+              <Badge variant="outline" className="mb-1">{property.status || 'Status unavailable'}</Badge>
             </div>
             <div className="flex gap-2">
               <Button className="flex-1 h-12 font-bold bg-blue-600 hover:bg-blue-700 text-white" onClick={() => window.location.href = `/apply/${property.id}`}>

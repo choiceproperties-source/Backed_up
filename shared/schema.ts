@@ -92,6 +92,7 @@ export const properties = pgTable("properties", {
   bedrooms: integer("bedrooms"),
   bathrooms: decimal("bathrooms", { precision: 3, scale: 1 }),
   squareFeet: integer("square_feet"),
+  yearBuilt: integer("year_built"),
   propertyType: text("property_type"),
   amenities: jsonb("amenities"),
   images: jsonb("images"),
