@@ -1,0 +1,65 @@
+IMPORTANT:
+This is a REAL ESTATE LISTING platform.
+All property information MUST come directly from the database.
+Do NOT invent, hardcode, infer, or default any property data.
+
+Scope:
+Property Details Page ONLY (React frontend).
+
+PRIMARY RULE:
+The database (property creation/upload) is the single source of truth.
+The UI must render ONLY what exists in the fetched property record.
+
+INSTRUCTIONS:
+
+1. DATA AUTHORITY
+- Every visible field on the Property Details page must be mapped directly to a database field returned by the property fetch API
+- If a value does not exist in the fetched data, the UI element must be hidden entirely
+- No placeholder text, no marketing copy, no fallback values
+
+2. PROPERTY FETCH
+- Use the existing property fetch logic (do not change API endpoints)
+- Do NOT reshape or guess the response
+- Only read from the returned property object
+
+3. IMAGE HANDLING
+- Display ONLY real property images fetched from the database
+- Preserve image order as stored
+- If no images exist, show a neutral “Images coming soon” state
+- Do NOT use stock, AI-generated, or local placeholder images
+
+4. FIELD MAPPING RULES
+- Price → database price field
+- Beds / Baths / Sqft → respective numeric fields
+- Address → database address fields
+- Description → database description
+- Amenities → amenities array from database
+- Status → listing status from database
+- Owner / Agent info → only if present in database
+
+5. CONDITIONAL RENDERING
+- Hide any section where all underlying data is missing
+- Hide individual rows if a specific field is null or undefined
+- Never display assumed defaults (location, year built, utilities, etc.)
+
+6. ACTIONS
+- Contact / Inquiry form must reference the correct property ID from the database
+- Save / Favorite must store the database property ID
+- Share must use the property’s real URL/ID
+
+7. FORBIDDEN
+- No hardcoded values
+- No subjective labels
+- No marketing language
+- No fallback locations or coordinates
+- No fake “featured” or “verified” states
+
+8. TECHNICAL CONSTRAINTS
+- Do NOT modify backend code
+- Do NOT change API contracts
+- Do NOT refactor unrelated components
+- Keep existing React structure
+
+After completion:
+- Return a clear list of every property field displayed
+- For each field, specify which database field it is mapped to
