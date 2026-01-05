@@ -242,17 +242,43 @@ export default function PropertyDetails() {
       </section>
 
       {/* Hero Info Section */}
-      <section className="bg-white dark:bg-gray-950 px-6 py-10 border-b border-gray-100 dark:border-gray-900 sticky top-0 z-40 transition-all duration-300">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-8">
-          <div className="space-y-6 flex-1">
-            <div className="space-y-1">
-              <h1 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight leading-tight border-b-2 border-gray-900 dark:border-white w-fit pr-4 pb-1">
-                {property.address}
-              </h1>
-              <p className="text-2xl md:text-4xl font-semibold text-gray-400 dark:text-gray-500 underline decoration-dotted decoration-2 underline-offset-8">
-                {property.city}, {property.state} {property.zip_code || (property as any).zip}
-              </p>
-            </div>
+      <section id="overview" className="bg-white dark:bg-gray-950 px-6 py-10 border-b border-gray-100 dark:border-gray-900 sticky top-0 z-40 transition-all duration-300">
+        <div className="max-w-7xl mx-auto">
+          {/* Quick Image Preview Grid */}
+          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-8">
+            {allImages.slice(0, 8).map((img, i) => (
+              <div 
+                key={i} 
+                className={`aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all hover:scale-105 active:scale-95 ${i === currentImageIndex ? 'border-blue-600 ring-2 ring-blue-600/20' : 'border-transparent opacity-80 hover:opacity-100'}`}
+                onClick={() => {
+                  setCurrentImageIndex(i);
+                  scrollToSection('overview');
+                }}
+              >
+                <img src={img} className="w-full h-full object-cover" loading="lazy" alt={`Preview ${i + 1}`} />
+              </div>
+            ))}
+            {allImages.length > 8 && (
+              <div 
+                className="aspect-square rounded-xl overflow-hidden cursor-pointer border-2 border-dashed border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors group"
+                onClick={() => setShowFullGallery(true)}
+              >
+                <Grid3X3 className="h-6 w-6 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                <span className="text-[10px] font-black text-gray-400 group-hover:text-blue-600 uppercase mt-1">+{allImages.length - 8} More</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col md:flex-row justify-between items-start gap-8">
+            <div className="space-y-6 flex-1">
+              <div className="space-y-1">
+                <h1 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight leading-tight border-b-2 border-gray-900 dark:border-white w-fit pr-4 pb-1">
+                  {property.address}
+                </h1>
+                <p className="text-2xl md:text-4xl font-semibold text-gray-400 dark:text-gray-500 underline decoration-dotted decoration-2 underline-offset-8">
+                  {property.city}, {property.state} {property.zip_code || (property as any).zip}
+                </p>
+              </div>
 
             <div className="pt-4">
               <h2 className="text-7xl font-bold text-gray-900 dark:text-white tracking-tighter">
@@ -327,7 +353,8 @@ export default function PropertyDetails() {
             </Card>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
       {/* Full Gallery Modal / Lightbox */}
       {showFullGallery && (
@@ -404,7 +431,7 @@ export default function PropertyDetails() {
 
         {/* About Section */}
         {property.description && (
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <section id="about" className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
                 <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">About the property</Badge>
@@ -458,7 +485,7 @@ export default function PropertyDetails() {
         {/* Removed Year Built Placeholder Section */}
 
         {/* Property Details Tabs */}
-        <section className="space-y-12">
+        <section id="amenities" className="space-y-12">
           <div className="space-y-4">
             <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Property Details</Badge>
             <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Complete Information</h2>
@@ -609,7 +636,7 @@ export default function PropertyDetails() {
               </div>
               <div>
                 <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">Annual Commitment</p>
-                <p className="text-3xl font-black text-green-600">{formatPrice(property.price * 12)}</p>
+                <p className="text-3xl font-black text-green-600">{formatPrice(Number(property.price || 0) * 12)}</p>
               </div>
             </div>
           </Card>
@@ -629,7 +656,7 @@ export default function PropertyDetails() {
 
         {/* Neighborhood Map */}
         {(lat !== 0 || lng !== 0) && (
-          <section className="space-y-12">
+          <section id="location" className="space-y-12">
             <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Neighborhood</Badge>
             <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Explore the Area</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
@@ -644,7 +671,7 @@ export default function PropertyDetails() {
         )}
 
         {/* Inquiry Form - Zillow/OpenDoor Standard */}
-        <section className="space-y-12">
+        <section id="contact" className="space-y-12">
           <div className="space-y-4">
             <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Contact</Badge>
             <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Interested in this property?</h2>
