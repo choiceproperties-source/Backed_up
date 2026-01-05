@@ -151,17 +151,17 @@ export default function PropertyDetails() {
   // Jump links navigation
   const sections = [
     { id: 'overview', label: 'Overview' },
-    { id: 'gallery', label: 'Gallery' },
+    { id: 'about', label: 'Description' },
     { id: 'amenities', label: 'Amenities' },
     { id: 'financials', label: 'Financials' },
-    { id: 'reviews', label: 'Reviews' },
     { id: 'location', label: 'Location' },
+    { id: 'reviews', label: 'Reviews' },
   ];
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      const offset = 80; // Header offset
+      const offset = 160; // Increased offset for sticky nav
       const bodyRect = document.body.getBoundingClientRect().top;
       const elementRect = element.getBoundingClientRect().top;
       const elementPosition = elementRect - bodyRect;
@@ -295,8 +295,21 @@ export default function PropertyDetails() {
       </section>
 
       {/* Hero Info Section */}
-      <section id="overview" className="bg-white dark:bg-gray-950 px-6 py-10 border-b border-gray-100 dark:border-gray-900 sticky top-0 z-40 transition-all duration-300">
+      <section id="overview" className="bg-white dark:bg-gray-950 px-6 py-10 border-b border-gray-100 dark:border-gray-900 sticky top-0 z-40 transition-all duration-300 shadow-sm">
         <div className="max-w-7xl mx-auto">
+          {/* Section Navigation Tabs */}
+          <div className="flex overflow-x-auto scrollbar-hide gap-8 mb-8 pb-2 border-b border-gray-50 dark:border-gray-900/50">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => scrollToSection(section.id)}
+                className="text-sm font-bold uppercase tracking-widest text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-blue-600"
+              >
+                {section.label}
+              </button>
+            ))}
+          </div>
+
           <div className="flex flex-col md:flex-row justify-between items-start gap-8">
             <div className="space-y-6 flex-1">
               <div className="space-y-1">
@@ -508,10 +521,10 @@ export default function PropertyDetails() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto w-full px-6 md:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
           
           {/* Left Column: Property Info & Details */}
-          <div className="lg:col-span-2 space-y-16">
+          <div className="lg:col-span-2 space-y-24">
             
             {/* 1. Core Overview */}
             <section id="about" className="space-y-8">
