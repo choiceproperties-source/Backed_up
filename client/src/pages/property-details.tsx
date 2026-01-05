@@ -28,71 +28,12 @@ import { PropertyDetailsSkeleton } from "@/components/property-details-skeleton"
 import NotFound from "@/pages/not-found";
 import { PhotoGallery } from "@/components/photo-gallery";
 
-// Main Gallery Component - Zillow Style
-const PropertyGallery = ({ images, onImageClick }: { images: string[], onImageClick: (index: number) => void }) => {
-  if (!images || images.length === 0) {
-    return (
-      <div className="w-full aspect-[21/9] bg-gray-100 dark:bg-gray-900 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-800">
-        <div className="text-center space-y-2">
-          <Home className="h-12 w-12 mx-auto text-gray-300" />
-          <p className="text-gray-500 font-medium">Images coming soon</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative group cursor-pointer overflow-hidden rounded-xl shadow-lg border border-gray-100 dark:border-gray-800" onClick={() => onImageClick(0)}>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[400px] md:h-[600px]">
-        {/* Main Large Image */}
-        <div className="md:col-span-2 md:row-span-2 relative overflow-hidden">
-          <img 
-            src={images[0]} 
-            className="w-full h-full object-cover" 
-            alt="Main Property View"
-          />
-        </div>
-
-        {/* Supporting Thumbnails */}
-        {images.slice(1, 5).map((img, i) => (
-          <div key={i} className="relative hidden md:block overflow-hidden">
-            <img 
-              src={img} 
-              className="w-full h-full object-cover" 
-              alt={`Property view ${i + 2}`}
-            />
-            {i === 3 && images.length > 5 && (
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold text-lg">
-                +{images.length - 5} photos
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-      <div className="absolute bottom-4 right-4 md:hidden">
-        <Badge className="bg-white/90 text-black border-none px-3 py-1 font-bold text-xs shadow-md">
-          1 / {images.length}
-        </Badge>
-      </div>
-      <Button 
-        variant="outline" 
-        size="sm"
-        className="absolute bottom-6 left-6 bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-800 font-bold border-none shadow-xl hidden md:flex"
-      >
-        <Maximize className="mr-2 h-4 w-4" />
-        View Gallery
-      </Button>
-    </div>
-  );
-};
-
 export default function PropertyDetails() {
   const [match, params] = useRoute("/property/:id");
   const id = params?.id;
   const { user } = useAuth();
   const { isFavorited, toggleFavorite } = useFavorites();
   const { toast } = useToast();
-  const [showFullGallery, setShowFullGallery] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [inquiryForm, setInquiryForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [submittingInquiry, setSubmittingInquiry] = useState(false);
@@ -404,63 +345,6 @@ export default function PropertyDetails() {
       </main>
 
       <Footer />
-
-      {/* Lightbox / Gallery Modal */}
-      {showFullGallery && (
-        <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col animate-in fade-in duration-300">
-          <div className="flex items-center justify-between p-6 text-white border-b border-white/10">
-            <div className="space-y-1">
-              <h3 className="text-xl font-bold tracking-tight">{property.title}</h3>
-              <p className="text-sm text-gray-400">Photo {currentImageIndex + 1} of {allImages.length}</p>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="text-white hover:bg-white/10 rounded-full h-12 w-12" 
-              onClick={() => setShowFullGallery(false)}
-            >
-              <X className="h-8 w-8" />
-            </Button>
-          </div>
-          
-          <div className="flex-1 relative flex items-center justify-center p-4">
-            <img 
-              src={allImages[currentImageIndex]} 
-              className="max-h-[80vh] max-w-full object-contain select-none animate-in zoom-in-95 duration-500"
-              alt={`Property image ${currentImageIndex + 1}`}
-            />
-            
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="absolute left-6 text-white hover:bg-white/20 h-16 w-16 rounded-full border border-white/20 backdrop-blur-md" 
-              onClick={() => setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length)}
-            >
-              <ChevronLeft className="h-10 w-10" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="absolute right-6 text-white hover:bg-white/20 h-16 w-16 rounded-full border border-white/20 backdrop-blur-md" 
-              onClick={() => setCurrentImageIndex(prev => (prev + 1) % allImages.length)}
-            >
-              <ChevronRight className="h-10 w-10" />
-            </Button>
-          </div>
-
-          <div className="p-8 flex gap-4 overflow-x-auto bg-black/50 border-t border-white/10 scrollbar-hide">
-            {allImages.map((img, i) => (
-              <button 
-                key={i} 
-                onClick={() => setCurrentImageIndex(i)} 
-                className={`h-24 w-40 flex-shrink-0 rounded-lg border-2 transition-all overflow-hidden ${i === currentImageIndex ? 'border-blue-500 scale-105 ring-4 ring-blue-500/20' : 'border-transparent opacity-40 hover:opacity-100'}`}
-              >
-                <img src={img} className="w-full h-full object-cover" alt={`Gallery thumb ${i}`} />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

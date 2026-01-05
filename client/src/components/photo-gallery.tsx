@@ -149,7 +149,17 @@ export function PhotoGallery({
               </Button>
             </div>
 
-            <div className="h-24 flex gap-2 px-4 py-3 overflow-x-auto bg-black/50 border-t border-white/10 scrollbar-hide">
+            <div 
+              ref={(el) => {
+                if (el && isFullscreen) {
+                  const activeThumb = el.children[currentImageIndex] as HTMLElement;
+                  if (activeThumb) {
+                    activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                  }
+                }
+              }}
+              className="h-24 flex gap-2 px-4 py-3 overflow-x-auto bg-black/50 border-t border-white/10 scrollbar-hide"
+            >
               {validImages.map((img, idx) => (
                 <button
                   key={idx}
