@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Property, Review, Owner } from "@/lib/types";
@@ -15,12 +14,18 @@ import { formatPrice, parseDecimal } from "@/lib/types";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { format } from "date-fns";
 import { 
   MapPin, Bed, Bath, Maximize, X, ChevronLeft, ChevronRight, Grid3X3, 
   Building2, Video, Heart, Shield, Clock, Eye, Star, Share2, Zap,
   Trees, Wifi, Lock, Home, DollarSign, Calculator, BookOpen, TrendingUp,
   Send, CheckCircle, AlertCircle
 } from "lucide-react";
+import { 
+  Card, 
+  CardContent, 
+  CardHeader 
+} from "@/components/ui/card";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useNearbyPlaces } from "@/hooks/use-nearby-places";
 import { AmenitiesGrid } from "@/components/amenities-grid";
@@ -42,6 +47,59 @@ const imageMap: Record<string, string> = {
   "placeholder-living": placeholderLiving,
   "placeholder-kitchen": placeholderKitchen,
   "placeholder-bedroom": placeholderBedroom,
+};
+
+// Main Gallery Component
+const PropertyGallery = ({ images, onImageClick }: { images: string[], onImageClick: (index: number) => void }) => {
+  if (!images || images.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[500px] mb-12">
+      {/* Main Hero Image */}
+      <div 
+        className="md:col-span-2 md:row-span-2 relative group overflow-hidden rounded-3xl cursor-zoom-in"
+        onClick={() => onImageClick(0)}
+      >
+        <img 
+          src={images[0]} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+          alt="Main Property View"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+        <div className="absolute bottom-6 left-6">
+          <Badge className="bg-white/90 backdrop-blur-md text-black border-none px-4 py-2 rounded-full font-bold text-xs uppercase tracking-widest shadow-xl">
+            Main Entrance
+          </Badge>
+        </div>
+      </div>
+
+      {/* Supporting Images */}
+      {images.slice(1, 5).map((img, i) => (
+        <div 
+          key={i}
+          className="relative group overflow-hidden rounded-3xl cursor-pointer"
+          onClick={() => onImageClick(i + 1)}
+        >
+          <img 
+            src={img} 
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+            alt={`Property view ${i + 2}`}
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+          
+          {i === 3 && images.length > 5 && (
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center text-white transition-all group-hover:bg-black/20">
+              <Grid3X3 className="h-8 w-8 mb-2" />
+              <p className="font-black text-xl">+{images.length - 5}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">View All</p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 };
 
 export default function PropertyDetails() {
@@ -192,83 +250,20 @@ export default function PropertyDetails() {
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col selection:bg-primary/20">
       <Navbar />
 
-      {/* Premium Hero with Image Carousel */}
-      <section className="relative h-[60vh] w-full overflow-hidden bg-black group/hero">
-        <div className="absolute inset-0 overflow-hidden" onClick={() => setShowFullGallery(true)}>
-          <img
-            src={displayImages[currentImageIndex]}
-            alt={property.title}
-            className="w-full h-full object-cover transition-all duration-1000 scale-100 hover:scale-105 cursor-zoom-in"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
-        </div>
-
-        {/* Floating Map Icon */}
-        <div className="absolute bottom-6 right-6 z-30 group cursor-pointer" onClick={() => setActiveTab("map")} data-testid="floating-map-button">
-          <div className="bg-white p-3 rounded-2xl shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1">
-            <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
-              <MapPin className="text-white h-5 w-5" />
-            </div>
-          </div>
-        </div>
-
-        {/* Carousel Controls */}
-        <Button variant="ghost" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-10 w-10 rounded-full z-20" onClick={() => setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length)} data-testid="button-prev-hero">
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        <Button variant="ghost" size="icon" className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-10 w-10 rounded-full z-20" onClick={() => setCurrentImageIndex(prev => (prev + 1) % allImages.length)} data-testid="button-next-hero">
-          <ChevronRight className="h-6 w-6" />
-        </Button>
-
-        {/* Dots Indicator */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-          {allImages.map((_, i) => (
-            <div 
-              key={i} 
-              className={`h-2 rounded-full transition-all ${i === currentImageIndex ? 'w-8 bg-white' : 'w-2 bg-white/50'}`}
-            />
-          ))}
-        </div>
-
-        {/* Status Badge */}
-        <div className="absolute top-6 left-6 z-20">
-          {(property as any).visibility === 'featured' && (
-            <Badge className="bg-white/95 backdrop-blur-md text-black px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-wider border-none shadow-xl">
-              Featured
-            </Badge>
-          )}
-        </div>
+      {/* Premium Gallery Section */}
+      <section className="max-w-7xl mx-auto px-6 md:px-8 pt-8">
+        <PropertyGallery 
+          images={allImages} 
+          onImageClick={(index) => {
+            setCurrentImageIndex(index);
+            setShowFullGallery(true);
+          }} 
+        />
       </section>
 
       {/* Hero Info Section */}
       <section id="overview" className="bg-white dark:bg-gray-950 px-6 py-10 border-b border-gray-100 dark:border-gray-900 sticky top-0 z-40 transition-all duration-300">
         <div className="max-w-7xl mx-auto">
-          {/* Quick Image Preview Grid */}
-          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-8">
-            {allImages.slice(0, 8).map((img, i) => (
-              <div 
-                key={i} 
-                className={`aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all hover:scale-105 active:scale-95 ${i === currentImageIndex ? 'border-blue-600 ring-2 ring-blue-600/20' : 'border-transparent opacity-80 hover:opacity-100'}`}
-                onClick={() => {
-                  setCurrentImageIndex(i);
-                  scrollToSection('overview');
-                }}
-              >
-                <img src={img} className="w-full h-full object-cover" loading="lazy" alt={`Preview ${i + 1}`} />
-              </div>
-            ))}
-            {allImages.length > 8 && (
-              <div 
-                className="aspect-square rounded-xl overflow-hidden cursor-pointer border-2 border-dashed border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors group"
-                onClick={() => setShowFullGallery(true)}
-              >
-                <Grid3X3 className="h-6 w-6 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                <span className="text-[10px] font-black text-gray-400 group-hover:text-blue-600 uppercase mt-1">+{allImages.length - 8} More</span>
-              </div>
-            )}
-          </div>
-
           <div className="flex flex-col md:flex-row justify-between items-start gap-8">
             <div className="space-y-6 flex-1">
               <div className="space-y-1">
@@ -510,8 +505,7 @@ export default function PropertyDetails() {
               </div>
               <div className="rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-900 shadow-sm h-96 w-full">
                 <InteractiveMap 
-                  lat={lat} 
-                  lng={lng} 
+                  center={[lat, lng]} 
                   title={property.title} 
                   address={property.address}
                 />
@@ -542,7 +536,7 @@ export default function PropertyDetails() {
                       <CardContent className="p-6 space-y-4">
                         <div className="flex items-center gap-1">
                           {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-200'}`} />
+                            <Star key={i} className={`h-4 w-4 ${i < (review.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-200'}`} />
                           ))}
                         </div>
                         <p className="text-sm italic text-gray-600 dark:text-gray-400 font-medium">"{review.comment}"</p>
@@ -639,7 +633,7 @@ export default function PropertyDetails() {
                 </CardContent>
               </Card>
 
-              <EnhancedTrustBadges className="opacity-70 grayscale hover:grayscale-0 transition-all duration-500" />
+              <EnhancedTrustBadges />
             </div>
           </div>
         </div>
