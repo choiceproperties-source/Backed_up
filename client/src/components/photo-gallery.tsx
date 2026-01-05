@@ -205,23 +205,16 @@ export function PhotoGallery({
               >
                 <OptimizedImage
                   src={getFullscreenImageUrl(mainImage)}
-                  alt={`${title} - ${currentImageIndex + 1}`}
+                  alt={`${title} - Image ${currentImageIndex + 1}`}
                   objectFit="contain"
-                  className="max-h-full max-w-full"
+                  className="max-h-full max-w-full select-none"
                 />
               </motion.div>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-12 w-12 z-10 hidden md:flex"
-                onClick={nextImage}
-              >
-                <ChevronRight className="h-8 w-8" />
-              </Button>
             </div>
 
-            <div 
+            <motion.div 
+              animate={{ opacity: controlsVisible ? 1 : 0, y: controlsVisible ? 0 : 20 }}
+              transition={{ duration: 0.2 }}
               ref={(el) => {
                 if (el && isFullscreen) {
                   const activeThumb = el.children[currentImageIndex] as HTMLElement;
@@ -235,15 +228,17 @@ export function PhotoGallery({
               {validImages.map((img, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setCurrentImageIndex(idx)}
-                  className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden transition-all ${
-                    idx === currentImageIndex ? "ring-2 ring-primary ring-offset-2" : "opacity-50"
+                  onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
+                  className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden transition-all hover:scale-105 active:scale-95 ${
+                    idx === currentImageIndex ? "ring-2 ring-primary ring-offset-2" : "opacity-50 hover:opacity-100"
                   }`}
+                  aria-label={`View image ${idx + 1}`}
+                  aria-current={idx === currentImageIndex ? "true" : "false"}
                 >
-                  <OptimizedImage src={getThumbnailUrl(img)} alt="thumb" className="w-full h-full" />
+                  <OptimizedImage src={getThumbnailUrl(img)} alt={`Thumbnail ${idx + 1}`} className="w-full h-full" />
                 </button>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
