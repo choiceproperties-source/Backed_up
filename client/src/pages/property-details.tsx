@@ -57,6 +57,32 @@ export default function PropertyDetails() {
   const [inquiryForm, setInquiryForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [submittingInquiry, setSubmittingInquiry] = useState(false);
 
+  // Jump links navigation
+  const sections = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'gallery', label: 'Gallery' },
+    { id: 'amenities', label: 'Amenities' },
+    { id: 'financials', label: 'Financials' },
+    { id: 'reviews', label: 'Reviews' },
+    { id: 'location', label: 'Location' },
+  ];
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const offset = 80; // Header offset
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   const { data: propertyData, isLoading } = useQuery<{ property: Property; owner: Owner | null }>({
     queryKey: ['/api/v2/properties', id],
     enabled: !!id && !!match,

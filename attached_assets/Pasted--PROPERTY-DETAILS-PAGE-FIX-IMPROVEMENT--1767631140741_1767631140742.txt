@@ -1,0 +1,114 @@
+// ===================================================
+// PROPERTY DETAILS PAGE — FIX & IMPROVEMENT TASK
+// IMPLEMENTATION REQUIRED
+// ===================================================
+
+// GOAL:
+// Fix data consistency issues, complete missing metadata usage,
+// improve the image gallery UX, and clean up layout structure
+// WITHOUT breaking existing functionality.
+
+// ---------------------------------------------------
+// 1. DATA CONSISTENCY & DATABASE USAGE
+// ---------------------------------------------------
+
+// TASKS:
+- Ensure all available property metadata is sourced directly from the database.
+- Remove fallback placeholders where real data exists.
+
+// SPECIFIC FIXES:
+- Display `year_built` whenever it exists in the property record.
+- Do NOT default property status to "Active" if the field is empty.
+  - Instead: handle undefined status explicitly (e.g. "Status unavailable").
+- Fully integrate `price_history` (JSONB) into the Property Details page:
+  - Render historical pricing data in a readable visual format (chart or timeline).
+  - Ensure the data reflects actual database values only.
+
+// ---------------------------------------------------
+// 2. SCHOOLS & NEIGHBORHOOD DATA
+// ---------------------------------------------------
+
+// TASKS:
+- Replace placeholder School District text with real data when available.
+- If school data is missing:
+  - Display a clear "Not available" state (not placeholder text).
+
+- Prepare the page structure to support:
+  - Nearby schools list
+  - School ratings
+  - Distance from property
+  (Do not mock data.)
+
+// ---------------------------------------------------
+// 3. FINANCIAL INFORMATION CONSOLIDATION
+// ---------------------------------------------------
+
+// TASKS:
+- Consolidate all financial-related information into a single section:
+  - Listing price
+  - CostCalculator outputs
+  - Lease-related costs (deposit, pet fees, utilities where available)
+
+- Remove financial duplication across hero, tabs, and other sections.
+- Ensure the CostCalculator remains the single source of computed estimates.
+
+// ---------------------------------------------------
+// 4. IMAGE GALLERY UX IMPROVEMENTS
+// ---------------------------------------------------
+
+// TASKS:
+- Improve the continuity between hero gallery and full gallery view.
+- Add an inline image grid preview on the main page
+  - Allows users to see all property images without opening a modal.
+- Keep the existing modal gallery, but make it optional.
+
+// PERFORMANCE:
+- Ensure lazy loading is applied correctly.
+- Use responsive image sizes where supported.
+
+// ---------------------------------------------------
+// 5. LAYOUT & NAVIGATION RESTRUCTURE
+// ---------------------------------------------------
+
+// TASKS:
+- Replace tab-based navigation (Details / Features / Pricing)
+  with a continuous scroll layout.
+- Add jump links or sub-navigation for:
+  - Overview
+  - Gallery
+  - Amenities
+  - Financials
+  - Reviews
+  - Location
+
+- Maintain current section content; reorganize only.
+
+// ---------------------------------------------------
+// 6. CTA & SIDEBAR IMPROVEMENTS
+// ---------------------------------------------------
+
+// TASKS:
+- Preserve the floating "Apply Now" CTA.
+- Increase visual emphasis on the sidebar inquiry form
+  - Without making it intrusive or blocking content.
+
+// ---------------------------------------------------
+// 7. QUALITY & SAFETY CHECKS
+// ---------------------------------------------------
+
+// REQUIREMENTS:
+- Do NOT introduce mock data.
+- Do NOT remove existing working features.
+- Keep Supabase queries efficient and scoped.
+- Ensure mobile responsiveness is preserved.
+
+// ---------------------------------------------------
+// DELIVERABLE
+// ---------------------------------------------------
+
+// Provide:
+- Updated components
+- Clear comments explaining major changes
+- Confirmation that all listed fixes are completed
+
+END OF TASK
