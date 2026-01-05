@@ -535,19 +535,54 @@ export default function PropertyDetails() {
           )}
 
           {activeTab === 'pricing' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="p-6 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm font-black uppercase text-gray-500 mb-2">Monthly Rent</p>
-                  <p className="text-4xl font-black text-blue-600">{formatPrice(property.price)}</p>
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="p-6 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-800">
+                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Monthly Rent</p>
+                    <p className="text-4xl font-black text-blue-600">{formatPrice(property.price)}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="p-6 bg-orange-50 dark:bg-orange-950/30 rounded-xl border border-orange-200 dark:border-orange-800">
+                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Listing Status</p>
+                    <p className="text-2xl font-black text-orange-600 uppercase">{property.status || 'Status unavailable'}</p>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-4">
-                <div className="p-6 bg-orange-50 dark:bg-orange-950/30 rounded-xl border border-orange-200 dark:border-orange-800">
-                  <p className="text-sm font-black uppercase text-gray-500 mb-2">Listing Status</p>
-                  <p className="text-2xl font-black text-orange-600 uppercase">{property.status || 'Status unavailable'}</p>
+
+              {property.price_history && property.price_history.length > 0 && (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Price History</h3>
+                  </div>
+                  <div className="relative pl-8 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200 dark:before:bg-gray-800">
+                    {property.price_history.map((entry, index) => (
+                      <div key={index} className="relative">
+                        <div className="absolute -left-[25px] top-1.5 w-3 h-3 rounded-full bg-blue-600 border-2 border-white dark:border-gray-950 shadow-sm" />
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <p className="text-lg font-bold text-gray-900 dark:text-white">{formatPrice(entry.price)}</p>
+                            <p className="text-sm text-gray-500 font-medium">
+                              {new Date(entry.changedAt).toLocaleDateString('en-US', { 
+                                month: 'long', 
+                                day: 'numeric', 
+                                year: 'numeric' 
+                              })}
+                            </p>
+                          </div>
+                          {index === 0 && (
+                            <Badge className="w-fit bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-none">
+                              Current Price
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </section>

@@ -51,6 +51,11 @@ export interface Property {
   lease_term: string | null;
   utilities_included: string[] | null;
   year_built: number | null;
+  price_history: Array<{
+    price: string;
+    changedAt: string;
+    changedBy?: string;
+  }> | null;
   status: string | null;
   created_at: string;
   updated_at: string | null;
