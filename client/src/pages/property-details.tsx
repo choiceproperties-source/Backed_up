@@ -55,80 +55,95 @@ const PropertyGallery = ({ images, onImageClick }: { images: string[], onImageCl
   if (!images || images.length === 0) return null;
 
   return (
-    <div className="space-y-4 mb-12" id="gallery">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[500px]">
+    <div className="space-y-6 mb-12" id="gallery">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white">Property Showcase</h3>
+          <p className="text-sm text-gray-500 font-medium">Explore the interior and exterior details</p>
+        </div>
+        <Button 
+          variant="outline" 
+          onClick={() => onImageClick(0)}
+          className="rounded-full font-bold px-6 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900"
+        >
+          <Maximize className="mr-2 h-4 w-4" />
+          View All {images.length} Photos
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 h-[600px]">
         {/* Main Hero Image */}
         <div 
-          className="md:col-span-2 md:row-span-2 relative group overflow-hidden rounded-3xl cursor-zoom-in shadow-2xl"
+          className="md:col-span-8 md:row-span-2 relative group overflow-hidden rounded-[2.5rem] cursor-zoom-in shadow-2xl border-4 border-white dark:border-gray-900"
           onClick={() => onImageClick(0)}
         >
           <img 
             src={images[0]} 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+            className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-105" 
             alt="Main Property View"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500" />
-          <div className="absolute bottom-6 left-6">
-            <Badge className="bg-white/90 backdrop-blur-md text-black border-none px-4 py-2 rounded-full font-bold text-xs uppercase tracking-widest shadow-xl">
-              Main Residence
-            </Badge>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity duration-500" />
+          <div className="absolute bottom-8 left-8">
+            <div className="flex items-center gap-3">
+              <Badge className="bg-white/95 backdrop-blur-md text-black border-none px-6 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl">
+                Featured View
+              </Badge>
+              <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
+                <Maximize className="h-4 w-4" />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Supporting Images */}
-        {images.slice(1, 5).map((img, i) => (
-          <div 
-            key={i}
-            className="relative group overflow-hidden rounded-3xl cursor-pointer shadow-lg"
-            onClick={() => onImageClick(i + 1)}
-          >
-            <img 
-              src={img} 
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-              alt={`Property view ${i + 2}`}
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
-            
-            {i === 3 && images.length > 5 && (
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center text-white transition-all group-hover:bg-black/20">
-                <Grid3X3 className="h-8 w-8 mb-2" />
-                <p className="font-black text-xl">+{images.length - 5}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">View All Photos</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Inline Grid Preview */}
-      {images.length > 5 && (
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-3 pt-4 border-t border-gray-100 dark:border-gray-900">
-          {images.slice(5, 13).map((img, i) => (
+        {/* Vertical Supporting Grid */}
+        <div className="md:col-span-4 flex flex-col gap-4 h-full">
+          {images.slice(1, 4).map((img, i) => (
             <div 
               key={i}
-              className="aspect-square relative group overflow-hidden rounded-xl cursor-pointer shadow-sm hover:shadow-md transition-all"
-              onClick={() => onImageClick(i + 5)}
+              className={`relative group overflow-hidden rounded-[2rem] cursor-pointer shadow-xl border-4 border-white dark:border-gray-900 ${i === 2 ? 'flex-1' : 'h-[180px]'}`}
+              onClick={() => onImageClick(i + 1)}
+            >
+              <img 
+                src={img} 
+                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1" 
+                alt={`Property view ${i + 2}`}
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
+              
+              {i === 2 && images.length > 4 && (
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center text-white transition-all group-hover:bg-black/40">
+                  <div className="bg-white/10 p-4 rounded-full mb-3">
+                    <Grid3X3 className="h-6 w-6" />
+                  </div>
+                  <p className="font-black text-3xl tracking-tighter">+{images.length - 4}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mt-1">Full Gallery</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Modern Scrolling Preview */}
+      {images.length > 4 && (
+        <div className="flex gap-4 overflow-x-auto scrollbar-hide py-4 -mx-2 px-2">
+          {images.slice(4).map((img, i) => (
+            <div 
+              key={i}
+              className="w-48 h-32 flex-shrink-0 relative group overflow-hidden rounded-3xl cursor-pointer shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-blue-500"
+              onClick={() => onImageClick(i + 4)}
             >
               <img 
                 src={img} 
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                alt={`Gallery preview ${i + 6}`}
+                alt={`Gallery preview ${i + 5}`}
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
             </div>
           ))}
-          {images.length > 13 && (
-            <button 
-              className="aspect-square flex flex-col items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-900 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
-              onClick={() => onImageClick(5)}
-            >
-              <Grid3X3 className="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
-              <span className="text-[10px] font-black uppercase text-gray-500 mt-1">+{images.length - 13} More</span>
-            </button>
-          )}
         </div>
       )}
     </div>
