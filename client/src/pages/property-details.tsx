@@ -24,7 +24,8 @@ import {
 import { 
   Card, 
   CardContent, 
-  CardHeader 
+  CardHeader,
+  CardTitle 
 } from "@/components/ui/card";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useNearbyPlaces } from "@/hooks/use-nearby-places";
@@ -336,12 +337,6 @@ export default function PropertyDetails() {
                 </>
               )}
             </div>
-            
-            {(property as any).school_district && (
-              <p className="text-2xl text-gray-500 dark:text-gray-400 font-medium">
-                {(property as any).school_district}
-              </p>
-            )}
 
             {/* Financial Information Grouping */}
             <section id="financials" className="space-y-8 pt-8 border-t border-gray-100 dark:border-gray-900">
@@ -410,6 +405,13 @@ export default function PropertyDetails() {
                 />
               </div>
             </section>
+            
+            {(property as any).school_district && (
+              <p className="text-2xl text-gray-500 dark:text-gray-400 font-medium">
+                {(property as any).school_district}
+              </p>
+            )}
+          </div>
 
           <div className="hidden md:flex flex-col gap-4 items-center pt-2 sticky top-10">
             <Button 
