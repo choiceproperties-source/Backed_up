@@ -302,6 +302,12 @@ export default function PropertyDetails() {
                   <span>{(sqft as number).toLocaleString()} sqft</span>
                 </>
               ) : null}
+              {property.year_built && (
+                <>
+                  <span className="text-gray-300">•</span>
+                  <span>Built in {property.year_built}</span>
+                </>
+              )}
             </div>
             
             {(property as any).school_district && (
@@ -442,20 +448,30 @@ export default function PropertyDetails() {
               <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
                 {property.description}
               </p>
-              <div className="grid grid-cols-2 gap-4 pt-6">
-                {property.property_type && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-black uppercase text-gray-500">Property Type</p>
-                    <p className="text-xl font-black text-gray-900 dark:text-white">{property.property_type}</p>
-                  </div>
-                )}
-                {property.lease_term && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-black uppercase text-gray-500">Lease Term</p>
-                    <p className="text-xl font-black text-gray-900 dark:text-white">{property.lease_term}</p>
-                  </div>
-                )}
-              </div>
+                <div className="grid grid-cols-2 gap-4 pt-6">
+                  {property.property_type ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-black uppercase text-gray-500">Property Type</p>
+                      <p className="text-xl font-black text-gray-900 dark:text-white">{property.property_type}</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm font-black uppercase text-gray-500">Property Type</p>
+                      <p className="text-xl font-black text-gray-400 dark:text-gray-600 italic">Not available</p>
+                    </div>
+                  )}
+                  {property.lease_term ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-black uppercase text-gray-500">Lease Term</p>
+                      <p className="text-xl font-black text-gray-900 dark:text-white">{property.lease_term}</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm font-black uppercase text-gray-500">Lease Term</p>
+                      <p className="text-xl font-black text-gray-400 dark:text-gray-600 italic">Not available</p>
+                    </div>
+                  )}
+                </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
