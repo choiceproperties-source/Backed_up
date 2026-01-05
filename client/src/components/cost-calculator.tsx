@@ -46,10 +46,13 @@ export function CostCalculator({
   return (
     <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Calculator className="h-5 w-5 text-primary" />
-          Cost Calculator
-        </CardTitle>
+        <div className="space-y-1 mb-2">
+          <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Estimated Costs</Badge>
+          <CardTitle className="flex items-center gap-2 text-2xl font-black">
+            <Calculator className="h-6 w-6 text-primary" />
+            Monthly Budget Planner
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
