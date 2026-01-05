@@ -491,144 +491,125 @@ export default function PropertyDetails() {
             <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Complete Information</h2>
           </div>
           
-          <div className="flex gap-4 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
-            {[
-              { id: 'details', label: 'Details', icon: Building2 },
-              { id: 'features', label: 'Features', icon: Star },
-              { id: 'pricing', label: 'Pricing', icon: DollarSign }
-            ].map(tab => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-4 font-bold flex items-center gap-2 border-b-2 transition-all ${activeTab === tab.id ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                  data-testid={`tab-${tab.id}`}
-                >
-                  <Icon className="h-5 w-5" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {activeTab === 'details' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                {(bedrooms !== null || bathrooms !== null) && (
-                  <div>
-                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Unit Layout</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {bedrooms !== null ? `${bedrooms} Bed` : ''}
-                      {bedrooms !== null && bathrooms !== null ? ' • ' : ''}
-                      {bathrooms !== null ? `${bathrooms} Bath` : ''}
-                    </p>
-                  </div>
-                )}
-                {sqft ? (
-                  <div>
-                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Square Footage</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">{(sqft as number).toLocaleString()} sq ft</p>
-                  </div>
-                ) : null}
-              </div>
-              <div className="space-y-6">
-                {(property as any).year_built && (
-                  <div>
-                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Year Built</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.year_built}</p>
-                  </div>
-                )}
-                {property.pets_allowed !== null && (
-                  <div>
-                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Pet Policy</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.pets_allowed ? 'Pets Welcome' : 'No Pets'}</p>
-                  </div>
-                )}
-                {property.furnished !== null && (
-                  <div>
-                    <p className="text-sm font-black uppercase text-gray-500 mb-2">Furnished</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.furnished ? 'Yes' : 'Unfurnished'}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'features' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AmenitiesGrid amenities={property.amenities || []} />
-            </div>
-          )}
-
-          {activeTab === 'pricing' && (
-            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Listing Price</h3>
+          <div className="min-h-[300px] animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {activeTab === 'details' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+                <div className="space-y-6">
+                  {(bedrooms !== null || bathrooms !== null) && (
+                    <div>
+                      <p className="text-sm font-black uppercase text-gray-500 mb-2">Unit Layout</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {bedrooms !== null ? `${bedrooms} Bed` : ''}
+                        {bedrooms !== null && bathrooms !== null ? ' • ' : ''}
+                        {bathrooms !== null ? `${bathrooms} Bath` : ''}
+                      </p>
+                    </div>
+                  )}
+                  {sqft ? (
+                    <div>
+                      <p className="text-sm font-black uppercase text-gray-500 mb-2">Square Footage</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{(sqft as number).toLocaleString()} sq ft</p>
+                    </div>
+                  ) : null}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <div className="p-6 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-100 dark:border-blue-900/50">
-                      <p className="text-sm font-black uppercase text-gray-500 mb-2 tracking-wider">Monthly Rent</p>
-                      <p className="text-4xl font-black text-blue-600 dark:text-blue-400">{formatPrice(property.price)}</p>
+                <div className="space-y-6">
+                  {(property as any).year_built && (
+                    <div>
+                      <p className="text-sm font-black uppercase text-gray-500 mb-2">Year Built</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.year_built}</p>
                     </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="p-6 bg-orange-50/50 dark:bg-orange-950/20 rounded-xl border border-orange-100 dark:border-orange-900/50">
-                      <p className="text-sm font-black uppercase text-gray-500 mb-2 tracking-wider">Listing Status</p>
-                      <p className="text-2xl font-black text-orange-600 dark:text-orange-400 uppercase">{property.status || 'Status unavailable'}</p>
+                  )}
+                  {property.pets_allowed !== null && (
+                    <div>
+                      <p className="text-sm font-black uppercase text-gray-500 mb-2">Pet Policy</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.pets_allowed ? 'Pets Welcome' : 'No Pets'}</p>
                     </div>
-                  </div>
+                  )}
+                  {property.furnished !== null && (
+                    <div>
+                      <p className="text-sm font-black uppercase text-gray-500 mb-2">Furnished</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.furnished ? 'Yes' : 'Unfurnished'}</p>
+                    </div>
+                  )}
                 </div>
               </div>
+            )}
 
-              {property.price_history && property.price_history.length > 0 && (
-                <div className="space-y-6 pt-4">
+            {activeTab === 'features' && (
+              <div className="py-4">
+                <AmenitiesGrid amenities={property.amenities || []} />
+              </div>
+            )}
+
+            {activeTab === 'pricing' && (
+              <div className="space-y-12 py-4">
+                <div className="space-y-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                      <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Price History</h3>
+                    <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Listing Price</h3>
                   </div>
-                  
-                  <div className="relative pl-8 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100 dark:before:bg-gray-800">
-                    {property.price_history.map((entry, index) => (
-                      <div key={index} className="relative group">
-                        <div className="absolute -left-[25px] top-1.5 w-3 h-3 rounded-full bg-blue-600 border-2 border-white dark:border-gray-950 shadow-md group-hover:scale-125 transition-transform" />
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                          <div className="space-y-1">
-                            <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{formatPrice(entry.price)}</p>
-                            <div className="flex items-center gap-2 text-sm text-gray-500 font-bold uppercase tracking-tighter">
-                              <Clock className="h-3.5 w-3.5" />
-                              {new Date(entry.changedAt).toLocaleDateString('en-US', { 
-                                month: 'long', 
-                                day: 'numeric', 
-                                year: 'numeric' 
-                              })}
-                            </div>
-                          </div>
-                          {index === 0 ? (
-                            <Badge className="w-fit bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-none font-black px-3 py-1">
-                              Current Price
-                            </Badge>
-                          ) : (
-                            <div className="flex items-center gap-1.5 text-xs font-black text-gray-400 uppercase tracking-widest">
-                              <CheckCircle className="h-3.5 w-3.5" />
-                              Historical
-                            </div>
-                          )}
-                        </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <div className="p-6 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-100 dark:border-blue-900/50">
+                        <p className="text-sm font-black uppercase text-gray-500 mb-2 tracking-wider">Monthly Rent</p>
+                        <p className="text-4xl font-black text-blue-600 dark:text-blue-400">{formatPrice(property.price)}</p>
                       </div>
-                    ))}
+                    </div>
+                    <div className="space-y-4">
+                      <div className="p-6 bg-orange-50/50 dark:bg-orange-950/20 rounded-xl border border-orange-100 dark:border-orange-900/50">
+                        <p className="text-sm font-black uppercase text-gray-500 mb-2 tracking-wider">Listing Status</p>
+                        <p className="text-2xl font-black text-orange-600 dark:text-orange-400 uppercase">{property.status || 'Status unavailable'}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
+
+                {property.price_history && property.price_history.length > 0 && (
+                  <div className="space-y-6 pt-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                        <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Price History</h3>
+                    </div>
+                    
+                    <div className="relative pl-8 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100 dark:before:bg-gray-800">
+                      {property.price_history.map((entry, index) => (
+                        <div key={index} className="relative group">
+                          <div className="absolute -left-[25px] top-1.5 w-3 h-3 rounded-full bg-blue-600 border-2 border-white dark:border-gray-950 shadow-md group-hover:scale-125 transition-transform" />
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                            <div className="space-y-1">
+                              <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{formatPrice(entry.price)}</p>
+                              <div className="flex items-center gap-2 text-sm text-gray-500 font-bold uppercase tracking-tighter">
+                                <Clock className="h-3.5 w-3.5" />
+                                {new Date(entry.changedAt).toLocaleDateString('en-US', { 
+                                  month: 'long', 
+                                  day: 'numeric', 
+                                  year: 'numeric' 
+                                })}
+                              </div>
+                            </div>
+                            {index === 0 ? (
+                              <Badge className="w-fit bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-none font-black px-3 py-1">
+                                Current Price
+                              </Badge>
+                            ) : (
+                              <div className="flex items-center gap-1.5 text-xs font-black text-gray-400 uppercase tracking-widest">
+                                <CheckCircle className="h-3.5 w-3.5" />
+                                Historical
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </section>
 
           <section id="financials" className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl p-8 md:p-12 space-y-12">
