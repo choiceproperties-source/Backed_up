@@ -27,14 +27,43 @@ export function PhotoGallery({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
   const { toast } = useToast();
 
   const validImages = useMemo(() => images.filter(img => img && typeof img === 'string'), [images]);
   const mainImage = validImages[currentImageIndex];
 
   useEffect(() => {
+    if (!isFullscreen) {
+      setControlsVisible(true);
+      return;
+    }
+
+    let timeout: NodeJS.Timeout;
+    const resetTimeout = () => {
+      setControlsVisible(true);
+      clearTimeout(timeout);
+      timeout = setTimeout(() => setControlsVisible(false), 3000);
+    };
+
+    const handleMouseMove = () => resetTimeout();
+    const handleTouch = () => resetTimeout();
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("touchstart", handleTouch);
+    resetTimeout();
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchstart", handleTouch);
+      clearTimeout(timeout);
+    };
+  }, [isFullscreen]);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isFullscreen) return;
+      setControlsVisible(true);
       if (e.key === "Escape") setIsFullscreen(false);
       if (e.key === "ArrowLeft") prevImage();
       if (e.key === "ArrowRight") nextImage();
@@ -98,30 +127,72 @@ export function PhotoGallery({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Property Image Gallery"
           >
-            <div className="flex justify-between items-center p-4 bg-black/40 z-20">
-              <span className="text-white font-medium">
-                {currentImageIndex + 1} / {validImages.length}
+            <motion.div 
+              animate={{ opacity: controlsVisible ? 1 : 0, y: controlsVisible ? 0 : -20 }}
+              transition={{ duration: 0.2 }}
+              className="flex justify-between items-center p-4 bg-black/40 z-20"
+            >
+              <span 
+                className="text-white font-medium"
+                aria-live="polite"
+              >
+                Image {currentImageIndex + 1} of {validImages.length}
               </span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20"
+                className="text-white hover:bg-white/20 hover:scale-110 active:scale-95 transition-all"
                 onClick={() => setIsFullscreen(false)}
+                aria-label="Close fullscreen gallery"
               >
                 <X className="h-6 w-6" />
               </Button>
-            </div>
+            </motion.div>
 
             <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-12 w-12 z-10 hidden md:flex"
-                onClick={prevImage}
-              >
-                <ChevronLeft className="h-8 w-8" />
-              </Button>
+              <AnimatePresence>
+                {controlsVisible && (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:bg-white/20 hover:scale-110 active:scale-95 transition-all h-14 w-14 bg-black/20 backdrop-blur-sm rounded-full"
+                        onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                        aria-label="Previous image"
+                      >
+                        <ChevronLeft className="h-10 w-10" />
+                      </Button>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:bg-white/20 hover:scale-110 active:scale-95 transition-all h-14 w-14 bg-black/20 backdrop-blur-sm rounded-full"
+                        onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                        aria-label="Next image"
+                      >
+                        <ChevronRight className="h-10 w-10" />
+                      </Button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
 
               <motion.div
                 key={currentImageIndex}
@@ -129,7 +200,8 @@ export function PhotoGallery({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -100 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="w-full h-full flex items-center justify-center p-4"
+                className="w-full h-full flex items-center justify-center p-4 cursor-pointer"
+                onClick={() => setControlsVisible(prev => !prev)}
               >
                 <OptimizedImage
                   src={getFullscreenImageUrl(mainImage)}
