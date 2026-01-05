@@ -343,15 +343,73 @@ export default function PropertyDetails() {
               </p>
             )}
 
-            {/* Mortgage Calculator Section */}
-            <div className="mt-8 pt-8 border-t border-gray-100 dark:border-gray-900">
-              <CostCalculator 
-                monthlyRent={parseFloat(String(property.price))}
-                petsAllowed={(property as any).pets_allowed}
-                parkingIncluded={(property as any).parking_included}
-              />
-            </div>
-          </div>
+            {/* Financial Information Grouping */}
+            <section id="financials" className="space-y-8 pt-8 border-t border-gray-100 dark:border-gray-900">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Financial Details</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+                  <CardHeader className="bg-gray-50/50 dark:bg-gray-900/50 pb-4">
+                    <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Listing Terms</p>
+                    <CardTitle className="text-xl font-bold">Monthly Rent & Fees</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">Monthly Rent</span>
+                      <span className="text-2xl font-black text-gray-900 dark:text-white">{formatPrice(property.price)}</span>
+                    </div>
+                    {property.lease_term && (
+                      <div className="flex justify-between items-center py-2 border-t border-gray-100 dark:border-gray-900">
+                        <span className="text-gray-600 dark:text-gray-400">Lease Duration</span>
+                        <span className="font-bold">{property.lease_term}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center py-2 border-t border-gray-100 dark:border-gray-900 text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Security Deposit</span>
+                      <span className="font-medium">Equivalent to 1 month rent</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-4">
+                  <div className="p-6 rounded-3xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Shield className="h-4 w-4 text-blue-600" />
+                      <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Trusted Payments</p>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      All payments are processed securely through our platform with a full audit trail for your protection.
+                    </p>
+                  </div>
+                  
+                  {(property as any).utilities_included ? (
+                    <div className="p-4 rounded-2xl bg-green-50/50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 flex items-center gap-3">
+                      <Zap className="h-5 w-5 text-green-600" />
+                      <span className="text-sm font-bold text-green-700 dark:text-green-400 uppercase tracking-tight">Utilities Included in Rent</span>
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 flex items-center gap-3">
+                      <Zap className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm font-bold text-gray-500 uppercase tracking-tight">Utilities Not Included</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Budget Planner / Cost Calculator Integration */}
+              <div className="mt-8">
+                <CostCalculator 
+                  monthlyRent={parseFloat(String(property.price))}
+                  petsAllowed={(property as any).pets_allowed}
+                  parkingIncluded={(property as any).parking_included}
+                />
+              </div>
+            </section>
 
           <div className="hidden md:flex flex-col gap-4 items-center pt-2 sticky top-10">
             <Button 
