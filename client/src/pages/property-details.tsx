@@ -420,381 +420,229 @@ export default function PropertyDetails() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto w-full px-6 md:px-8 py-20 space-y-32">
-        
-        {/* Key Stats Cards - Removed hardcoded placeholders */}
-        {property.utilities_included && property.utilities_included.length > 0 && (
-          <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800 rounded-xl">
-              <CardContent className="pt-6">
-                <Zap className="h-8 w-8 text-blue-600 mb-3" />
-                <p className="text-xs font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Utilities</p>
-                <p className="text-lg font-black text-gray-900 dark:text-white">Included</p>
-              </CardContent>
-            </Card>
-          </section>
-        )}
-
-        {/* About Section */}
-        {property.description && (
-          <section id="about" className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
+      <div className="max-w-7xl mx-auto w-full px-6 md:px-8 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          
+          {/* Left Column: Property Info & Details */}
+          <div className="lg:col-span-2 space-y-16">
+            
+            {/* 1. Core Overview */}
+            <section id="about" className="space-y-8">
               <div className="space-y-4">
-                <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">About the property</Badge>
-                <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
+                <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold uppercase tracking-widest text-[10px]">
+                  Property Overview
+                </Badge>
+                <h2 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
                   {property.title}
                 </h2>
               </div>
               <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
                 {property.description}
               </p>
-                <div className="grid grid-cols-2 gap-4 pt-6">
-                  {property.property_type ? (
-                    <div className="space-y-2">
-                      <p className="text-sm font-black uppercase text-gray-500">Property Type</p>
-                      <p className="text-xl font-black text-gray-900 dark:text-white">{property.property_type}</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-sm font-black uppercase text-gray-500">Property Type</p>
-                      <p className="text-xl font-black text-gray-400 dark:text-gray-600 italic">Not available</p>
-                    </div>
-                  )}
-                  {property.lease_term ? (
-                    <div className="space-y-2">
-                      <p className="text-sm font-black uppercase text-gray-500">Lease Term</p>
-                      <p className="text-xl font-black text-gray-900 dark:text-white">{property.lease_term}</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-sm font-black uppercase text-gray-500">Lease Term</p>
-                      <p className="text-xl font-black text-gray-400 dark:text-gray-600 italic">Not available</p>
-                    </div>
-                  )}
-                </div>
-            </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-8 pt-4 border-t border-gray-100 dark:border-gray-900">
+                {property.property_type ? (
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Type</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{property.property_type}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Type</p>
+                    <p className="text-lg font-bold text-gray-400 dark:text-gray-600 italic">Not available</p>
+                  </div>
+                )}
+                {property.lease_term ? (
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Lease Term</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{property.lease_term}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Lease Term</p>
+                    <p className="text-lg font-bold text-gray-400 dark:text-gray-600 italic">Not available</p>
+                  </div>
+                )}
+                {property.year_built && (
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Year Built</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{property.year_built}</p>
+                  </div>
+                )}
+              </div>
+            </section>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-4">
+            {/* 2. Secondary Images */}
+            <section id="gallery" className="space-y-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Property Gallery</h3>
+              <div className="grid grid-cols-2 gap-4">
                 {allImages[1] && (
-                  <div className="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300 cursor-pointer group">
-                    <img src={allImages[1]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-1" />
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer group">
+                    <img src={allImages[1]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                 )}
                 {allImages[2] && (
-                  <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
-                    <img src={allImages[2]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-2" />
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer group">
+                    <img src={allImages[2]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                 )}
               </div>
-              <div className="pt-12 space-y-4">
-                {allImages[3] && (
-                  <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer group">
-                    <img src={allImages[3]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-testid="img-gallery-3" />
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-        )}
+            </section>
 
-        {/* Removed Year Built Placeholder Section */}
-
-        {/* Property Details Tabs */}
-        <section id="amenities" className="space-y-12">
-          <div className="space-y-4">
-            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Property Details</Badge>
-            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Complete Information</h2>
-          </div>
-          
-          <div className="min-h-[300px] animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {activeTab === 'details' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
-                <div className="space-y-6">
-                  {(bedrooms !== null || bathrooms !== null) && (
-                    <div>
-                      <p className="text-sm font-black uppercase text-gray-500 mb-2">Unit Layout</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {bedrooms !== null ? `${bedrooms} Bed` : ''}
-                        {bedrooms !== null && bathrooms !== null ? ' • ' : ''}
-                        {bathrooms !== null ? `${bathrooms} Bath` : ''}
-                      </p>
-                    </div>
-                  )}
-                  {sqft ? (
-                    <div>
-                      <p className="text-sm font-black uppercase text-gray-500 mb-2">Square Footage</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{(sqft as number).toLocaleString()} sq ft</p>
-                    </div>
-                  ) : null}
-                </div>
-                <div className="space-y-6">
-                  {(property as any).year_built && (
-                    <div>
-                      <p className="text-sm font-black uppercase text-gray-500 mb-2">Year Built</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.year_built}</p>
-                    </div>
-                  )}
-                  {property.pets_allowed !== null && (
-                    <div>
-                      <p className="text-sm font-black uppercase text-gray-500 mb-2">Pet Policy</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.pets_allowed ? 'Pets Welcome' : 'No Pets'}</p>
-                    </div>
-                  )}
-                  {property.furnished !== null && (
-                    <div>
-                      <p className="text-sm font-black uppercase text-gray-500 mb-2">Furnished</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{property.furnished ? 'Yes' : 'Unfurnished'}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'features' && (
-              <div className="py-4">
-                <AmenitiesGrid amenities={property.amenities || []} />
-              </div>
-            )}
-
-            {activeTab === 'pricing' && (
-              <div className="space-y-12 py-4">
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                      <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Listing Price</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                      <div className="p-6 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-100 dark:border-blue-900/50">
-                        <p className="text-sm font-black uppercase text-gray-500 mb-2 tracking-wider">Monthly Rent</p>
-                        <p className="text-4xl font-black text-blue-600 dark:text-blue-400">{formatPrice(property.price)}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="p-6 bg-orange-50/50 dark:bg-orange-950/20 rounded-xl border border-orange-100 dark:border-orange-900/50">
-                        <p className="text-sm font-black uppercase text-gray-500 mb-2 tracking-wider">Listing Status</p>
-                        <p className="text-2xl font-black text-orange-600 dark:text-orange-400 uppercase">{property.status || 'Status unavailable'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {property.price_history && property.price_history.length > 0 && (
-                  <div className="space-y-6 pt-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                        <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Price History</h3>
-                    </div>
-                    
-                    <div className="relative pl-8 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100 dark:before:bg-gray-800">
-                      {property.price_history.map((entry, index) => (
-                        <div key={index} className="relative group">
-                          <div className="absolute -left-[25px] top-1.5 w-3 h-3 rounded-full bg-blue-600 border-2 border-white dark:border-gray-950 shadow-md group-hover:scale-125 transition-transform" />
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                            <div className="space-y-1">
-                              <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{formatPrice(entry.price)}</p>
-                              <div className="flex items-center gap-2 text-sm text-gray-500 font-bold uppercase tracking-tighter">
-                                <Clock className="h-3.5 w-3.5" />
-                                {new Date(entry.changedAt).toLocaleDateString('en-US', { 
-                                  month: 'long', 
-                                  day: 'numeric', 
-                                  year: 'numeric' 
-                                })}
-                              </div>
-                            </div>
-                            {index === 0 ? (
-                              <Badge className="w-fit bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-none font-black px-3 py-1">
-                                Current Price
-                              </Badge>
-                            ) : (
-                              <div className="flex items-center gap-1.5 text-xs font-black text-gray-400 uppercase tracking-widest">
-                                <CheckCircle className="h-3.5 w-3.5" />
-                                Historical
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </section>
-
-          <section id="financials" className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl p-8 md:p-12 space-y-12">
-            <div className="space-y-6">
+            {/* 3. Amenities */}
+            <section id="amenities" className="space-y-8 pt-8 border-t border-gray-100 dark:border-gray-900">
               <div className="flex items-center gap-3">
-                <Calculator className="h-8 w-8 text-blue-600" />
-                <h2 className="text-4xl font-black text-gray-900 dark:text-white">Lease Commitment</h2>
+                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <Grid3X3 className="h-5 w-5 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Amenities & Features</h3>
+              </div>
+              <AmenitiesGrid amenities={property.amenities as any || []} />
+            </section>
+
+            {/* 4. Location */}
+            <section id="location" className="space-y-8 pt-8 border-t border-gray-100 dark:border-gray-900">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <MapPin className="h-5 w-5 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Neighborhood & Map</h3>
+              </div>
+              <div className="rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-900 shadow-sm h-96 w-full">
+                <InteractiveMap 
+                  lat={lat} 
+                  lng={lng} 
+                  title={property.title} 
+                  address={property.address}
+                />
+              </div>
+              <NearbyPlaces places={nearbyPlaces} />
+            </section>
+
+            {/* 5. Reviews */}
+            <section id="reviews" className="space-y-8 pt-8 border-t border-gray-100 dark:border-gray-900 pb-12">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <Star className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Resident Reviews</h3>
+                </div>
+                {reviews.length > 0 && (
+                  <Badge variant="secondary" className="font-bold">
+                    {reviews.length} Total
+                  </Badge>
+                )}
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-6 bg-white/50 dark:bg-gray-900/50 rounded-xl border border-blue-100 dark:border-blue-900">
-                  <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">Base Rent</p>
-                  <p className="text-3xl font-black text-blue-600">{formatPrice(property.price)}</p>
+              {reviews.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {reviews.map((review) => (
+                    <Card key={review.id} className="border-gray-100 dark:border-gray-800 shadow-none bg-gray-50/50 dark:bg-white/5">
+                      <CardContent className="p-6 space-y-4">
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-200'}`} />
+                          ))}
+                        </div>
+                        <p className="text-sm italic text-gray-600 dark:text-gray-400 font-medium">"{review.comment}"</p>
+                        <div className="pt-2">
+                          <p className="text-xs font-bold text-gray-900 dark:text-white">Verified Resident</p>
+                          <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">
+                            {format(new Date(review.created_at), "MMM d, yyyy")}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <div className="p-6 bg-white/50 dark:bg-gray-900/50 rounded-xl border border-green-100 dark:border-green-900">
-                  <p className="text-sm font-black uppercase text-gray-600 dark:text-gray-400 mb-3">Annual Commitment</p>
-                  <p className="text-3xl font-black text-green-600">{formatPrice(Number(property.price || 0) * 12)}</p>
+              ) : (
+                <div className="p-12 border-2 border-dashed border-gray-100 dark:border-gray-900 rounded-3xl text-center">
+                  <p className="text-gray-400 font-medium italic">Be the first to share your experience with this property.</p>
                 </div>
-              </div>
-            </div>
-          </section>
-
-        {/* Schools Section - Removed hardcoded placeholders */}
-        {/* Price Trends - Removed hardcoded placeholders */}
-        {/* Similar Properties - Removed hardcoded placeholders */}
-
-        {/* Features Section */}
-        {property.amenities && property.amenities.length > 0 && (
-          <section className="space-y-12">
-            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Lifestyle Features</Badge>
-            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Premium Amenities</h2>
-            <AmenitiesGrid amenities={property.amenities} />
-          </section>
-        )}
-
-        {/* Neighborhood Map */}
-        {(lat !== 0 || lng !== 0) && (
-          <section id="location" className="space-y-12">
-            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Neighborhood</Badge>
-            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Explore the Area</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
-              <div className="lg:col-span-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xl">
-                <InteractiveMap center={[lat, lng]} title={property.title} address={`${property.address}, ${property.city}`} />
-              </div>
-              <div className="space-y-4 overflow-y-auto pr-3 custom-scrollbar">
-                <NearbyPlaces places={nearbyPlaces} />
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Inquiry Form - Zillow/OpenDoor Standard */}
-        <section id="contact" className="space-y-12">
-          <div className="space-y-4">
-            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Contact</Badge>
-            <h2 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white">Interested in this property?</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">Send an inquiry to the property manager</p>
+              )}
+            </section>
           </div>
 
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl">
-            <CardContent className="pt-8 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-black uppercase text-gray-700 dark:text-gray-300">Full Name</label>
-                  <Input 
-                    placeholder="Your name"
-                    value={inquiryForm.name}
-                    onChange={(e) => setInquiryForm({...inquiryForm, name: e.target.value})}
-                    className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
-                    data-testid="input-inquiry-name"
-                  />
+          {/* Right Column: Sticky Pricing & Inquiry */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24 space-y-6">
+              
+              {/* Financials Summary */}
+              <Card id="financials" className="border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden rounded-3xl">
+                <div className="bg-blue-600 p-6 text-white space-y-2">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] opacity-80">Monthly Investment</p>
+                  <p className="text-4xl font-black tracking-tighter">{formatPrice(property.price)}</p>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-black uppercase text-gray-700 dark:text-gray-300">Email</label>
-                  <Input 
-                    type="email"
-                    placeholder="your@email.com"
-                    value={inquiryForm.email}
-                    onChange={(e) => setInquiryForm({...inquiryForm, email: e.target.value})}
-                    className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
-                    data-testid="input-inquiry-email"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-black uppercase text-gray-700 dark:text-gray-300">Phone (Optional)</label>
-                <Input 
-                  placeholder="(555) 123-4567"
-                  value={inquiryForm.phone}
-                  onChange={(e) => setInquiryForm({...inquiryForm, phone: e.target.value})}
-                  className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
-                  data-testid="input-inquiry-phone"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-black uppercase text-gray-700 dark:text-gray-300">Message</label>
-                <Textarea 
-                  placeholder="Tell us why you're interested in this property..."
-                  value={inquiryForm.message}
-                  onChange={(e) => setInquiryForm({...inquiryForm, message: e.target.value})}
-                  className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 min-h-24"
-                  data-testid="textarea-inquiry-message"
-                />
-              </div>
-              <Button 
-                size="lg"
-                className="w-full rounded-lg font-bold h-12 bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={handleInquiry}
-                disabled={submittingInquiry}
-                data-testid="button-send-inquiry"
-              >
-                {submittingInquiry ? (
-                  <>Sending...</>
-                ) : (
-                  <>
-                    <Send className="h-5 w-5 mr-2" />
-                    Send Inquiry
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* Trust Section */}
-        <section className="py-16 px-8 md:px-16 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-800">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 items-center">
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <Shield className="h-8 w-8 text-blue-600" />
-                <h3 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Verified Safe</h3>
-              </div>
-              <p className="text-gray-600 dark:text-gray-400 font-medium leading-relaxed">This property has been manually inspected and verified for accuracy and premium quality standards.</p>
-            </div>
-            <div className="lg:col-span-2">
-              <EnhancedTrustBadges />
-            </div>
-          </div>
-        </section>
-
-        {/* Owner Contact */}
-        {owner && (
-          <section className="space-y-12">
-            <Badge variant="outline" className="w-fit rounded-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">Property Manager</Badge>
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl">
-              <CardContent className="pt-8 flex flex-col md:flex-row items-start md:items-center gap-8 justify-between">
-                <div className="flex items-center gap-6">
-                  <Avatar className="h-20 w-20 rounded-xl border-4 border-white dark:border-gray-900">
-                    <AvatarImage src={owner.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${owner.id}`} />
-                    <AvatarFallback>{owner.full_name?.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-2">
-                    <h3 className="text-2xl font-black text-gray-900 dark:text-white">{owner.full_name}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 font-medium">{owner.role === 'landlord' ? 'Property Owner' : 'Leasing Manager'}</p>
-                    <div className="flex items-center gap-2 pt-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                      <span className="text-sm font-bold text-gray-600 dark:text-gray-400">4.9/5</span>
+                <CardContent className="p-6 space-y-6 bg-white dark:bg-gray-950">
+                  <div className="space-y-4">
+                    <CostCalculator 
+                      monthlyRent={parseFloat(String(property.price))}
+                      petsAllowed={(property as any).pets_allowed}
+                      parkingIncluded={(property as any).parking_included}
+                    />
+                  </div>
+                  
+                  <Separator className="bg-gray-100 dark:bg-gray-900" />
+                  
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500 font-medium">Application Fee</span>
+                      <span className="font-bold text-gray-900 dark:text-white">$45.00</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500 font-medium">Security Deposit</span>
+                      <span className="font-bold text-gray-900 dark:text-white">One Month's Rent</span>
                     </div>
                   </div>
-                </div>
-                <Button size="lg" className="rounded-lg font-bold h-12 px-8 bg-blue-600 hover:bg-blue-700" data-testid="button-contact-owner">
-                  Contact Owner
-                </Button>
-              </CardContent>
-            </Card>
-          </section>
-        )}
+
+                  <div className="flex flex-col gap-3 pt-4">
+                    <Button 
+                      className="w-full h-14 rounded-2xl font-black text-lg bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20"
+                      onClick={() => window.location.href = `/apply/${property.id}`}
+                    >
+                      Apply Securely
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className={`w-full h-14 rounded-2xl border-gray-200 dark:border-gray-800 font-bold gap-2 ${isFavorited(property.id) ? 'text-red-600 border-red-100 bg-red-50/50' : ''}`}
+                      onClick={() => toggleFavorite(property.id)}
+                    >
+                      <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
+                      {isFavorited(property.id) ? 'Saved to Favorites' : 'Save for Later'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Inquiry Card */}
+              <Card className="border-gray-100 dark:border-gray-800 shadow-sm rounded-3xl overflow-hidden">
+                <CardHeader className="p-6 pb-2">
+                  <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Assistance</p>
+                  <h4 className="text-lg font-bold">Contact Listing Team</h4>
+                </CardHeader>
+                <CardContent className="p-6 pt-2 space-y-4">
+                  <div className="space-y-3">
+                    <Input placeholder="Full Name" className="rounded-xl border-gray-100 dark:border-gray-800 h-11" value={inquiryForm.name} onChange={e => setInquiryForm(prev => ({...prev, name: e.target.value}))} />
+                    <Input placeholder="Email Address" className="rounded-xl border-gray-100 dark:border-gray-800 h-11" value={inquiryForm.email} onChange={e => setInquiryForm(prev => ({...prev, email: e.target.value}))} />
+                    <Textarea placeholder="How can we help you?" className="rounded-xl border-gray-100 dark:border-gray-800 resize-none h-24 text-sm" value={inquiryForm.message} onChange={e => setInquiryForm(prev => ({...prev, message: e.target.value}))} />
+                  </div>
+                  <Button 
+                    variant="secondary" 
+                    className="w-full h-12 rounded-xl font-bold border-gray-100 dark:border-gray-900" 
+                    onClick={handleInquiry} 
+                    disabled={submittingInquiry}
+                  >
+                    {submittingInquiry ? "Sending..." : "Submit Inquiry"}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <EnhancedTrustBadges className="opacity-70 grayscale hover:grayscale-0 transition-all duration-500" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Video Tour Modal */}
