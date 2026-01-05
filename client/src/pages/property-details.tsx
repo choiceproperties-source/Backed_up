@@ -26,6 +26,7 @@ import { InteractiveMap } from "@/components/interactive-map";
 import { updateMetaTags, getPropertyStructuredData, addStructuredData, removeStructuredData } from "@/lib/seo";
 import { PropertyDetailsSkeleton } from "@/components/property-details-skeleton";
 import NotFound from "@/pages/not-found";
+import { PhotoGallery } from "@/components/photo-gallery";
 
 // Main Gallery Component - Zillow Style
 const PropertyGallery = ({ images, onImageClick }: { images: string[], onImageClick: (index: number) => void }) => {
@@ -213,12 +214,10 @@ export default function PropertyDetails() {
         </div>
 
         {/* Primary Gallery */}
-        <PropertyGallery 
+        <PhotoGallery 
           images={allImages} 
-          onImageClick={(index) => {
-            setCurrentImageIndex(index);
-            setShowFullGallery(true);
-          }} 
+          title={property.title}
+          layout="grid"
         />
 
         {/* Main Content Layout */}
