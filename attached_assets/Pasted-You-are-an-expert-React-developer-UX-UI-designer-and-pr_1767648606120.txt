@@ -1,0 +1,100 @@
+You are an expert React developer, UX/UI designer, and product engineer.
+
+Please perform a **comprehensive audit of the Property Details page** in this real estate project, including:
+- UI layout and visual design
+- User experience (UX)
+- Dynamic data rendering
+- Code structure and logic
+- Performance and accessibility
+- Integration with backend data (Supabase / API)
+
+Your task is to **analyze and report only** — do NOT implement or modify any code.
+
+---
+
+### 1. Page Structure & Design
+Review the overall layout of the Property Details page:
+- Visual hierarchy (what draws attention first, second, etc.)
+- Spacing, alignment, and consistency
+- Desktop vs mobile responsiveness
+- Whether the page feels professional, modern, and trustworthy
+
+Identify any design inconsistencies or layout issues and suggest improvements.
+
+---
+
+### 2. User Experience (UX)
+Evaluate how a user interacts with the page:
+- Ease of understanding the property information
+- Navigation and scrolling flow
+- Image gallery integration with the rest of the page
+- CTA clarity (contact, inquire, save, etc.)
+
+Identify any friction points or confusion and suggest UX improvements.
+
+---
+
+### 3. Dynamic Data & Logic
+Analyze how property data is fetched and rendered:
+- Are all property details dynamically sourced from the database?
+- Any hardcoded values that should be dynamic?
+- Handling of missing or partial data
+- Loading states, skeletons, or fallbacks
+
+Highlight any risks, bugs, or improvements related to data flow and reliability.
+
+---
+
+### 4. Code Quality & Maintainability
+Review the implementation from a code perspective:
+- Component structure and separation of concerns
+- Redundant logic or components
+- Reusability and scalability
+- Potential refactors (suggest only)
+
+Focus on long-term maintainability.
+
+---
+
+### 5. Performance & Optimization
+Evaluate:
+- Image loading behavior
+- Unnecessary re-renders
+- Layout shifts or performance bottlenecks
+- Opportunities for lazy loading or memoization
+
+Suggest optimizations where appropriate.
+
+---
+
+### 6. Accessibility (A11y)
+Check for:
+- Keyboard navigation
+- Screen reader compatibility
+- ARIA attributes
+- Contrast, focus states, and semantic structure
+
+Point out any accessibility gaps and improvements.
+
+---
+
+### 7. Content Clarity & Trust
+Assess whether:
+- Property information is easy to understand
+- Labels, icons, and formatting improve clarity
+- The page builds user trust (real estate–grade professionalism)
+
+Suggest enhancements that improve credibility and clarity.
+
+---
+
+### Output Requirements
+- Structure your response as an **Audit Report**
+- Clearly separate:
+  - What is working well
+  - Issues or weaknesses
+  - Suggested improvements (descriptive only)
+- Do NOT write or modify code
+- Be specific, practical, and actionable
+
+The goal is to fully understand how strong the Property Details page is and what improvements would make it production-grade.
