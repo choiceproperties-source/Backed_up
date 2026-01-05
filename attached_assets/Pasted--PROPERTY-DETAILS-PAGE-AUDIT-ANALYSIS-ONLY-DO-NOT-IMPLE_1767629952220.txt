@@ -1,0 +1,92 @@
+// ===============================
+// PROPERTY DETAILS PAGE AUDIT
+// ANALYSIS ONLY – DO NOT IMPLEMENT
+// ===============================
+
+// IMPORTANT RULES
+// - Read-only analysis
+// - Do NOT modify, refactor, or write any code
+// - Do NOT implement fixes
+// - Only inspect, analyze, and report findings
+
+TASK:
+Analyze the Property Details page of this project and report all issues,
+data sources, missing content, and UX/design problems.
+
+// ------------------------------------------------
+// 1. DATA SOURCE AUDIT
+// ------------------------------------------------
+For every piece of information displayed on the Property Details page:
+
+- Identify data that is:
+  - Fetched directly from the database (real data)
+  - Hard-coded, mocked, placeholder, or static (not from database)
+
+- Clearly list:
+  - What is REAL and correctly connected to the database
+  - What LOOKS real but is not actually database-driven
+  - What SHOULD come from the database but currently does not
+
+// ------------------------------------------------
+// 2. REALITY & ACCURACY CHECK
+// ------------------------------------------------
+Analyze the accuracy of displayed information:
+
+- Flag:
+  - Fake or placeholder content
+  - Misleading or duplicated information
+  - Static values used where dynamic values are expected
+
+// ------------------------------------------------
+// 3. MISSING INFORMATION
+// ------------------------------------------------
+Identify important property details that are missing, including but not limited to:
+
+- Common real estate property fields
+- Data that likely exists in the database but is not rendered
+- Information that would increase trust, clarity, or usability
+
+// ------------------------------------------------
+// 4. UNNECESSARY OR PROBLEMATIC CONTENT
+// ------------------------------------------------
+Point out content or UI elements that:
+
+- Are unnecessary or redundant
+- Add clutter or confusion
+- Do not add value to the Property Details page
+
+// ------------------------------------------------
+// 5. PROPERTY IMAGE GALLERY (ANALYSIS ONLY)
+// ------------------------------------------------
+Analyze the image gallery display:
+
+- Layout issues
+- User experience problems (navigation, scrolling, responsiveness)
+- Visual hierarchy and spacing
+- Performance or loading concerns
+
+Provide HIGH-LEVEL improvement suggestions only.
+Do NOT implement or write code.
+
+// ------------------------------------------------
+// 6. PAGE LAYOUT & CONTENT STRUCTURE
+// ------------------------------------------------
+Evaluate the overall structure:
+
+- What content is out of order
+- What should be grouped together
+- What should be emphasized or de-emphasized
+- Any layout decisions that hurt UX
+
+// ------------------------------------------------
+// 7. FINAL SUMMARY
+// ------------------------------------------------
+Provide a clear summary including:
+
+- Data source problems
+- Real vs fake data breakdown
+- Missing information
+- Image gallery weaknesses
+- Overall UX/design issues
+
+END OF TASK
