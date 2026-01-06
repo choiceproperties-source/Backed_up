@@ -1,0 +1,79 @@
+Perform a READ-ONLY, end-to-end audit of the user profile system to identify gaps, risks, and improvement opportunities.
+
+Scope:
+- Use ONLY confirmed backend data and existing pages.
+- Do NOT invent fields, features, or UI elements.
+- Do NOT modify code.
+- Do NOT assume all roles share the same profile behavior.
+
+Tasks:
+
+1. ROLE-BASED PROFILE AUDIT
+Analyze each existing profile page separately:
+- renter (tenant-profile)
+- landlord / owner (owner-profile, landlord-profile)
+- agent (agent-profile)
+- property_manager
+- admin (if applicable)
+
+For each role:
+- List which backend fields are currently displayed.
+- Identify important PUBLIC fields that exist in the users table but are not shown.
+- Identify any fields being shown that should NOT be public based on privacy or security.
+
+2. PUBLIC VS PRIVATE PROFILE SEPARATION
+Audit how public-facing profiles (e.g. agent or property owner shown on a listing) differ from private account dashboards.
+
+- Confirm that public profiles ONLY expose safe fields:
+  (fullName, profileImage, bio, location, specialties, yearsExperience, rating, reviewCount, totalSales, agency)
+- Identify any risk of leaking private fields (email, phone, auth, security, login metadata).
+- Confirm displayEmail and displayPhone are consistently respected.
+
+3. PROPERTY ↔ USER DATA FLOW VALIDATION
+Validate the end-to-end flow:
+- Property creation → owner_id / listing_agent_id
+- Property fetch → joined user object
+- Property details page → profile preview (owner/agent card)
+
+Check:
+- Are there missing joins?
+- Are any user fields referenced on the UI that are not guaranteed by the backend?
+- Is role-based logic correctly enforced (e.g., renter never shown as agent)?
+
+4. DATA COMPLETENESS & TRUST SIGNALS
+Evaluate whether the following backend fields are used effectively:
+- licenseVerified (agents)
+- agencyId / agencies table
+- yearsExperience, specialties
+- rating, reviewCount, totalSales
+
+Identify:
+- Which trust signals are underutilized or missing from the UI.
+- Whether empty or unverified data is handled gracefully.
+
+5. UX & PROFESSIONALISM REVIEW
+Compare the current profile layouts against professional real-estate platforms (Zillow-level quality).
+
+Audit:
+- Information density (too much / too little)
+- Visual hierarchy
+- Role clarity (can users immediately tell who they’re viewing?)
+- Mobile behavior consistency
+
+6. ISSUE & IMPROVEMENT REPORT
+Produce a structured report with:
+- Confirmed issues (backend-backed only)
+- Privacy risks (if any)
+- UX weaknesses
+- Missed opportunities using EXISTING data
+- Clear recommendations (NO implementation yet)
+
+Output format:
+- Executive Summary
+- Role-by-Role Findings
+- Data Flow Issues
+- Privacy & Security Risks
+- UX / Professionalism Improvements
+- Final Recommendations
+
+This is an audit and planning task only. Do not redesign or refactor code.
