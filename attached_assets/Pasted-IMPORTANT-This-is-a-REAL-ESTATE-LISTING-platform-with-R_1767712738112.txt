@@ -1,0 +1,88 @@
+IMPORTANT:
+This is a REAL ESTATE LISTING platform with REAL data.
+The database is the single source of truth.
+
+Scope:
+Property Details Page ONLY (React frontend).
+
+DO NOT:
+- Create or modify database tables
+- Change backend APIs
+- Invent fields or relations
+- Add placeholder or fake data
+
+Goal:
+Redesign the Property Details page so that ALL displayed information is dynamically rendered from existing backend data only.
+
+PAGE STRUCTURE (DATA-DRIVEN):
+
+[property_address]
+[property_city], [property_state] [property_zip]
+
+[monthly_rent]/month
+[utilities_included_text] (render only if present)
+
+[property_type] | Available: [availability_date]
+
+---
+
+QUICK FACTS (render rows only if data exists):
+- [bedroom_count] Bedrooms
+- [bathroom_count] Bathrooms
+- [square_feet] SQFT
+- Built in [year_built]
+- [price_per_sqft] per SQFT (use DB value if present; do not compute unless already implemented)
+
+---
+
+OVERVIEW
+[property_description] (hide section if empty)
+
+---
+
+AMENITIES
+- Populate ONLY from existing relational data if available
+- Render amenity_name with included/excluded indicator
+- If no amenities exist, hide section entirely
+
+---
+
+LOCATION HIGHLIGHTS
+- Populate ONLY from existing location-related data if available
+- Do NOT add default or fallback locations
+- Hide section if empty
+
+---
+
+ADDITIONAL DETAILS (render rows conditionally):
+- Lease Terms: [lease_terms]
+- Pet Policy: [pet_policy]
+- Parking: [parking_info]
+- Laundry: [laundry_info]
+
+---
+
+PROPERTY ACTIONS
+- Save Property (use existing favorite logic if implemented)
+- Share (use existing share behavior if implemented)
+- Contact Agent (must submit with correct property_id)
+- Schedule Tour (ONLY enable if already implemented; otherwise hide)
+
+DATA RULES (STRICT):
+1. Every bracketed field must map directly to an existing backend field
+2. If a field is null or undefined, hide the UI element
+3. Do NOT display assumed defaults
+4. Do NOT calculate new values unless already part of the system
+
+DESIGN RULES:
+- Zillow / Apartments.com style
+- Image-first, calm, structured
+- No marketing language
+- Mobile responsive
+- Use existing design system / CSS
+
+After completion:
+Return a clear list showing:
+- Each UI section
+- Which backend fields it is mapped to
+- Which sections are conditionally hidden

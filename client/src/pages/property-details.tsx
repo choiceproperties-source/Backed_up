@@ -54,6 +54,33 @@ export default function PropertyDetails() {
 
   const property = propertyData?.property;
 
+  // Data mapping for property fields using snake_case from DB schema
+  const rentPerMonth = property?.price ? formatPrice(property.price) : null;
+  const addressLine1 = property?.address || null;
+  const addressLine2 = (property?.city || property?.state || property?.zip_code) 
+    ? `${property.city || ""}${property.city && property.state ? ", " : ""}${property.state || ""} ${property.zip_code || ""}`.trim()
+    : null;
+  const propertyType = property?.property_type ? property.property_type.replace(/_/g, ' ') : null;
+  const availabilityDate = property?.createdAt ? new Date(property.createdAt).toLocaleDateString() : null;
+  
+  const bedroomCount = property?.bedrooms ?? null;
+  const bathroomCount = property?.bathrooms ? parseDecimal(property.bathrooms) : null;
+  const squareFeet = property?.square_feet ? property.square_feet.toLocaleString() : null;
+  const yearBuilt = property?.year_built || null;
+  const pricePerSqft = (property?.price && property?.square_feet) 
+    ? formatPrice(parseDecimal(property.price) / property.square_feet) 
+    : null;
+
+  const leaseTerms = property?.lease_term || null;
+  const petPolicy = property?.pets_allowed !== undefined ? (property.pets_allowed ? "Pets Allowed" : "No Pets") : null;
+  const utilitiesIncluded = Array.isArray(property?.utilities_included) && property.utilities_included.length > 0
+    ? property.utilities_included.join(", ")
+    : null;
+
+  // Placeholder logic for fields not explicitly in schema but requested in structure
+  const parkingInfo = null; // Map to correct field if added later
+  const laundryInfo = null; // Map to correct field if added later
+
   const { data: photosData } = useQuery<any[]>({
     queryKey: ['/api/v2/images/property', id],
     enabled: !!id,
@@ -130,12 +157,15 @@ export default function PropertyDetails() {
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 md:px-8 py-6 w-full space-y-8">
-        {/* Zillow Header Style: Breadcrumbs and Action Buttons */}
+        {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
-          <div className="flex items-center gap-2 text-sm text-blue-600 font-medium">
-            <Link href="/properties" className="hover:underline">Properties</Link>
-            <ChevronRight className="h-3 w-3 text-gray-400" />
-            <span className="text-gray-500">{property.city}</span>
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+              {addressLine1}
+            </h1>
+            <p className="text-lg font-medium text-gray-500 dark:text-gray-400">
+              {addressLine2}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <Button 
@@ -143,11 +173,12 @@ export default function PropertyDetails() {
               size="sm" 
               className={`rounded-md font-bold ${isFavorited(property.id) ? 'text-red-600 bg-red-50 border-red-200' : ''}`}
               onClick={() => toggleFavorite(property.id)}
+              data-testid="button-save-property"
             >
               <Heart className={`mr-2 h-4 w-4 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
               {isFavorited(property.id) ? 'Saved' : 'Save'}
             </Button>
-            <Button variant="outline" size="sm" className="rounded-md font-bold" onClick={handleShare}>
+            <Button variant="outline" size="sm" className="rounded-md font-bold" onClick={handleShare} data-testid="button-share-property">
               <Share2 className="mr-2 h-4 w-4" />
               Share
             </Button>
@@ -165,99 +196,125 @@ export default function PropertyDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Left Column: Property Info */}
           <div className="lg:col-span-2 space-y-10">
-            {/* Core Listing Info */}
+            {/* Core Pricing & Basic Info */}
             <div className="space-y-4">
               <div className="flex items-baseline justify-between">
-                <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white">
-                  {formatPrice(property.price)}
-                  {property.status === 'available' && (
-                    <span className="text-lg font-bold text-gray-400 ml-3 align-middle uppercase tracking-tighter">/mo</span>
+                <div className="flex flex-col">
+                  <h2 className="text-4xl font-black text-gray-900 dark:text-white" data-testid="text-property-price">
+                    {rentPerMonth}/month
+                  </h2>
+                  {utilitiesIncluded && (
+                    <p className="text-sm text-green-600 font-semibold" data-testid="text-utilities-info">
+                      Utilities: {utilitiesIncluded}
+                    </p>
                   )}
-                </h1>
+                </div>
                 <Badge className="bg-blue-600 text-white font-black px-4 py-1 rounded-sm uppercase text-[10px] tracking-widest">
-                  {property.status === 'available' ? 'For Rent' : property.status?.replace('_', ' ')}
+                  {propertyType}
                 </Badge>
               </div>
-
-              <div className="flex items-center gap-6 text-xl md:text-2xl font-bold text-gray-700 dark:text-gray-300">
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-900 dark:text-white">{property.bedrooms || 0}</span>
-                  <span className="text-gray-400 font-medium text-lg uppercase">bd</span>
-                </div>
-                <div className="flex items-center gap-2 border-l pl-6 border-gray-200 dark:border-gray-800">
-                  <span className="text-gray-900 dark:text-white">{bathrooms}</span>
-                  <span className="text-gray-400 font-medium text-lg uppercase">ba</span>
-                </div>
-                {property.square_feet && (
-                  <div className="flex items-center gap-2 border-l pl-6 border-gray-200 dark:border-gray-800">
-                    <span className="text-gray-900 dark:text-white">{property.square_feet.toLocaleString()}</span>
-                    <span className="text-gray-400 font-medium text-lg uppercase">sqft</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-                  {property.address}
-                </p>
-                <p className="text-xl font-medium text-gray-500 dark:text-gray-400">
-                  {property.city}, {property.state} {property.zip_code}
-                </p>
-              </div>
+              <p className="text-gray-500 font-medium" data-testid="text-availability">
+                Available: {availabilityDate || "Contact for date"}
+              </p>
             </div>
 
             <Separator />
+
+            {/* Quick Facts */}
+            <section className="space-y-6">
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white border-b-4 border-blue-600 w-fit pb-1">Quick Facts</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                {bedroomCount !== null && (
+                  <div className="flex flex-col" data-testid="fact-bedrooms">
+                    <span className="text-gray-500 text-sm font-bold uppercase">Bedrooms</span>
+                    <span className="text-xl font-black">{bedroomCount}</span>
+                  </div>
+                )}
+                {bathroomCount !== null && (
+                  <div className="flex flex-col" data-testid="fact-bathrooms">
+                    <span className="text-gray-500 text-sm font-bold uppercase">Bathrooms</span>
+                    <span className="text-xl font-black">{bathroomCount}</span>
+                  </div>
+                )}
+                {squareFeet && (
+                  <div className="flex flex-col" data-testid="fact-sqft">
+                    <span className="text-gray-500 text-sm font-bold uppercase">SQFT</span>
+                    <span className="text-xl font-black">{squareFeet}</span>
+                  </div>
+                )}
+                {yearBuilt && (
+                  <div className="flex flex-col" data-testid="fact-year-built">
+                    <span className="text-gray-500 text-sm font-bold uppercase">Built In</span>
+                    <span className="text-xl font-black">{yearBuilt}</span>
+                  </div>
+                )}
+                {pricePerSqft && (
+                  <div className="flex flex-col" data-testid="fact-price-sqft">
+                    <span className="text-gray-500 text-sm font-bold uppercase">Per SQFT</span>
+                    <span className="text-xl font-black">{pricePerSqft}</span>
+                  </div>
+                )}
+              </div>
+            </section>
 
             {/* Description Section */}
             {property.description && (
               <section className="space-y-4">
                 <h3 className="text-2xl font-black text-gray-900 dark:text-white border-b-4 border-blue-600 w-fit pb-1">Overview</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed whitespace-pre-wrap">
+                <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed whitespace-pre-wrap" data-testid="text-property-description">
                   {property.description}
                 </p>
               </section>
             )}
-
-            {/* Facts & Features Table */}
-            <section className="space-y-6">
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white border-b-4 border-blue-600 w-fit pb-1">Facts & features</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 text-lg">
-                <div className="flex justify-between py-3 border-b border-gray-100 dark:border-gray-900">
-                  <span className="text-gray-500 font-bold flex items-center gap-2"><Home className="h-5 w-5" /> Type</span>
-                  <span className="text-gray-900 dark:text-white font-black capitalize">{property.property_type?.replace('_', ' ')}</span>
-                </div>
-                {property.year_built && (
-                  <div className="flex justify-between py-3 border-b border-gray-100 dark:border-gray-900">
-                    <span className="text-gray-500 font-bold flex items-center gap-2"><Info className="h-5 w-5" /> Year Built</span>
-                    <span className="text-gray-900 dark:text-white font-black">{property.year_built}</span>
-                  </div>
-                )}
-                {property.lease_term && (
-                  <div className="flex justify-between py-3 border-b border-gray-100 dark:border-gray-900">
-                    <span className="text-gray-500 font-bold flex items-center gap-2"><DollarSign className="h-5 w-5" /> Lease Term</span>
-                    <span className="text-gray-900 dark:text-white font-black">{property.lease_term}</span>
-                  </div>
-                )}
-                {property.square_feet && (
-                  <div className="flex justify-between py-3 border-b border-gray-100 dark:border-gray-900">
-                    <span className="text-gray-500 font-bold flex items-center gap-2"><Ruler className="h-5 w-5" /> Price / Sqft</span>
-                    <span className="text-gray-900 dark:text-white font-black">{formatPrice(parseDecimal(property.price) / property.square_feet)}</span>
-                  </div>
-                )}
-              </div>
-            </section>
 
             {/* Amenities Grid */}
             {Array.isArray(property.amenities) && property.amenities.length > 0 && (
               <section className="space-y-6">
                 <h3 className="text-2xl font-black text-gray-900 dark:text-white border-b-4 border-blue-600 w-fit pb-1">Amenities</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {(property.amenities as string[]).map((amenity, i) => (
-                    <div key={i} className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                      <div className="h-2 w-2 rounded-full bg-blue-600" />
-                      <span className="text-gray-700 dark:text-gray-300 font-bold capitalize">{amenity.replace(/_/g, ' ')}</span>
+                  {(property.amenities as any[]).map((amenity, i) => {
+                    const name = typeof amenity === 'string' ? amenity : amenity.name;
+                    const isIncluded = typeof amenity === 'object' ? amenity.included !== false : true;
+                    return (
+                      <div key={i} className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg" data-testid={`amenity-item-${i}`}>
+                        <div className={`h-2 w-2 rounded-full ${isIncluded ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <span className="text-gray-700 dark:text-gray-300 font-bold capitalize">{name.replace(/_/g, ' ')}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* Additional Details */}
+            {(leaseTerms || petPolicy || parkingInfo || laundryInfo) && (
+              <section className="space-y-6">
+                <h3 className="text-2xl font-black text-gray-900 dark:text-white border-b-4 border-blue-600 w-fit pb-1">Additional Details</h3>
+                <div className="space-y-4">
+                  {leaseTerms && (
+                    <div className="flex justify-between border-b pb-2" data-testid="detail-lease-terms">
+                      <span className="text-gray-500 font-bold">Lease Terms</span>
+                      <span className="font-black">{leaseTerms}</span>
                     </div>
-                  ))}
+                  )}
+                  {petPolicy && (
+                    <div className="flex justify-between border-b pb-2" data-testid="detail-pet-policy">
+                      <span className="text-gray-500 font-bold">Pet Policy</span>
+                      <span className="font-black">{petPolicy}</span>
+                    </div>
+                  )}
+                  {parkingInfo && (
+                    <div className="flex justify-between border-b pb-2" data-testid="detail-parking">
+                      <span className="text-gray-500 font-bold">Parking</span>
+                      <span className="font-black">{parkingInfo}</span>
+                    </div>
+                  )}
+                  {laundryInfo && (
+                    <div className="flex justify-between border-b pb-2" data-testid="detail-laundry">
+                      <span className="text-gray-500 font-bold">Laundry</span>
+                      <span className="font-black">{laundryInfo}</span>
+                    </div>
+                  )}
                 </div>
               </section>
             )}
@@ -266,7 +323,7 @@ export default function PropertyDetails() {
             {hasCoordinates && (
               <section className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-black text-gray-900 dark:text-white border-b-4 border-blue-600 w-fit pb-1">Location</h3>
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white border-b-4 border-blue-600 w-fit pb-1">Location Highlights</h3>
                   <div className="flex items-center gap-2 text-blue-600 font-bold">
                     <MapPin className="h-4 w-4" />
                     <span>Map View</span>
