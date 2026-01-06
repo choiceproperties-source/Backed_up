@@ -204,6 +204,14 @@ export default function PropertyDetails() {
                     </span>
                     <span className="text-sm text-gray-500 font-bold uppercase tracking-wider">/ Month</span>
                   </div>
+                  {property.application_fee && (
+                    <div className="flex flex-col border-l border-gray-200 dark:border-gray-800 pl-8">
+                      <span className="text-xl font-bold text-gray-900 dark:text-white">
+                        ${property.application_fee}
+                      </span>
+                      <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">App Fee</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-6">
                     <div className="flex flex-col items-center">
                       <span className="text-xl font-bold">{property.bedrooms ?? 0}</span>
@@ -319,39 +327,11 @@ export default function PropertyDetails() {
 
               {/* Price History & Trust Signals */}
               <section className="space-y-6 bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl">
-                <h3 className="text-xl font-bold">Price & Trust Signals</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-1">
-                    <p className="text-xs text-gray-500 font-bold uppercase">Application Fee</p>
-                    <p className="text-xl font-bold">${property.application_fee || "45.00"}</p>
-                  </div>
-                  {property.view_count !== undefined && (
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                        <Eye className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase">Views</p>
-                        <p className="font-bold">{property.view_count}</p>
-                      </div>
-                    </div>
-                  )}
-                  {property.save_count !== undefined && (
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                        <Bookmark className="h-5 w-5 text-red-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase">Saved</p>
-                        <p className="font-bold">{property.save_count}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {Array.isArray(property.price_history) && property.price_history.length > 0 && (
-                  <div className="space-y-4 mt-6">
+                <h3 className="text-xl font-bold">Price History</h3>
+                {Array.isArray(property.price_history) && property.price_history.length > 0 ? (
+                  <div className="space-y-4">
                     <p className="text-sm font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4" /> Price History
+                      <TrendingUp className="h-4 w-4" /> History Details
                     </p>
                     <div className="space-y-2">
                       {property.price_history.map((h, i) => (
@@ -364,6 +344,8 @@ export default function PropertyDetails() {
                       ))}
                     </div>
                   </div>
+                ) : (
+                  <p className="text-gray-500 italic text-sm">No price history available for this listing.</p>
                 )}
               </section>
 
