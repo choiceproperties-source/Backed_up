@@ -1,0 +1,36 @@
+ROLE:
+You are a senior frontend engineer and UX designer tasked with reviewing and improving the Property Card component on a real estate platform. 
+
+GOAL:
+Scan the current Property Card and provide a **comprehensive audit** of its design, content, and interactivity. Then, propose **a modern, professional layout and behavior** based on industry best practices (Zillow, Apartments.com, OpenDoor).
+
+TASKS:
+
+1️⃣ **Scan & Analyze Current Card**
+- Review all information currently displayed: images, title, price, stats, badges, actions.
+- Identify redundant or cluttered data that could be removed to improve clarity and conversion.
+- Check for responsiveness and mobile behavior.
+- Review interactivity (hover effects, click actions, Save/Share functionality).
+
+2️⃣ **Identify Needed Improvements**
+- Suggest layout adjustments for a cleaner, high-conversion design.
+- Recommend which fields are essential (price, main image, title, quick stats) and which can be moved to the details page (full description, amenities, application fee).
+- Recommend visual cues for status, badges, or highlights.
+- Suggest improvements to mobile and desktop behavior.
+
+3️⃣ **Modern Layout & Behavior Suggestions**
+- Provide a layout sketch (textual description or code structure) for desktop and mobile.
+- Include recommendations for image size, overlays, font hierarchy, spacing, and hover/interactive effects.
+- Suggest which actions should be visible on the card and which should remain in the details page.
+- Include best practices for responsiveness, click targets, and high-conversion design.
+
+4️⃣ **Dynamic Data**
+- Make sure the redesign uses **only backend-driven data**.
+- Conditional rendering: hide fields that are missing or empty.
+- Preserve Save, Share, and Apply actions with backend integration.
+
+OUTPUT EXPECTATION:
+- A full audit report of the current Property Card with pros, cons, and gaps.
+- A list of **concrete improvements** for a modern, professional design.
+- A suggested **layout plan** for desktop and mobile, including recommended fields, visual hierarchy, and interactions.
+- Recommendations are **practical and actionable**, ready for implementation.
