@@ -61,7 +61,7 @@ export default function PropertyDetails() {
     ? `${property.city || ""}${property.city && property.state ? ", " : ""}${property.state || ""} ${property.zip_code || ""}`.trim()
     : null;
   const propertyType = property?.property_type ? property.property_type.replace(/_/g, ' ') : null;
-  const availabilityDate = property?.createdAt ? new Date(property.createdAt).toLocaleDateString() : null;
+  const availabilityDate = property?.created_at ? new Date(property.created_at).toLocaleDateString() : null;
   
   const bedroomCount = property?.bedrooms ?? null;
   const bathroomCount = property?.bathrooms ? parseDecimal(property.bathrooms) : null;
