@@ -28,6 +28,17 @@ export interface Review {
   };
 }
 
+export interface PropertyPhoto {
+  id: string;
+  category: string;
+  isPrivate: boolean;
+  imageUrls: {
+    thumbnail: string;
+    gallery: string;
+    original: string;
+  };
+}
+
 export interface Property {
   id: string;
   owner_id: string | null;
@@ -44,6 +55,7 @@ export interface Property {
   property_type: string | null;
   amenities: string[] | null;
   images: string[] | null;
+  propertyPhotos?: PropertyPhoto[];
   latitude: string | null;
   longitude: string | null;
   furnished: boolean | null;

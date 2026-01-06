@@ -1,29 +1,25 @@
-import { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useMemo, memo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PropertyCard } from './property-card';
+import { EnhancedPropertyCard } from './property-card-enhanced';
+import { PropertyListCard } from './property-list-card';
 import { ViewToggle, SortSelect } from './dashboard';
 import { EmptyState } from './empty-state';
 import { cn } from '@/lib/utils';
 import {
   Search,
-  Filter,
   X,
   Home,
-  MapPin,
-  DollarSign,
-  Bed,
   ChevronDown,
   ChevronUp,
   Heart,
-  Grid,
-  List,
   SlidersHorizontal,
 } from 'lucide-react';
-import type { Property } from '@/lib/types';
+import type { Property, PropertyWithOwner } from '@/lib/types';
 import { useFavorites } from '@/hooks/use-favorites';
 
 interface FilterState {
@@ -48,6 +44,7 @@ interface PropertyCollectionProps {
   onQuickView?: (property: Property) => void;
   initialView?: 'grid' | 'list';
   className?: string;
+  useEnhancedCards?: boolean;
 }
 
 const SORT_OPTIONS = [
@@ -75,7 +72,7 @@ const BEDROOM_OPTIONS = [
   { value: 4, label: '4+' },
 ];
 
-export function PropertyCollection({
+export const PropertyCollection = memo(function PropertyCollection({
   properties,
   loading = false,
   title,
@@ -88,6 +85,7 @@ export function PropertyCollection({
   onQuickView,
   initialView = 'grid',
   className,
+  useEnhancedCards = false,
 }: PropertyCollectionProps) {
   const [view, setView] = useState<'grid' | 'list'>(initialView);
   const [sort, setSort] = useState('latest');
@@ -403,14 +401,30 @@ export function PropertyCollection({
           data-testid="property-grid"
         >
           {filteredAndSortedProperties.map((property) => (
-            <PropertyCard
-              key={property.id}
-              property={property}
-              onQuickView={onQuickView}
-            />
+            view === 'grid' ? (
+              useEnhancedCards ? (
+                <EnhancedPropertyCard
+                  key={property.id}
+                  property={property as PropertyWithOwner}
+                  onQuickView={onQuickView}
+                />
+              ) : (
+                <PropertyCard
+                  key={property.id}
+                  property={property}
+                  onQuickView={onQuickView}
+                />
+              )
+            ) : (
+              <PropertyListCard
+                key={property.id}
+                property={property}
+                onQuickView={onQuickView}
+              />
+            )
           ))}
         </div>
       )}
     </div>
   );
-}
+});

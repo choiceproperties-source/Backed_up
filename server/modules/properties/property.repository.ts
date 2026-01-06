@@ -98,8 +98,25 @@ export async function findAllProperties(filters: PropertyFilters) {
     throw error;
   }
 
+  // Pre-fetch images for each property to eliminate N+1 calls
+  const propertiesWithImages = await Promise.all((data ?? []).map(async (property) => {
+    const imageUrls = (property.images || []).map((url: string, index: number) => ({
+      id: `${property.id}-${index}`,
+      url: url,
+      index: index,
+      category: 'property',
+      isPrivate: false,
+      imageUrls: {
+        thumbnail: url,
+        gallery: url,
+        original: url,
+      },
+    }));
+    return { ...property, propertyPhotos: imageUrls };
+  }));
+
   return {
-    data: data ?? [],
+    data: propertiesWithImages,
     count: count ?? 0,
   };
 }

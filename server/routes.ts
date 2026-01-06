@@ -558,6 +558,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/v2/properties/:id - Support pre-fetched photos in single property detail too
+  app.get("/api/v2/properties/:id", async (req, res) => {
+    try {
+      const data = await propertyService.getPropertyById(req.params.id);
+      if (!data) {
+        return res.status(404).json(errorResponse("Property not found"));
+      }
+      
+      const imageUrls = (data.images || []).map((url: string, index: number) => ({
+        id: `${data.id}-${index}`,
+        url: url,
+        index: index,
+        category: 'property',
+        isPrivate: false,
+        imageUrls: {
+          thumbnail: url,
+          gallery: url,
+          original: url,
+        },
+      }));
+      
+      const enrichedData = { ...data, propertyPhotos: imageUrls };
+      return res.json(success(enrichedData, "Property fetched successfully"));
+    } catch (error: any) {
+      console.error("[PROPERTY_ROUTES] GET /:id error:", error);
+      return res.status(500).json(errorResponse("Failed to fetch property"));
+    }
+  });
+
   console.log('[ROUTES] Critical legacy endpoints enabled, all others disabled.');
   
   if (!enableLegacyRoutes) {

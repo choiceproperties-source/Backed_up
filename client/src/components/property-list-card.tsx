@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { memo } from "react";
 import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,48 +8,17 @@ import type { Property } from "@/lib/types";
 import { useFavorites } from "@/hooks/use-favorites";
 import placeholderExterior from "@assets/generated_images/modern_luxury_home_exterior_with_blue_sky.png";
 
-interface PropertyPhoto {
-  id: string;
-  category: string;
-  isPrivate: boolean;
-  imageUrls: {
-    thumbnail: string;
-    gallery: string;
-    original: string;
-  };
-}
-
 interface PropertyListCardProps {
   property: Property;
   onQuickView?: (property: Property) => void;
 }
 
-export function PropertyListCard({ property, onQuickView }: PropertyListCardProps) {
-  const [primaryPhoto, setPrimaryPhoto] = useState<PropertyPhoto | null>(null);
-  const [photoCount, setPhotoCount] = useState(0);
+export const PropertyListCard = memo(function PropertyListCard({ property, onQuickView }: PropertyListCardProps) {
   const { toggleFavorite: toggleFav, isFavorited } = useFavorites();
-  const fallbackImage = placeholderExterior;
-  const mainImage = primaryPhoto?.imageUrls.thumbnail || fallbackImage;
-
-  useEffect(() => {
-    const fetchPhotos = async () => {
-      try {
-        const response = await fetch(`/api/images/property/${property.id}`);
-        if (response.ok) {
-          const result = await response.json();
-          const photos = result.data || [];
-          setPhotoCount(photos.length);
-          const primary = photos[0] || null;
-          if (primary) {
-            setPrimaryPhoto(primary);
-          }
-        }
-      } catch (err) {
-        setPhotoCount(0);
-      }
-    };
-    fetchPhotos();
-  }, [property.id]);
+  
+  const photos = property.propertyPhotos || [];
+  const photoCount = photos.length;
+  const mainImage = photos[0]?.imageUrls.thumbnail || (property.images?.[0] || placeholderExterior);
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -175,4 +144,4 @@ export function PropertyListCard({ property, onQuickView }: PropertyListCardProp
       </div>
     </Card>
   );
-}
+});
