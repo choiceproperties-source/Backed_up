@@ -1,0 +1,74 @@
+READ CAREFULLY BEFORE DOING ANYTHING.
+
+ROLE:
+You are acting as a senior full-stack engineer performing a **read-only end-to-end audit** of the property creation and property details system.
+
+TASK GOAL:
+1. Verify that the **property creation form/system** collects and sends all necessary fields correctly to the backend.
+2. Verify that the **property details page** displays all data from the backend correctly.
+3. Identify any missing fields, mismatched mappings, or risks.
+4. Produce a structured, comprehensive report.
+
+STRICT RULES:
+- DO NOT modify frontend code
+- DO NOT modify backend code
+- DO NOT modify database schema
+- DO NOT redesign any UI
+- DO NOT invent fields or fake data
+- USE ONLY what exists in the system
+
+---
+
+SCOPE:
+
+### 1. Property Creation System
+- Identify all input fields collected in the creation form (Form field names + type + required/optional)
+- Map each field to the corresponding backend field and database column
+- Verify that all **required backend fields** are sent correctly
+- Identify mismatches between form naming, API, and database
+- Identify optional fields that are missing from the form or API
+- Verify correct handling of arrays / nested objects (amenities, utilities, images)
+- Verify that all validation logic (backend and form) matches
+
+### 2. Backend & Database
+- List all property-related database tables and columns
+- List foreign key relations
+- List API endpoints for creating/updating/fetching properties
+- Document expected data types, optional vs required
+
+### 3. Property Details Page
+- List all fields currently rendered on the frontend
+- Map each displayed field to the backend field
+- Identify any fields stored in the database but not displayed (unused fields)
+- Identify any fields displayed but not actually stored or sent by the backend
+
+---
+
+OUTPUT FORMAT (REQUIRED):
+
+### PROPERTY CREATION FORM
+- Field Name | Form Name | Backend Field | DB Column | Type | Required | Notes
+
+### DATABASE STRUCTURE
+- Table | Columns | Relationships
+
+### API ENDPOINTS
+- Endpoint | Method | Fields Sent | Fields Returned
+
+### PROPERTY DETAILS PAGE
+- Field | Rendered? (Yes/No) | Backend Field | Notes
+
+### GAPS & RISKS
+- Missing fields
+- Mismatched types
+- Unused stored fields
+- Fields displayed but not stored
+- Any other potential risk
+
+---
+
+FINAL RULES:
+- This is a **read-only discovery**. Do NOT implement, redesign, or modify anything.
+- Do NOT guess or invent fields.
+- Only report what exists in the system.
+- Be thorough, structured, and clear.
