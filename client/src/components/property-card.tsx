@@ -177,7 +177,5 @@ export const PropertyCard = memo(function PropertyCard({ property, onShare }: Pr
           </Button>
       </div>
     </Card>
-      </Link>
-    </Card>
   );
 });
