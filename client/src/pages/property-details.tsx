@@ -327,9 +327,33 @@ export default function PropertyDetails() {
 
               {/* Price History & Trust Signals */}
               <section className="space-y-6 bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl">
-                <h3 className="text-xl font-bold">Price History</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold">Price & Trust</h3>
+                  <div className="flex items-center gap-4">
+                    {property.view_count !== undefined && (
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <Eye className="h-4 w-4" />
+                        <span className="text-xs font-bold">{property.view_count} views</span>
+                      </div>
+                    )}
+                    {property.save_count !== undefined && (
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <Bookmark className="h-4 w-4" />
+                        <span className="text-xs font-bold">{property.save_count} saves</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b border-gray-100 dark:border-gray-800">
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500 font-bold uppercase">Application Fee</p>
+                    <p className="text-xl font-bold">${property.application_fee || "45.00"}</p>
+                  </div>
+                </div>
+
                 {Array.isArray(property.price_history) && property.price_history.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-4 pt-2">
                     <p className="text-sm font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" /> History Details
                     </p>
