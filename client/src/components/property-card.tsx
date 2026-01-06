@@ -1,201 +1,204 @@
 import { useState, memo } from "react";
-import { Link } from "wouter";
-import { Card } from "@/components/ui/card";
+import { Link, useLocation } from "wouter";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bed, Bath, Maximize, Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { 
+  Bed, 
+  Bath, 
+  Maximize, 
+  Heart, 
+  Share2, 
+  MapPin, 
+  CheckCircle2, 
+  XCircle,
+  Dog,
+  Armchair
+} from "lucide-react";
 import type { Property } from "@/lib/types";
 import { useFavorites } from "@/hooks/use-favorites";
-import { queryClient } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 import placeholderExterior from "@assets/generated_images/modern_luxury_home_exterior_with_blue_sky.png";
-import placeholderLiving from "@assets/generated_images/bright_modern_living_room_interior.png";
-import placeholderKitchen from "@assets/generated_images/modern_kitchen_with_marble_island.png";
-import placeholderBedroom from "@assets/generated_images/cozy_modern_bedroom_interior.png";
-
-const imageMap: Record<string, string> = {
-  "placeholder-exterior": placeholderExterior,
-  "placeholder-living": placeholderLiving,
-  "placeholder-kitchen": placeholderKitchen,
-  "placeholder-bedroom": placeholderBedroom,
-};
 
 interface PropertyCardProps {
   property: Property;
-  onQuickView?: (property: Property) => void;
+  onShare?: (property: Property) => void;
 }
 
-export const PropertyCard = memo(function PropertyCard({ property, onQuickView }: PropertyCardProps) {
-  const photos = property.propertyPhotos || [];
-  const fallbackImage = property.images?.[0] ? (imageMap[property.images[0]] || property.images[0]) : placeholderExterior;
-  
-  const displayImage = photos.length > 0 
-    ? photos[0]?.imageUrls.thumbnail || fallbackImage
-    : fallbackImage;
+export const PropertyCard = memo(function PropertyCard({ property, onShare }: PropertyCardProps) {
+  const [_, setLocation] = useLocation();
+  const { toggleFavorite, isFavorited } = useFavorites();
+  const [isHovered, setIsHovered] = useState(false);
 
-  const { toggleFavorite: toggleFav, isFavorited } = useFavorites();
+  const mainImage = property.images?.[0] || placeholderExterior;
+  const isAvailable = property.listingStatus === 'available' || property.status === 'active';
+  const favorited = isFavorited(property.id);
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleFav(property.id);
+    toggleFavorite(property.id);
   };
 
-  const prefetchDetails = () => {
-    queryClient.prefetchQuery({
-      queryKey: ['/api/v2/properties', property.id],
-      queryFn: async () => {
-        const res = await fetch(`/api/v2/properties/${property.id}`);
-        const json = await res.json();
-        const propertyInfo = json?.data || json;
-        return {
-          property: propertyInfo,
-          owner: propertyInfo?.owner || null
-        };
-      },
-    });
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onShare) {
+      onShare(property);
+    } else if (navigator.share) {
+      navigator.share({
+        title: property.title,
+        text: property.description || '',
+        url: window.location.origin + `/property/${property.id}`
+      }).catch(() => {});
+    }
   };
-
-  // Calculate estimated total based on property details
-  const monthlyPrice = parseFloat(property.price || "0");
-  const estimatedUtilities = Math.round(monthlyPrice * 0.02); // Estimate utilities as 2% of rent
-  const estimatedTotal = monthlyPrice + estimatedUtilities;
 
   return (
-    <Link href={`/property/${property.id}`}>
-      <Card 
-        className="overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-lg border-0 shadow-sm bg-white dark:bg-gray-900 flex flex-col h-full rounded-none"
-        onMouseEnter={prefetchDetails}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            // Navigation handled by Link
-          }
-        }}
-        data-testid={`card-property-${property.id}`}
-        tabIndex={0}
-      >
-        {/* Image Section with Overlay Badges */}
-        <div className="relative overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-none">
+    <Card 
+      className="group overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-card hover-elevate rounded-md flex flex-col h-full"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      data-testid={`card-property-${property.id}`}
+    >
+      <Link href={`/property/${property.id}`} className="flex flex-col h-full">
+        {/* Image Section */}
+        <div className="relative aspect-[4/3] overflow-hidden">
           <img
-            src={displayImage}
-            alt={`${property.title} - ${property.property_type || 'Property'}`}
-            loading="lazy"
-            decoding="async"
-            className="w-full aspect-video object-cover group-hover:scale-105 transition-all duration-500 ease-in-out rounded-none"
-            data-testid="img-property-preview"
+            src={mainImage}
+            alt={property.title}
+            className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
+            data-testid={`img-property-main-${property.id}`}
           />
-
-          {/* Heart Icon - Top Left */}
-          <button
-            onClick={handleToggleFavorite}
-            className="absolute top-3 left-3 p-2.5 rounded-none bg-white dark:bg-gray-200 shadow-lg hover:shadow-xl transition-all active:scale-90 z-10 flex items-center justify-center"
-            title={isFavorited(property.id) ? "Remove from favorites" : "Add to favorites"}
-            data-testid={isFavorited(property.id) ? "button-unsave-card" : "button-save-card"}
-          >
-            <Heart 
-              className={`h-5 w-5 transition-all duration-300 ${
-                isFavorited(property.id) 
-                  ? 'fill-red-500 text-red-500' 
-                  : 'text-gray-700'
-              }`}
-            />
-          </button>
-
-          {/* Exclusive Badge Overlay */}
-          <div className="absolute top-3 right-3 z-10">
-            <Badge className="bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-none border-none shadow-xl">
-              {property.status || 'Exclusive'}
-            </Badge>
-          </div>
-        </div>
-
-        {/* Info Section Below Image */}
-        <div className="p-4 space-y-3 flex flex-col flex-1">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+          
           {/* Status Badge */}
-          <div>
-            {(() => {
-              const status = property.status?.toLowerCase().trim() || 'unknown';
-              let badgeClass = '';
-              let badgeText = '';
-
-              if (status === 'available' || status === 'active') {
-                badgeClass = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-                badgeText = 'Available Now';
-              } else if (status === 'pending' || status === 'lease_starting') {
-                badgeClass = 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
-                badgeText = 'Available Soon';
-              } else if (status === 'rented' || status === 'leased') {
-                badgeClass = 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
-                badgeText = 'Off Market';
-              } else if (status === 'off_market' || status === 'unavailable') {
-                badgeClass = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-                badgeText = 'Off Market';
-              } else {
-                badgeClass = 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
-                badgeText = status.charAt(0).toUpperCase() + status.slice(1);
-              }
-
-              return (
-                <Badge 
-                  className={`${badgeClass} border-0 font-bold text-xs px-2.5 py-1 hover:opacity-90 transition-opacity`}
-                  data-testid="badge-status"
-                >
-                  {badgeText}
-                </Badge>
-              );
-            })()}
+          <div className="absolute top-3 left-3 flex gap-2">
+            <Badge 
+              className={cn(
+                "font-bold shadow-sm uppercase text-[10px] tracking-wider border-none px-2",
+                isAvailable ? "bg-emerald-500 text-white" : "bg-slate-500 text-white"
+              )}
+              data-testid={`status-listing-${property.id}`}
+            >
+              {isAvailable ? (
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Available Now</span>
+              ) : (
+                <span className="flex items-center gap-1"><XCircle className="w-3 h-3" /> Off Market</span>
+              )}
+            </Badge>
+            {property.property_type && (
+              <Badge variant="secondary" className="bg-white/90 text-slate-900 hover:bg-white text-[10px] uppercase font-bold tracking-wider" data-testid={`text-type-${property.id}`}>
+                {property.property_type}
+              </Badge>
+            )}
           </div>
 
-          {/* Address and Price Row */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 dark:text-white line-clamp-2" title={property.address}>
-                {property.address}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {property.city}, {property.state || 'GA'} {property.zip_code || ''}
-              </p>
+          {/* Price Overlay */}
+          <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+            <div className="text-white" data-testid={`text-price-${property.id}`}>
+              <span className="text-2xl font-black">${property.price ? Math.round(parseFloat(property.price)).toLocaleString() : 'N/A'}</span>
+              <span className="text-sm font-medium opacity-90"> /mo</span>
             </div>
-            <div className="flex-shrink-0 text-right">
-              <div className="text-xl font-black text-gray-900 dark:text-white leading-none">
-                ${property.price ? Math.round(parseFloat(property.price)).toLocaleString() : 'N/A'}
-              </div>
-              <span className="text-xs text-gray-500 dark:text-gray-400 font-bold">/ mo</span>
-            </div>
-          </div>
-
-          {/* Estimated Total */}
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-500 dark:text-gray-400 font-medium">est. total</span>
-            <span className="text-gray-900 dark:text-white font-bold">
-              ${Math.round(estimatedTotal).toLocaleString()} / mo
-              <button 
-                className="ml-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 inline-flex"
-                title="Includes estimated utilities"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </span>
-          </div>
-
-          {/* Quick Facts - Bottom */}
-          <div className="flex items-center justify-start gap-4 pt-2 border-t border-gray-100 dark:border-gray-800">
-            <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900 dark:text-white">
-              <Bed className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-              <span>{property.bedrooms || 0} Beds</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900 dark:text-white">
-              <Bath className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-              <span>{property.bathrooms || '0'} Baths</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900 dark:text-white">
-              <Maximize className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-              <span>{property.square_feet ? Math.round(property.square_feet).toLocaleString() : '0'} Sqft.</span>
-            </div>
+            
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                "rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/40 active-elevate-2",
+                favorited && "text-red-500 bg-white/90 hover:bg-white"
+              )}
+              onClick={handleToggleFavorite}
+              data-testid={`button-favorite-${property.id}`}
+            >
+              <Heart className={cn("w-5 h-5", favorited && "fill-current")} />
+            </Button>
           </div>
         </div>
-      </Card>
-    </Link>
+
+        <CardContent className="p-4 flex-1 space-y-3">
+          <div>
+            <h3 className="text-lg font-bold leading-tight line-clamp-1 group-hover:text-primary transition-colors text-slate-900 dark:text-white" data-testid={`text-title-${property.id}`}>
+              {property.title}
+            </h3>
+            <div className="flex items-center gap-1 mt-1 text-slate-500 dark:text-slate-400 text-sm" data-testid={`text-address-${property.id}`}>
+              <MapPin className="w-3 h-3 flex-shrink-0" />
+              <span className="line-clamp-1">{property.address}, {property.city}</span>
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="flex items-center justify-between py-2 border-y border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col items-center gap-0.5" data-testid={`stats-beds-${property.id}`}>
+              <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200">
+                <Bed className="w-4 h-4 text-primary" />
+                <span>{property.bedrooms || 0}</span>
+              </div>
+              <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Beds</span>
+            </div>
+            <div className="w-px h-8 bg-slate-100 dark:bg-slate-800" />
+            <div className="flex flex-col items-center gap-0.5" data-testid={`stats-baths-${property.id}`}>
+              <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200">
+                <Bath className="w-4 h-4 text-primary" />
+                <span>{property.bathrooms || '0'}</span>
+              </div>
+              <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Baths</span>
+            </div>
+            <div className="w-px h-8 bg-slate-100 dark:bg-slate-800" />
+            <div className="flex flex-col items-center gap-0.5" data-testid={`stats-sqft-${property.id}`}>
+              <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200">
+                <Maximize className="w-4 h-4 text-primary" />
+                <span>{property.square_feet ? Math.round(property.square_feet).toLocaleString() : '0'}</span>
+              </div>
+              <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Sq Ft</span>
+            </div>
+          </div>
+
+          {/* Optional Badges (Pets, Furnished) */}
+          <div className="flex gap-2">
+            {property.pets_allowed && (
+              <Badge variant="outline" className="text-[10px] font-bold py-0 h-5 border-slate-200 text-slate-600 dark:text-slate-400">
+                <Dog className="w-3 h-3 mr-1" /> Pets OK
+              </Badge>
+            )}
+            {property.furnished && (
+              <Badge variant="outline" className="text-[10px] font-bold py-0 h-5 border-slate-200 text-slate-600 dark:text-slate-400">
+                <Armchair className="w-3 h-3 mr-1" /> Furnished
+              </Badge>
+            )}
+          </div>
+
+          {property.application_fee && (
+            <div className="flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 dark:bg-slate-900/50 p-1.5 rounded">
+              <span className="font-medium">Application Fee</span>
+              <span className="font-bold text-slate-700 dark:text-slate-200">${Number(property.application_fee)}</span>
+            </div>
+          )}
+        </CardContent>
+
+        <CardFooter className="p-4 pt-0 flex gap-2">
+          <Button 
+            variant="outline" 
+            className="flex-1 font-bold text-[10px] uppercase tracking-wider h-9 border-slate-200 hover:bg-slate-50 no-default-active-elevate"
+            onClick={handleShare}
+            data-testid={`button-share-${property.id}`}
+          >
+            <Share2 className="w-3.5 h-3.5 mr-1.5" />
+            Share
+          </Button>
+          <Button 
+            className="flex-[1.5] font-bold text-[10px] uppercase tracking-wider h-9 shadow-md shadow-primary/10 active-elevate-2"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setLocation(`/property/${property.id}/apply`);
+            }}
+            data-testid={`button-apply-${property.id}`}
+          >
+            Apply Now
+          </Button>
+        </CardFooter>
+      </Link>
+    </Card>
   );
 });

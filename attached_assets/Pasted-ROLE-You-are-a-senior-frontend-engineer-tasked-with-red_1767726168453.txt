@@ -1,0 +1,53 @@
+ROLE:
+You are a senior frontend engineer tasked with redesigning the Property Card for a real estate listing platform. The card must be **high-conversion, visually professional, and fully data-driven**.
+
+GOAL:
+Create a **modern Property Card** component that dynamically displays property info from the backend, optimized for desktop and mobile.
+
+REQUIREMENTS:
+
+1️⃣ **Dynamic Data**
+- Pull all information from the backend properties table.
+- Required fields to display:
+  - Main image: images[0]
+  - Property title: title
+  - Price per month: price
+  - Bedrooms: bedrooms
+  - Bathrooms: bathrooms
+  - Square Feet: square_feet
+  - Status / listing_status (Available Now / Off Market)
+  - Property type: property_type
+  - Application Fee: application_fee (optional small label)
+- Only display data that exists; hide empty fields.
+
+2️⃣ **Layout & Design**
+- Large image on top or left (depending on screen size)
+- Overlay price and status clearly on image
+- Title and address below image
+- Quick stats: beds/baths/sqft in a clean row or grid
+- Optional icons for property type, pets_allowed, and furnished
+- Clean, modern typography and spacing
+- Mobile-first responsive design
+
+3️⃣ **Actions**
+- Save Property → toggle favorites
+- Share → opens modal with listing link
+- Apply Now → links to property details or application form
+- Actions should be fully functional and visually integrated into the card
+
+4️⃣ **Styling**
+- Hover effect on desktop: subtle scale, shadow, or highlight
+- Rounded corners, subtle shadows, clean borders
+- Avoid clutter; maintain professional, Zillow/Apartments.com look
+- Conditional rendering: do not show placeholders or empty data
+
+5️⃣ **Validation**
+- Every piece of displayed information must come from the backend.
+- Card must look consistent across all property entries.
+- Fully responsive and mobile-friendly.
+
+OUTPUT EXPECTATION:
+- A modern, professional Property Card React component
+- Fully dynamic fields mapped from the backend
+- Interactive Save, Share, and Apply buttons
+- High-conversion design ready for production
