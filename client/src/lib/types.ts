@@ -141,6 +141,16 @@ export interface User {
   role: string | null;
   profile_image: string | null;
   bio: string | null;
+  location: string | null;
+  specialties: string[] | null;
+  years_experience: number | null;
+  total_sales: number | null;
+  rating: string | null;
+  review_count: number | null;
+  license_number: string | null;
+  license_verified: boolean | null;
+  display_email: string | null;
+  display_phone: string | null;
   created_at: string;
   updated_at: string | null;
   email_verified?: boolean;

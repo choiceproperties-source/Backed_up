@@ -27,6 +27,7 @@ import {
   Check,
 } from 'lucide-react';
 import { updateMetaTags } from '@/lib/seo';
+import { useQuery } from '@tanstack/react-query';
 
 export default function AgentProfile() {
   const { user, logout, isLoggedIn } = useAuth();
@@ -38,6 +39,12 @@ export default function AgentProfile() {
     email: user?.email || '',
     phone: user?.phone || '',
     bio: user?.bio || '',
+    location: user?.location || '',
+  });
+
+  const { data: propertiesCount } = useQuery<number>({
+    queryKey: [`/api/properties/count`, { ownerId: user?.id }],
+    enabled: !!user?.id,
   });
 
   const handleCopyEmail = () => {
@@ -48,7 +55,6 @@ export default function AgentProfile() {
     }
   };
 
-  // Update meta tags
   useMemo(() => {
     updateMetaTags({
       title: 'Agent Profile - Choice Properties',
@@ -79,240 +85,222 @@ export default function AgentProfile() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      {/* Header with Gradient Background */}
-      <div className="bg-gradient-to-br from-purple-600 via-indigo-600 to-pink-600 text-white py-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-white/10" />
+      <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 py-16 relative overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-8">
             <Button
               variant="ghost"
-              className="text-white hover:bg-white/20 p-0 h-auto"
+              size="sm"
+              className="hover:bg-primary/5"
               onClick={() => navigate('/agent-dashboard')}
               data-testid="button-back"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Dashboard
             </Button>
           </div>
-          <h1 className="text-4xl font-bold">Agent Profile</h1>
-          <p className="text-purple-100 mt-2">Manage your profile, performance metrics, and license information</p>
+          <h1 className="text-4xl font-bold tracking-tight">Profile Settings</h1>
+          <p className="text-muted-foreground mt-2 text-lg">Personalize your public profile and manage account details.</p>
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="container mx-auto px-4 py-12 flex-1">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Card with Stats */}
-          <Card className="lg:col-span-1 p-8 shadow-lg">
-            <div className="text-center mb-8 relative">
-              <div className="relative inline-block mb-4">
-                <Avatar className="h-32 w-32 mx-auto border-4 border-purple-600 shadow-lg" data-testid="avatar-profile">
-                  <AvatarImage src={user.profile_image || ''} alt={user.full_name || ''} />
-                  <AvatarFallback className="text-2xl font-bold">{initials}</AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-1 -right-1 bg-green-500 border-4 border-white rounded-full p-2 shadow-lg">
-                  <CheckCircle2 className="h-5 w-5 text-white" />
-                </div>
-              </div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">{user.full_name || 'Agent'}</h2>
-              <div className="flex justify-center gap-1 mb-2">
-                {[1, 2, 3, 4, 5].map(i => (
-                  <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <Badge className="mt-2 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100" data-testid="badge-role">
-                {user.role === 'agent' ? 'Real Estate Agent' : user.role}
-              </Badge>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">License Verified</p>
-            </div>
-
-            {/* Performance Stats */}
-            <div className="grid grid-cols-2 gap-3 mb-6 p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-1 space-y-8">
+            <Card className="p-8 shadow-xl border-primary/5">
               <div className="text-center">
-                <p className="text-2xl font-bold text-purple-600">24</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Deals</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-purple-600">$2.4M</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Volume</p>
-              </div>
-            </div>
-
-            {/* Account Settings */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-foreground mb-4">Account</h3>
-              <Button
-                onClick={() => {
-                  logout();
-                  navigate('/');
-                }}
-                variant="outline"
-                className="w-full justify-start"
-                data-testid="button-logout"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-          </Card>
-
-          {/* Profile Information */}
-          <Card className="lg:col-span-2 p-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Profile Information</h2>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(!isEditing)}
-                data-testid="button-edit-profile"
-              >
-                {isEditing ? (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save
-                  </>
-                ) : (
-                  <>
-                    <Edit2 className="h-4 w-4 mr-2" />
-                    Edit
-                  </>
-                )}
-              </Button>
-            </div>
-
-            <div className="space-y-6">
-              {/* Full Name */}
-              <div>
-                <label className="text-sm font-semibold text-foreground mb-2 block">Full Name</label>
-                {isEditing ? (
-                  <Input
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    placeholder="Enter full name"
-                    data-testid="input-fullname"
-                  />
-                ) : (
-                  <p className="text-muted-foreground">{formData.fullName || 'Not provided'}</p>
-                )}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="text-sm font-semibold text-foreground mb-2 block">Email</label>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                  <p>{formData.email}</p>
-                  <Button 
-                    size="icon" 
-                    variant="ghost" 
-                    className="h-6 w-6 ml-auto"
-                    onClick={handleCopyEmail}
-                    data-testid="button-copy-email"
-                  >
-                    {copiedEmail ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
+                <div className="relative inline-block mb-6 group">
+                  <Avatar className="h-40 w-40 mx-auto border-4 border-background shadow-2xl transition-transform group-hover:scale-105" data-testid="avatar-profile">
+                    <AvatarImage src={user.profile_image || undefined} alt={user.full_name || ''} />
+                    <AvatarFallback className="text-3xl font-bold bg-primary/5">{initials}</AvatarFallback>
+                  </Avatar>
+                  {user.license_verified && (
+                    <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-2.5 shadow-lg ring-4 ring-background">
+                      <CheckCircle2 className="h-6 w-6" />
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label className="text-sm font-semibold text-foreground mb-2 block">Phone</label>
-                {isEditing ? (
-                  <Input
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="Enter phone number"
-                    data-testid="input-phone"
-                  />
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">{formData.phone || 'Not provided'}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Bio */}
-              <div>
-                <label className="text-sm font-semibold text-foreground mb-2 block">
-                  Bio ({formData.bio.length}/500)
-                </label>
-                {isEditing ? (
-                  <Textarea
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                    placeholder="Tell us about yourself"
-                    maxLength={500}
-                    className="resize-none"
-                    data-testid="textarea-bio"
-                  />
-                ) : (
-                  <p className="text-muted-foreground">{formData.bio || 'No bio provided'}</p>
-                )}
-              </div>
-
-              {isEditing && (
-                <Button
-                  onClick={handleSave}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                  data-testid="button-save-profile"
-                >
-                  Save Changes
-                </Button>
-              )}
-            </div>
-          </Card>
-        </div>
-
-        {/* Commission & License Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-          {/* Commission Info */}
-          <Card className="p-8">
-            <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-              <DollarSign className="h-6 w-6" />
-              Commission Information
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground">Commission Rate</p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-                  3-5%
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground">Total Earned</p>
-                <p className="text-2xl font-bold text-foreground mt-1">$0.00</p>
-                <p className="text-xs text-muted-foreground mt-1">Commission earned this year</p>
-              </div>
-            </div>
-          </Card>
-
-          {/* License Information */}
-          <Card className="p-8">
-            <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-              <Award className="h-6 w-6" />
-              License Information
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground">License Number</p>
-                <p className="text-foreground mt-1">Not provided</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground">License State</p>
-                <p className="text-foreground mt-1">Not provided</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground">License Status</p>
-                <Badge className="mt-1" data-testid="badge-license-status">
-                  Unverified
+                <h2 className="text-3xl font-bold mb-2">{user.full_name || 'Agent'}</h2>
+                <div className="flex justify-center gap-1 mb-4">
+                  {user.rating ? (
+                    <div className="flex items-center gap-1 bg-yellow-400/10 text-yellow-600 px-3 py-1 rounded-full text-sm font-bold">
+                      <Star className="h-4 w-4 fill-current" />
+                      {user.rating} ({user.review_count || 0})
+                    </div>
+                  ) : (
+                    <Badge variant="outline" className="text-muted-foreground">New Agent</Badge>
+                  )}
+                </div>
+                <Badge variant="secondary" className="px-4 py-1 text-sm font-medium" data-testid="badge-role">
+                  {user.role === 'agent' ? 'Licensed Real Estate Agent' : user.role}
                 </Badge>
               </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-10 p-4 bg-muted/50 rounded-2xl">
+                <div className="text-center p-2 border-r">
+                  <p className="text-2xl font-bold text-primary">{propertiesCount || 0}</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active</p>
+                </div>
+                <div className="text-center p-2">
+                  <p className="text-2xl font-bold text-primary">{user.years_experience || 0}</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Years Exp.</p>
+                </div>
+              </div>
+
+              <div className="mt-10 pt-8 border-t">
+                <Button
+                  onClick={logout}
+                  variant="ghost"
+                  className="w-full justify-center text-destructive hover:text-destructive hover:bg-destructive/10 h-12 font-bold"
+                  data-testid="button-logout"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-2 space-y-8">
+            <Card className="p-8 shadow-sm border-primary/5">
+              <div className="flex justify-between items-center mb-8 pb-4 border-b">
+                <h2 className="text-2xl font-bold">Personal Information</h2>
+                <Button
+                  variant={isEditing ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsEditing(!isEditing)}
+                  data-testid="button-edit-profile"
+                  className="font-bold"
+                >
+                  {isEditing ? (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Profile
+                    </>
+                  ) : (
+                    <>
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      Edit Profile
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2 block">Full Name</label>
+                    {isEditing ? (
+                      <Input
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        className="h-12 bg-muted/30"
+                        placeholder="John Doe"
+                        data-testid="input-fullname"
+                      />
+                    ) : (
+                      <p className="text-lg font-medium">{formData.fullName || 'Not specified'}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2 block">Location</label>
+                    {isEditing ? (
+                      <Input
+                        name="location"
+                        value={formData.location}
+                        onChange={handleInputChange}
+                        className="h-12 bg-muted/30"
+                        placeholder="e.g. New York, NY"
+                        data-testid="input-location"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-primary" />
+                        <p className="text-lg font-medium">{formData.location || 'Not specified'}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2 block">Public Contact Email</label>
+                  <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-primary/5 group">
+                    <Mail className="h-5 w-5 text-primary" />
+                    <p className="flex-1 font-medium">{user.display_email || user.email}</p>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-10 w-10 hover:bg-background"
+                      onClick={handleCopyEmail}
+                      data-testid="button-copy-email"
+                    >
+                      {copiedEmail ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 font-medium">This email is visible on your public property listings.</p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2 block">About You</label>
+                  {isEditing ? (
+                    <Textarea
+                      name="bio"
+                      value={formData.bio}
+                      onChange={handleInputChange}
+                      placeholder="Share your experience and approach to real estate..."
+                      maxLength={500}
+                      className="min-h-[160px] bg-muted/30 resize-none p-4"
+                      data-testid="textarea-bio"
+                    />
+                  ) : (
+                    <p className="text-muted-foreground leading-relaxed text-lg">
+                      {formData.bio || 'No professional biography provided yet.'}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Card className="p-8 shadow-sm border-primary/5 hover:border-primary/20 transition-colors">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-600">
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-xl font-bold">Earnings</h3>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Sales Volume</p>
+                    <p className="text-3xl font-bold mt-1 tracking-tight">
+                      ${(user.total_sales || 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-medium">Sales volume tracked through Choice Properties.</p>
+                </div>
+              </Card>
+
+              <Card className="p-8 shadow-sm border-primary/5 hover:border-primary/20 transition-colors">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600">
+                    <Award className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-xl font-bold">Certification</h3>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">License Number</p>
+                    <p className="text-lg font-bold mt-1 font-mono tracking-wider">{user.license_number || 'PENDING'}</p>
+                  </div>
+                  <Badge variant={user.license_verified ? "default" : "secondary"} className="font-bold">
+                    {user.license_verified ? "License Verified" : "Verification Pending"}
+                  </Badge>
+                </div>
+              </Card>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
 

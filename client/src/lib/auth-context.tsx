@@ -39,10 +39,26 @@ const getDefaultRedirectForRole = (role: UserRole | null) => {
   }
 };
 
-const buildUserFromAuth = async (authUser: any): Promise<User> => {
+  const buildUserFromAuth = async (authUser: any): Promise<User> => {
   const { data } = await supabase
     .from("users")
-    .select("role, full_name, phone, profile_image, bio")
+    .select(`
+      role, 
+      full_name, 
+      phone, 
+      profile_image, 
+      bio, 
+      location, 
+      specialties, 
+      years_experience, 
+      total_sales, 
+      rating, 
+      review_count, 
+      license_number, 
+      license_verified, 
+      display_email, 
+      display_phone
+    `)
     .eq("id", authUser.id)
     .single();
 
@@ -65,6 +81,16 @@ const buildUserFromAuth = async (authUser: any): Promise<User> => {
       authUser.user_metadata?.avatar_url ??
       null,
     bio: data?.bio ?? null,
+    location: data?.location ?? null,
+    specialties: data?.specialties ?? null,
+    years_experience: data?.years_experience ?? null,
+    total_sales: data?.total_sales ?? null,
+    rating: data?.rating ?? null,
+    review_count: data?.review_count ?? null,
+    license_number: data?.license_number ?? null,
+    license_verified: data?.license_verified ?? null,
+    display_email: data?.display_email ?? null,
+    display_phone: data?.display_phone ?? null,
     created_at: authUser.created_at,
     updated_at: null,
     email_verified: !!authUser.email_confirmed_at,

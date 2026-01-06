@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, Phone, User, LogOut, Loader2, Upload } from 'lucide-react';
+import { Mail, Phone, User, LogOut, Loader2, MapPin } from 'lucide-react';
 import { updateMetaTags } from "@/lib/seo";
 
 const profileSchema = z.object({
@@ -21,24 +21,15 @@ const profileSchema = z.object({
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
+  location: z.string().optional(),
 });
 
 type ProfileFormInput = z.infer<typeof profileSchema>;
 
 export default function TenantProfile() {
-  useEffect(() => {
-    updateMetaTags({
-      title: "My Profile - Choice Properties",
-      description: "Manage your profile and account settings on Choice Properties.",
-      image: "https://choiceproperties.com/og-image.png",
-      url: "https://choiceproperties.com/tenant-profile"
-    });
-  }, []);
-
   const { user, logout, isLoggedIn } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const form = useForm<ProfileFormInput>({
@@ -48,10 +39,17 @@ export default function TenantProfile() {
       email: user?.email || '',
       phone: user?.phone || '',
       bio: user?.bio || '',
+      location: user?.location || '',
     },
   });
 
-  // Redirect if not logged in
+  useEffect(() => {
+    updateMetaTags({
+      title: "My Profile - Choice Properties",
+      description: "Manage your personal profile and account settings.",
+    });
+  }, []);
+
   if (!isLoggedIn || !user) {
     navigate('/login');
     return null;
@@ -60,16 +58,14 @@ export default function TenantProfile() {
   const onSubmit = async (data: ProfileFormInput) => {
     setIsSaving(true);
     try {
-      // In a real app, this would call an API endpoint
-      // For now, we'll just show a success message
       toast({
         title: "Profile Updated",
-        description: "Your profile has been successfully updated.",
+        description: "Your settings have been saved.",
       });
     } catch (err: any) {
       toast({
-        title: "Error",
-        description: err.message || "Failed to update profile",
+        title: "Update Failed",
+        description: "Unable to save profile changes.",
         variant: "destructive",
       });
     } finally {
@@ -77,242 +73,163 @@ export default function TenantProfile() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    toast({
-      title: "Signed Out",
-      description: "You have been successfully signed out.",
-    });
-  };
-
-  const initials = user?.full_name
-    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase()
-    : user?.email?.[0]?.toUpperCase() || '?';
+  const initials = user?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || "?";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      {/* Hero Header */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white py-16">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold mb-2">My Profile</h1>
-          <p className="text-blue-100 text-lg">
-            Manage your account settings and personal information
-          </p>
+      <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 py-16">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <h1 className="text-4xl font-bold tracking-tight">Account Settings</h1>
+          <p className="text-muted-foreground mt-2 text-lg font-medium">Manage your personal information and contact preferences.</p>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-12 flex-1 max-w-2xl">
-        {/* Profile Header Card */}
-        <Card className="p-8 mb-8 border-t-4 border-t-primary">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 pb-8 border-b">
-            {/* Avatar */}
-            <div className="flex-shrink-0">
-              <Avatar className="h-24 w-24 border-2 border-primary">
-                {user?.profile_image && (
-                  <AvatarImage src={user.profile_image} alt={user.full_name || 'User'} />
-                )}
-                <AvatarFallback className="text-lg font-bold">{initials}</AvatarFallback>
+      <div className="container mx-auto px-4 py-12 flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
+          <div className="lg:col-span-1 space-y-8">
+            <Card className="p-8 shadow-xl border-primary/5 text-center">
+              <Avatar className="h-40 w-40 mx-auto mb-6 border-4 border-background shadow-2xl transition-transform hover:scale-105">
+                <AvatarImage src={user.profile_image || undefined} alt={user.full_name || ''} />
+                <AvatarFallback className="text-3xl font-bold bg-primary/5">{initials}</AvatarFallback>
               </Avatar>
-            </div>
-
-            {/* Profile Info */}
-            <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                {user?.full_name || 'Tenant User'}
-              </h2>
-              <div className="space-y-1 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{user?.email}</span>
+              <h2 className="text-3xl font-bold mb-2 tracking-tight">{user.full_name || 'Tenant'}</h2>
+              <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-8">Verified Resident</p>
+              
+              <div className="space-y-4 pt-8 border-t border-primary/10">
+                <div className="flex items-center gap-4 text-sm font-medium p-3 rounded-xl bg-muted/30">
+                  <Mail className="h-4 w-4 text-primary" />
+                  <span className="truncate flex-1">{user.email}</span>
                 </div>
-                {user?.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 flex-shrink-0" />
-                    <span>{user.phone}</span>
+                {user.phone && (
+                  <div className="flex items-center gap-4 text-sm font-medium p-3 rounded-xl bg-muted/30">
+                    <Phone className="h-4 w-4 text-primary" />
+                    <span className="flex-1">{user.phone}</span>
                   </div>
                 )}
-                <div className="text-xs text-muted-foreground mt-2">
-                  Member since {user?.created_at 
-                    ? new Date(user.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })
-                    : 'Recently'}
+                <div className="text-xs text-muted-foreground pt-4 font-medium">
+                  Member since {new Date(user.created_at).toLocaleDateString()}
                 </div>
               </div>
-            </div>
+            </Card>
 
-            {/* Actions */}
-            <div className="flex gap-2 flex-shrink-0 w-full md:w-auto">
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="flex-1 md:flex-none"
-                data-testid="button-logout"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
+            <Button
+              onClick={logout}
+              variant="outline"
+              className="w-full h-12 font-bold text-destructive hover:bg-destructive/10 border-primary/5 shadow-sm"
+              data-testid="button-logout"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
-        </Card>
 
-        {/* Edit Profile Form */}
-        <Card className="p-8">
-          <h3 className="text-xl font-bold text-foreground mb-6">Edit Profile</h3>
+          <div className="lg:col-span-2 space-y-8">
+            <Card className="p-8 shadow-sm border-primary/5">
+              <h3 className="text-2xl font-bold mb-8 pb-4 border-b">Personal Information</h3>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm flex items-center gap-2">
-                      <User className="h-4 w-4" /> Full Name
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="John Doe"
-                        disabled={isSaving}
-                        data-testid="input-fullname"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <FormField
+                      control={form.control}
+                      name="fullName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Full Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="John Doe"
+                              disabled={isSaving}
+                              className="h-12 bg-muted/30"
+                              data-testid="input-fullname"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm flex items-center gap-2">
-                      <Mail className="h-4 w-4" /> Email
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="you@example.com"
-                        disabled={true}
-                        data-testid="input-email"
-                        {...field}
-                      />
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Email cannot be changed
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Current City</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g. San Francisco, CA"
+                              disabled={isSaving}
+                              className="h-12 bg-muted/30"
+                              data-testid="input-location"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm flex items-center gap-2">
-                      <Phone className="h-4 w-4" /> Phone Number
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="tel"
-                        placeholder="+1 (555) 123-4567"
-                        disabled={isSaving}
-                        data-testid="input-phone"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="bio"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">About You</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Share a bit about yourself with potential landlords..."
+                            disabled={isSaving}
+                            className="min-h-[160px] bg-muted/30 resize-none p-4"
+                            data-testid="textarea-bio"
+                            {...field}
+                          />
+                        </FormControl>
+                        <p className="text-xs font-medium text-muted-foreground mt-2 text-right">
+                          {field.value?.length || 0}/500 characters
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="bio"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm">About You</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Tell us about yourself..."
-                        disabled={isSaving}
-                        data-testid="textarea-bio"
-                        className="resize-none"
-                        rows={4}
-                        {...field}
-                      />
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {field.value?.length || 0}/500 characters
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <Button
+                    type="submit"
+                    disabled={isSaving}
+                    className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20"
+                    data-testid="button-save-profile"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Saving Profile...
+                      </>
+                    ) : (
+                      'Save All Changes'
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </Card>
 
-              <Button
-                type="submit"
-                disabled={isSaving}
-                className="w-full"
-                data-testid="button-save-profile"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save Changes'
-                )}
-              </Button>
-            </form>
-          </Form>
-        </Card>
-
-        {/* Account Settings */}
-        <Card className="p-8 mt-8">
-          <h3 className="text-xl font-bold text-foreground mb-4">Account Settings</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-              <div>
-                <p className="font-semibold text-foreground">Password</p>
-                <p className="text-sm text-muted-foreground">Change your password</p>
+            <Card className="p-8 shadow-sm border-primary/5">
+              <h3 className="text-xl font-bold mb-6">Account Privacy</h3>
+              <div className="p-4 bg-muted/30 rounded-2xl border border-primary/5">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-bold text-foreground">Email Notifications</p>
+                  <Button variant="ghost" size="sm" className="font-bold text-primary" disabled>Manage</Button>
+                </div>
+                <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                  We use your email for critical account updates and lease communications. 
+                  Privacy settings can be customized in the notification center.
+                </p>
               </div>
-              <Button variant="outline" size="sm" disabled data-testid="button-change-password">
-                Coming Soon
-              </Button>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-              <div>
-                <p className="font-semibold text-foreground">Email Notifications</p>
-                <p className="text-sm text-muted-foreground">Manage your notification preferences</p>
-              </div>
-              <Button variant="outline" size="sm" disabled data-testid="button-notifications">
-                Coming Soon
-              </Button>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-              <div>
-                <p className="font-semibold text-foreground">Delete Account</p>
-                <p className="text-sm text-muted-foreground">Permanently delete your account</p>
-              </div>
-              <Button variant="destructive" size="sm" disabled data-testid="button-delete-account">
-                Coming Soon
-              </Button>
-            </div>
+            </Card>
           </div>
-        </Card>
+        </div>
       </div>
 
       <Footer />

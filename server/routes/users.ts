@@ -22,7 +22,23 @@ export function registerUserRoutes(app: Express): void {
     try {
       const { data, error: dbError } = await supabase
         .from("users")
-        .select("id, full_name, profile_image, bio")
+        .select(`
+          id, 
+          full_name, 
+          profile_image, 
+          bio, 
+          role, 
+          location, 
+          specialties, 
+          years_experience, 
+          total_sales, 
+          rating, 
+          review_count, 
+          license_verified,
+          display_email,
+          display_phone,
+          created_at
+        `)
         .eq("id", req.params.id)
         .single();
 

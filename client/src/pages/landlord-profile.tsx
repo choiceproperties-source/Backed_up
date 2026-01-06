@@ -13,14 +13,16 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, Phone, User, LogOut, Loader2, ArrowLeft, Star, Home, Users, Clock, CheckCircle2, Copy, Check, TrendingUp } from 'lucide-react';
+import { Mail, Phone, User, LogOut, Loader2, ArrowLeft, Star, Home, Users, Clock, CheckCircle2, Copy, Check, TrendingUp, MapPin } from 'lucide-react';
 import { updateMetaTags } from '@/lib/seo';
+import { useQuery } from '@tanstack/react-query';
 
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
+  location: z.string().optional(),
 });
 
 type ProfileFormInput = z.infer<typeof profileSchema>;
@@ -31,6 +33,11 @@ export default function LandlordProfile() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
+
+  const { data: propertiesCount } = useQuery<number>({
+    queryKey: [`/api/properties/count`, { ownerId: user?.id }],
+    enabled: !!user?.id,
+  });
 
   const handleCopyEmail = () => {
     if (user?.email) {
@@ -47,19 +54,17 @@ export default function LandlordProfile() {
       email: user?.email || '',
       phone: user?.phone || '',
       bio: user?.bio || '',
+      location: user?.location || '',
     },
   });
 
   useEffect(() => {
     updateMetaTags({
-      title: 'My Profile - Landlord Dashboard',
-      description: 'Manage your landlord profile and settings',
-      image: 'https://choiceproperties.com/og-image.png',
-      url: 'https://choiceproperties.com/landlord-profile',
+      title: 'Profile Settings - Choice Properties',
+      description: 'Manage your professional landlord profile and settings',
     });
   }, []);
 
-  // Redirect if not logged in or not a landlord/property manager
   if (!isLoggedIn || !user || (user.role !== 'landlord' && user.role !== 'property_manager' && user.role !== 'admin')) {
     navigate('/login');
     return null;
@@ -70,12 +75,12 @@ export default function LandlordProfile() {
     try {
       toast({
         title: 'Profile Updated',
-        description: 'Your profile has been successfully updated.',
+        description: 'Your changes have been saved successfully.',
       });
     } catch (err: any) {
       toast({
-        title: 'Error',
-        description: err.message || 'Failed to update profile',
+        title: 'Update Failed',
+        description: err.message || 'Please try again later.',
         variant: 'destructive',
       });
     } finally {
@@ -83,293 +88,218 @@ export default function LandlordProfile() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    toast({
-      title: 'Signed Out',
-      description: 'You have been successfully signed out.',
-    });
-  };
-
-  const initials = user?.full_name
-    ? user.full_name.split(' ').map((n) => n[0]).join('').toUpperCase()
-    : user?.email?.[0]?.toUpperCase() || '?';
+  const initials = user?.full_name?.split(' ').map((n) => n[0]).join('').toUpperCase() || "?";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      {/* Header with Gradient Background */}
-      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white py-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-white/10" />
-        <div className="container mx-auto px-4 flex items-center gap-4 relative z-10">
+      <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 py-16 relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10 flex items-center gap-6">
           <Button
             onClick={() => navigate('/landlord-dashboard')}
             variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20"
+            size="sm"
+            className="hover:bg-primary/5"
             data-testid="button-back"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Dashboard
           </Button>
           <div className="flex-1">
-            <h1 className="text-4xl font-bold">My Profile</h1>
-            <p className="text-blue-100 mt-2">Manage your account, properties, and profile information</p>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">My Profile</h1>
+            <p className="text-muted-foreground mt-2 text-lg font-medium">Manage your professional identity and contact preferences.</p>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-12 flex-1 max-w-2xl">
-        {/* Profile Header Card with Stats */}
-        <Card className="p-8 mb-8 border-0 shadow-lg">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 pb-8 border-b">
-            {/* Avatar with Status Badge */}
-            <div className="flex-shrink-0 relative">
-              <Avatar className="h-28 w-28 border-4 border-blue-600 shadow-lg">
-                {user?.profile_image && (
-                  <AvatarImage src={user.profile_image} alt={user.full_name || 'User'} />
+      <div className="container mx-auto px-4 py-12 flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
+          <div className="lg:col-span-1 space-y-8">
+            <Card className="p-8 shadow-xl border-primary/5 text-center">
+              <div className="relative inline-block mb-6 group">
+                <Avatar className="h-40 w-40 mx-auto border-4 border-background shadow-2xl transition-transform group-hover:scale-105">
+                  <AvatarImage src={user.profile_image || undefined} alt={user.full_name || ''} />
+                  <AvatarFallback className="text-3xl font-bold bg-primary/5">{initials}</AvatarFallback>
+                </Avatar>
+                {user.license_verified && (
+                  <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-2.5 shadow-lg ring-4 ring-background">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </div>
                 )}
-                <AvatarFallback className="text-2xl font-bold">{initials}</AvatarFallback>
-              </Avatar>
-              <div className="absolute -bottom-1 -right-1 bg-green-500 border-4 border-white rounded-full p-2 shadow-lg">
-                <CheckCircle2 className="h-5 w-5 text-white" />
               </div>
-            </div>
 
-            {/* Profile Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-2">
-                <h2 className="text-3xl font-bold text-foreground">
-                  {user?.full_name || 'Landlord User'}
-                </h2>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
+              <h2 className="text-3xl font-bold mb-2 tracking-tight">{user.full_name || 'Landlord'}</h2>
+              <div className="flex justify-center gap-1 mb-4">
+                {user.rating ? (
+                  <div className="flex items-center gap-1 bg-yellow-400/10 text-yellow-600 px-3 py-1 rounded-full text-sm font-bold">
+                    <Star className="h-4 w-4 fill-current" />
+                    {user.rating} ({user.review_count || 0})
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground text-sm font-medium">New Partner</span>
+                )}
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Verified Property Owner</p>
+              <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-8">Verified Property Owner</p>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Home className="h-4 w-4 text-blue-600" />
-                    <span className="text-xs text-gray-600 dark:text-gray-400">Properties</span>
-                  </div>
-                  <p className="text-lg font-bold text-foreground">3</p>
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-2xl mb-8">
+                <div className="text-center p-2 border-r border-primary/10">
+                  <p className="text-2xl font-bold text-primary">{propertiesCount || 0}</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Properties</p>
                 </div>
-                <div className="bg-purple-50 dark:bg-purple-950/30 p-3 rounded-lg">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Users className="h-4 w-4 text-purple-600" />
-                    <span className="text-xs text-gray-600 dark:text-gray-400">Tenants</span>
-                  </div>
-                  <p className="text-lg font-bold text-foreground">12</p>
-                </div>
-                <div className="bg-green-50 dark:bg-green-950/30 p-3 rounded-lg">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Clock className="h-4 w-4 text-green-600" />
-                    <span className="text-xs text-gray-600 dark:text-gray-400">Avg Response</span>
-                  </div>
-                  <p className="text-lg font-bold text-foreground">2h</p>
-                </div>
-                <div className="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg">
-                  <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp className="h-4 w-4 text-orange-600" />
-                    <span className="text-xs text-gray-600 dark:text-gray-400">Response Rate</span>
-                  </div>
-                  <p className="text-lg font-bold text-foreground">98%</p>
+                <div className="text-center p-2">
+                  <p className="text-2xl font-bold text-primary">{user.years_experience || 0}</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Years Exp.</p>
                 </div>
               </div>
 
-              {/* Contact Info */}
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                  <Mail className="h-4 w-4 flex-shrink-0" />
-                  <span>{user?.email}</span>
+              <div className="space-y-4 pt-8 border-t border-primary/10">
+                <div className="flex items-center gap-4 text-sm font-medium p-3 rounded-xl bg-muted/30 group">
+                  <Mail className="h-4 w-4 text-primary" />
+                  <span className="truncate flex-1">{user.display_email || user.email}</span>
                   <Button 
                     size="icon" 
                     variant="ghost" 
-                    className="h-6 w-6 ml-auto"
+                    className="h-8 w-8 hover:bg-background"
                     onClick={handleCopyEmail}
                     data-testid="button-copy-email"
                   >
-                    {copiedEmail ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copiedEmail ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
-                {user?.phone && (
-                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Phone className="h-4 w-4 flex-shrink-0" />
-                    <span>{user.phone}</span>
+                {user.display_phone && (
+                  <div className="flex items-center gap-4 text-sm font-medium p-3 rounded-xl bg-muted/30">
+                    <Phone className="h-4 w-4 text-primary" />
+                    <span className="flex-1">{user.display_phone}</span>
                   </div>
                 )}
-                <div className="text-xs text-gray-500 dark:text-gray-500">
-                  Member since {user?.created_at
-                    ? new Date(user.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })
-                    : 'Recently'}
+              </div>
+            </Card>
+
+            <Button
+              onClick={logout}
+              variant="outline"
+              className="w-full h-12 font-bold text-destructive hover:bg-destructive/10 border-primary/5 shadow-sm"
+              data-testid="button-logout"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+
+          <div className="lg:col-span-2 space-y-8">
+            <Card className="p-8 shadow-sm border-primary/5">
+              <h3 className="text-2xl font-bold mb-8 pb-4 border-b">Profile Settings</h3>
+
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <FormField
+                      control={form.control}
+                      name="fullName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Full Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="John Smith"
+                              disabled={isSaving}
+                              className="h-12 bg-muted/30"
+                              data-testid="input-fullname"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Base Location</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g. San Francisco, CA"
+                              disabled={isSaving}
+                              className="h-12 bg-muted/30"
+                              data-testid="input-location"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="bio"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Professional Bio</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe your property management experience or rental philosophy..."
+                            disabled={isSaving}
+                            className="min-h-[160px] bg-muted/30 resize-none p-4"
+                            data-testid="textarea-bio"
+                            {...field}
+                          />
+                        </FormControl>
+                        <div className="flex justify-between items-center mt-2">
+                          <p className="text-xs font-medium text-muted-foreground">
+                            {field.value?.length || 0}/500 characters
+                          </p>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    disabled={isSaving}
+                    className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20"
+                    data-testid="button-save-profile"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Saving Changes...
+                      </>
+                    ) : (
+                      'Update Profile'
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </Card>
+
+            <Card className="p-8 shadow-sm border-primary/5">
+              <h3 className="text-xl font-bold mb-6">Security & Security</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-primary/5 group transition-colors hover:bg-muted/50">
+                  <div className="flex-1">
+                    <p className="font-bold text-foreground mb-1">Account Password</p>
+                    <p className="text-xs text-muted-foreground font-medium">Last changed 3 months ago</p>
+                  </div>
+                  <Button variant="ghost" size="sm" className="font-bold text-primary" disabled>Update</Button>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-primary/5 group transition-colors hover:bg-muted/50">
+                  <div className="flex-1">
+                    <p className="font-bold text-foreground mb-1">Email Visibility</p>
+                    <p className="text-xs text-muted-foreground font-medium">Public profile active</p>
+                  </div>
+                  <Button variant="ghost" size="sm" className="font-bold text-primary" disabled>Manage</Button>
                 </div>
               </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2 flex-shrink-0 w-full md:w-auto">
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="flex-1 md:flex-none"
-                data-testid="button-logout"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
+            </Card>
           </div>
-        </Card>
-
-        {/* Edit Profile Form */}
-        <Card className="p-8">
-          <h3 className="text-xl font-bold text-foreground mb-6">Edit Profile</h3>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm flex items-center gap-2">
-                      <User className="h-4 w-4" /> Full Name
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="John Doe"
-                        disabled={isSaving}
-                        data-testid="input-fullname"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm flex items-center gap-2">
-                      <Mail className="h-4 w-4" /> Email
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="you@example.com"
-                        disabled={true}
-                        data-testid="input-email"
-                        {...field}
-                      />
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm flex items-center gap-2">
-                      <Phone className="h-4 w-4" /> Phone Number
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="tel"
-                        placeholder="+1 (555) 123-4567"
-                        disabled={isSaving}
-                        data-testid="input-phone"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="bio"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold text-sm">About You</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Tell tenants about your rental philosophy or properties..."
-                        disabled={isSaving}
-                        data-testid="textarea-bio"
-                        rows={4}
-                        {...field}
-                      />
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {field.value?.length || 0}/500 characters
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button
-                type="submit"
-                disabled={isSaving}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                data-testid="button-save-profile"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save Changes'
-                )}
-              </Button>
-            </form>
-          </Form>
-        </Card>
-
-        {/* Account Settings */}
-        <Card className="p-8 mt-8">
-          <h3 className="text-xl font-bold text-foreground mb-4">Account Settings</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-              <div>
-                <p className="font-semibold text-foreground">Password</p>
-                <p className="text-sm text-muted-foreground">Change your password</p>
-              </div>
-              <Button variant="outline" size="sm" disabled data-testid="button-change-password">
-                Coming Soon
-              </Button>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-              <div>
-                <p className="font-semibold text-foreground">Email Notifications</p>
-                <p className="text-sm text-muted-foreground">Manage notification preferences</p>
-              </div>
-              <Button variant="outline" size="sm" disabled data-testid="button-notifications">
-                Coming Soon
-              </Button>
-            </div>
-          </div>
-        </Card>
+        </div>
       </div>
 
       <Footer />
