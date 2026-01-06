@@ -1,0 +1,45 @@
+ROLE:
+You are a senior frontend engineer and UX designer. Your task is to redesign the Property Card component for a real estate platform so that it is **clean, high-conversion, and professional**, similar to Zillow, Apartments.com, or OpenDoor.
+
+GOAL:
+Create a Property Card that **displays only essential property information**, encourages clicks to the Property Details page, and avoids clutter or overpopulated fields.
+
+TASKS:
+
+1️⃣ **Essential Fields Only**
+- Main image: images[0] (largest and visually prominent)
+- Price: price per month (overlay or top of card)
+- Property title and address: title, city, state
+- Quick stats: bedrooms, bathrooms, square_feet (with clean icons)
+- Status / listing_status (Available / Off Market)
+- Optional small badges: pets_allowed, furnished
+- **Remove**: amenities list, application fee, utilities, full description, view/save counts, lease terms
+
+2️⃣ **Layout & Design**
+- Desktop: horizontal or card grid layout, clean spacing, hover elevation effects
+- Mobile: vertical stacked layout, image on top, stats below
+- Visual hierarchy: Image → Price → Title/Address → Quick Stats → Optional Badges
+- High-conversion: card encourages **clicking anywhere on the card** to go to the property details page
+
+3️⃣ **Actions**
+- Minimal: Optional Save/Favorite icon (small, subtle), optional Share icon
+- **Apply Now button should NOT be on the card** — leave it for the Property Details page
+- Conditional rendering: only show badges or icons if data exists
+
+4️⃣ **Dynamic Data**
+- All displayed information must be pulled from the backend properties table
+- Conditional rendering for missing or null fields
+- Avoid any hardcoded placeholders
+
+5️⃣ **Professional Visuals**
+- Clean modern font, spacing, and borders
+- Rounded corners, subtle shadows
+- Hover/active effects for desktop (scale, shadow, elevation)
+- Consistent iconography for quick stats
+
+OUTPUT EXPECTATION:
+- Fully dynamic, clean Property Card component
+- Mobile-responsive and professional design
+- Only essential property info shown
+- Clickable card that drives users to Property Details page
+- Ready for production

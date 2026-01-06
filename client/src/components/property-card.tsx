@@ -124,7 +124,7 @@ export const PropertyCard = memo(function PropertyCard({ property, onShare }: Pr
               </h3>
               <div className="flex items-center gap-1 mt-1 text-slate-500 dark:text-slate-400 text-sm" data-testid={`text-address-${property.id}`}>
                 <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="line-clamp-1">{property.address}, {property.city}</span>
+                <span className="line-clamp-1">{property.city}, {property.state || 'GA'}</span>
               </div>
             </div>
 
@@ -160,29 +160,23 @@ export const PropertyCard = memo(function PropertyCard({ property, onShare }: Pr
           </div>
         </CardContent>
 
-        <CardFooter className="p-4 pt-0 flex items-center gap-2">
-          <Button 
+        {/* Removed Footer to keep card minimal and click-driven */}
+      </Link>
+      
+      {/* Absolute positioned actions for subtle interaction without cluttering flow */}
+      <div className="absolute bottom-4 right-4 flex gap-2">
+         <Button 
             variant="ghost" 
             size="icon"
-            className="h-10 w-10 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-full flex-shrink-0"
+            className="h-8 w-8 text-white/70 hover:text-white bg-black/20 backdrop-blur-sm hover:bg-black/40 rounded-full flex-shrink-0 transition-all opacity-0 group-hover:opacity-100"
             onClick={handleShare}
             title="Share listing"
             data-testid={`button-share-${property.id}`}
           >
-            <Share2 className="w-4 h-4" />
+            <Share2 className="w-3.5 h-3.5" />
           </Button>
-          <Button 
-            className="flex-1 font-bold text-xs uppercase tracking-widest h-10 shadow-lg shadow-primary/20 rounded-md active-elevate-2"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setLocation(`/property/${property.id}/apply`);
-            }}
-            data-testid={`button-apply-${property.id}`}
-          >
-            Apply Now
-          </Button>
-        </CardFooter>
+      </div>
+    </Card>
       </Link>
     </Card>
   );
