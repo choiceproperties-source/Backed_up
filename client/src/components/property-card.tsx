@@ -31,7 +31,7 @@ export const PropertyCard = memo(function PropertyCard({ property, onShare }: Pr
   const [isHovered, setIsHovered] = useState(false);
 
   const mainImage = property.images?.[0] || placeholderExterior;
-  const isAvailable = property.listingStatus === 'available' || property.status === 'active';
+  const isAvailable = property.listing_status === 'available' || property.status === 'active';
   const favorited = isFavorited(property.id);
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
