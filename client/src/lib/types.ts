@@ -69,6 +69,12 @@ export interface Property {
     changedBy?: string;
   }> | null;
   status: string | null;
+  listing_status: string | null;
+  visibility: string | null;
+  expires_at: string | null;
+  view_count: number | null;
+  save_count: number | null;
+  application_fee: string | null;
   created_at: string;
   updated_at: string | null;
 }

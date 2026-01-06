@@ -1,0 +1,110 @@
+READ CAREFULLY. USE ONLY THE CONFIRMED BACKEND FIELDS.
+
+ROLE:
+You are a senior frontend engineer tasked with redesigning the Property Details page to be **Zillow/Apartments.com-style**, professional, and fully data-driven.  
+
+ABSOLUTE RULES:
+- Use only fields confirmed in the end-to-end audit.
+- Do not invent any fields.
+- Do not hardcode values.
+- Do not modify backend or database.
+- Do not use placeholder text.
+- All data must be fetched dynamically from the backend/database.
+
+CONFIRMED AVAILABLE FIELDS TO USE:
+
+Properties:
+- title
+- description
+- address, city, state, zip_code
+- price
+- bedrooms, bathrooms, square_feet
+- year_built
+- property_type
+- furnished (boolean)
+- pets_allowed (boolean)
+- lease_term
+- amenities (array)
+- utilities_included (array)
+- images (array, max 25 ImageKit URLs)
+- status, listing_status
+- application_fee
+- price_history (optional display)
+- view_count, save_count (optional trust signals)
+
+Owner:
+- full_name
+- email
+- phone
+
+---
+
+PAGE STRUCTURE (FOLLOW EXACTLY)
+
+1️⃣ **IMAGE GALLERY (TOP)**
+- Render images[] from the DB
+- Large main image + horizontal thumbnail strip
+- Fullscreen modal on click
+- Show image count
+- If images[] is empty, display “No photos available”
+
+2️⃣ **PROPERTY SUMMARY (ABOVE THE FOLD)**
+- Display: title, address, city/state/zip_code
+- Display: price prominently ($/month)
+- Display: bedrooms, bathrooms, square_feet
+- Show status / listing_status clearly (Available / Inactive)
+- Include application_fee near Apply button
+
+3️⃣ **PRIMARY ACTIONS**
+- Save Property (❤️) → increment save_count
+- Share Listing (🔗)
+- Apply Now (📝) → opens existing application form
+- Contact Owner → opens contact form using owner.email/phone
+- Buttons must be fully functional and wired to existing logic
+
+4️⃣ **OVERVIEW**
+- Render description exactly from DB
+- Preserve formatting
+- If empty, display “No description provided”
+
+5️⃣ **FACTS & FEATURES**
+- Render: property_type, year_built, lease_term, furnished (Yes/No), pets_allowed (Yes/No), utilities_included (list), square_feet
+- Only display fields that have values
+
+6️⃣ **AMENITIES**
+- Render amenities[] as a checklist
+- Only display existing items, no icons or placeholders
+
+7️⃣ **PRICE & TRUST**
+- application_fee
+- Optionally render price_history
+- Optionally render view_count, save_count for credibility
+
+8️⃣ **LOCATION**
+- Render full address
+- Display map if latitude & longitude exist
+- Do NOT use default/fallback coordinates
+
+9️⃣ **OWNER / AGENT CONTACT**
+- Render full_name, email, phone
+- Wire contact form to existing inquiry logic
+
+---
+
+DESIGN REQUIREMENTS:
+- Mobile-first
+- Clear typography, neutral palette
+- Visually scannable
+- Professional, trustworthy, high-conversion layout
+- Avoid animations that distract
+- Highlight main actions (Apply / Save / Share)
+
+---
+
+VALIDATION CHECK (MANDATORY):
+Before finishing:
+- Confirm every UI field maps to a real backend field
+- Do not render anything that doesn’t exist in DB
+- Conditional rendering: hide fields if empty
+- Gallery uses real images[] from DB
+- Buttons fully functional
