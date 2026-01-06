@@ -1,0 +1,36 @@
+Objective: Upgrade the user profile components for Choice Properties to professional, trustworthy, and dynamic layouts while keeping all backend data fully functional. Do not touch existing database schema or property-related components; only focus on the user profile UI/UX and dynamic integration.
+
+Tasks:
+
+1. **Scan Existing Profile Components**
+   - Analyze tenant-profile.tsx, owner-profile.tsx, landlord-profile.tsx, agent-profile.tsx, property-manager-profile.tsx (if exists).
+   - Identify all fields currently fetched from the backend (users table and joined tables like agencies, properties).
+   - Check for any private fields exposed publicly (email, phone) and note them for conditional rendering.
+
+2. **Dynamic Data Mapping**
+   - Ensure all user fields are pulled dynamically from the backend: fullName, profileImage, bio, location, specialties, yearsExperience, totalSales, licenseNumber, licenseVerified, agency info, managed properties, etc.
+   - Implement conditional rendering for empty fields to avoid broken UI.
+
+3. **Professional Layout & Visuals**
+   - Header: Display user profile picture, full name, role, and dynamic verification badge (licenseVerified or verified landlord/manager).
+   - Sections: 
+     - **Overview/Bio**: user bio and location.
+     - **Professional Stats**: Years Experience, Total Sales, Listings Managed (role-specific).
+     - **Trust & Verification**: Badges for licenseVerified, verified property owner/manager.
+     - **Contact Section**: Only display public-facing email/phone (displayEmail/displayPhone), use internal inquiry system for public users.
+   - Use a modern, clean card/grid layout inspired by Zillow and Apartments.com agent/owner profiles.
+   - Responsive design for both desktop and mobile.
+
+4. **Interactivity**
+   - Profile picture upload for agents, landlords, and managers.
+   - Dynamic badges for verification and professional stats.
+   - Live update: Changes in profile immediately reflect on public profile and associated property cards.
+
+5. **Audit & Suggest Improvements**
+   - Provide a report on missing fields, UI inconsistencies, and areas for visual improvement.
+   - Suggest enhancements for trust signals, spacing, font hierarchy, and visual flow.
+
+**Important Notes:**
+- Do NOT modify existing property components or property gallery.
+- Focus purely on user profile components and dynamic backend integration.
+- Output a clear suggestion for a modernized profile design with code snippets where appropriate.
