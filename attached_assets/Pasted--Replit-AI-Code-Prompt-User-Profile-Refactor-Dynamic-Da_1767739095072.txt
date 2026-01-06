@@ -1,0 +1,52 @@
+# Replit AI Code Prompt: User Profile Refactor & Dynamic Data Integration
+
+Objective:
+Refactor the user profile components for Choice Properties (Tenant, Owner, Landlord, Agent) to fully leverage the backend data while maintaining privacy rules and dynamic rendering. Focus strictly on data mapping, dynamic stats, trust signals, and public/private separation. Do NOT modify unrelated components, styles, galleries, or property cards.
+
+Scope:
+1. OwnerProfile (owner-profile.tsx):
+   - Replace legacy properties.json dependency with live Supabase users table.
+   - Fetch full backend fields: fullName, profileImage, bio, location, specialties, yearsExperience, totalSales, rating, reviewCount, licenseVerified, licenseNumber, agencyId (join with agencies table).
+   - Render fields dynamically; remove hardcoded placeholders (e.g., “3 Properties”, “Verified”).
+
+2. AgentProfile (agent-profile.tsx):
+   - Replace static placeholders for Deals, Volume, License info with live data from backend.
+   - Map licenseVerified dynamically to a professional badge next to the avatar.
+   - Include specialties, yearsExperience, totalSales, rating, reviewCount, agency info dynamically.
+
+3. LandlordProfile (landlord-profile.tsx):
+   - Replace hardcoded property/tenant counts with real counts from joined properties/applications tables.
+   - Render trust signals dynamically (rating, reviewCount, verified) based on backend data.
+
+4. Privacy & Contact Handling:
+   - All public-facing profiles must use displayEmail and displayPhone instead of primary email/phone.
+   - Implement conditional rendering: hide contact buttons if display fields are null.
+   - Ensure private dashboards still display full contact info.
+
+5. Centralized Data Fetching:
+   - Implement `useProfile(userId)` hook (or extend existing useAuth) to fetch all relevant role-specific fields with proper error handling and caching.
+   - All profiles should consume this hook to ensure consistent data.
+
+6. Dynamic Verification & Trust Signals:
+   - licenseVerified boolean must map to dynamic badge (e.g., “Verified Agent”, “Verified Owner”) instead of hardcoded icons.
+   - Ratings and reviewCount must be dynamically fetched and displayed with proper UI treatment.
+
+Constraints:
+- Do NOT modify other UI elements, galleries, property cards, or property details pages.
+- Only update the profile components and related hooks/services to reflect real backend data.
+- Preserve current styling where possible; focus on content/data correctness and professional layout improvements.
+- Ensure responsive behavior remains intact.
+
+Deliverables:
+- Refactored profile components (Tenant, Owner, Landlord, Agent) consuming dynamic data.
+- Centralized `useProfile(userId)` hook implemented.
+- Public vs. private contact info rules enforced.
+- Trust signals and stats dynamically displayed with proper visual hierarchy.
+- Legacy JSON/data placeholders removed.
+
+Additional Notes:
+- Keep all changes safe, readable, and maintainable.
+- Do not implement any new galleries, property card changes, or unrelated layout modifications.
+- The primary goal is **backend-driven dynamic data correctness** and professional trust signal integration.
+
+Please provide a detailed audit of the changes before implementing, showing what fields are now dynamic and any remaining gaps.
