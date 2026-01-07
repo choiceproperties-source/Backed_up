@@ -98,4 +98,32 @@ export class AuthService {
       throw { status: 500, message: "Failed to fetch user" };
     }
   }
+
+  async forgotPassword(email: string) {
+    if (!email) {
+      throw { status: 400, message: "Email is required" };
+    }
+
+    try {
+      await this.repository.resetPasswordForEmail(email);
+      return { success: true, message: "Password reset email sent" };
+    } catch (err: any) {
+      console.error("[AUTH] Forgot password error:", err.message);
+      throw { status: 400, message: err.message || "Failed to send reset email" };
+    }
+  }
+
+  async resetPassword(password: string) {
+    if (!password) {
+      throw { status: 400, message: "Password is required" };
+    }
+
+    try {
+      await this.repository.updateUserPassword(password);
+      return { success: true, message: "Password updated successfully" };
+    } catch (err: any) {
+      console.error("[AUTH] Reset password error:", err.message);
+      throw { status: 400, message: err.message || "Failed to update password" };
+    }
+  }
 }

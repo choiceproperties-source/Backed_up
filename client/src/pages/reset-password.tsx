@@ -4,13 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Link, useLocation } from 'wouter';
-import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Lock, Eye, EyeOff, CheckCircle, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useState, useEffect, useMemo } from 'react';
 import { z } from 'zod';
 import { supabase } from '@/lib/supabase';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 // Password requirements must match signup requirements: 8+ chars, uppercase, number
 const resetPasswordSchema = z.object({
@@ -37,6 +39,7 @@ const getPasswordStrength = (password: string) => {
 };
 
 export default function ResetPassword() {
+  const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -95,16 +98,24 @@ export default function ResetPassword() {
   const onSubmit = async (data: ResetPasswordInput) => {
     setLoading(true);
     try {
-      if (!supabase) throw new Error('Authentication service unavailable');
-      
-      const { error } = await supabase.auth.updateUser({
-        password: data.password,
+      const res = await apiRequest('POST', '/api/v2/auth/reset-password', {
+        password: data.password
       });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
       
-      if (error) throw error;
       setResetSuccess(true);
+      toast({
+        title: "Password updated",
+        description: "Your password has been reset successfully.",
+      });
     } catch (err: any) {
       form.setError('root', { message: err.message || 'Failed to reset password' });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: err.message || "Failed to update password",
+      });
     } finally {
       setLoading(false);
     }
@@ -115,13 +126,13 @@ export default function ResetPassword() {
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 to-secondary/5">
-          <Card className="max-w-md w-full p-8 shadow-xl border-t-4 border-t-red-500 text-center">
+          <Card className="max-w-md w-full p-8 border-border/50 rounded-xl shadow-sm text-center">
             <h2 className="text-2xl font-bold mb-2">Invalid or Expired Link</h2>
             <p className="text-muted-foreground mb-6">
               This password reset link is invalid or has expired. Please request a new password reset link.
             </p>
             <Link href="/forgot-password">
-              <Button className="w-full" data-testid="button-request-new-link">
+              <Button className="w-full h-11 font-medium" data-testid="button-request-new-link">
                 Request New Link
               </Button>
             </Link>
@@ -137,7 +148,7 @@ export default function ResetPassword() {
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 to-secondary/5">
-          <Card className="max-w-md w-full p-8 shadow-xl border-t-4 border-t-green-500 text-center">
+          <Card className="max-w-md w-full p-8 border-border/50 rounded-xl shadow-sm text-center">
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
@@ -146,7 +157,7 @@ export default function ResetPassword() {
               Your password has been successfully updated. You can now sign in with your new password.
             </p>
             <Link href="/login">
-              <Button className="w-full" data-testid="button-go-to-login">
+              <Button className="w-full h-11 font-medium" data-testid="button-go-to-login">
                 Go to Login
               </Button>
             </Link>
@@ -161,9 +172,9 @@ export default function ResetPassword() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 to-secondary/5">
-        <Card className="max-w-md w-full p-8 shadow-xl border-t-4 border-t-primary">
+        <Card className="max-w-md w-full p-8 border-border/50 rounded-xl shadow-sm hover-elevate transition-all duration-300">
           <h2 className="text-3xl font-bold text-primary mb-2">Reset Password</h2>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-muted-foreground mb-8">
             Create a strong password. It must be at least 8 characters and include an uppercase letter and a number.
           </p>
 
@@ -184,6 +195,7 @@ export default function ResetPassword() {
                           placeholder="At least 8 characters, with uppercase and number"
                           disabled={loading}
                           autoComplete="new-password"
+                          className="h-11 pr-10"
                           data-testid="input-password"
                           {...field}
                         />
@@ -205,7 +217,7 @@ export default function ResetPassword() {
                           {[...Array(5)].map((_, i) => (
                             <div 
                               key={i} 
-                              className={`h-1 flex-1 rounded-full transition-colors ${
+                              className={`h-1.5 flex-1 rounded-full transition-colors ${
                                 i < passwordStrength 
                                   ? passwordStrength <= 2 
                                     ? 'bg-red-500' 
@@ -217,13 +229,20 @@ export default function ResetPassword() {
                             />
                           ))}
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {passwordStrength === 0 ? 'Very weak' : 
-                           passwordStrength === 1 ? 'Weak' : 
-                           passwordStrength === 2 ? 'Fair' : 
-                           passwordStrength === 3 ? 'Good' : 
-                           passwordStrength === 4 ? 'Strong' : 
-                           'Very strong'}
+                        <p className="text-xs text-muted-foreground font-medium">
+                          Strength:{' '}
+                          <span className={
+                            passwordStrength <= 2 ? 'text-red-500' :
+                            passwordStrength <= 3 ? 'text-yellow-500' :
+                            'text-green-500'
+                          }>
+                            {passwordStrength === 0 ? 'Very weak' : 
+                             passwordStrength === 1 ? 'Weak' : 
+                             passwordStrength === 2 ? 'Fair' : 
+                             passwordStrength === 3 ? 'Good' : 
+                             passwordStrength === 4 ? 'Strong' : 
+                             'Very strong'}
+                          </span>
                         </p>
                       </div>
                     )}
@@ -247,6 +266,7 @@ export default function ResetPassword() {
                           placeholder="Confirm your password"
                           disabled={loading}
                           autoComplete="new-password"
+                          className="h-11 pr-10"
                           data-testid="input-confirm-password"
                           {...field}
                         />
@@ -266,26 +286,3 @@ export default function ResetPassword() {
                   </FormItem>
                 )}
               />
-
-              {form.formState.errors.root && (
-                <p className="text-red-600 text-sm bg-red-50 dark:bg-red-950/50 p-3 rounded" data-testid="text-error">
-                  {form.formState.errors.root.message}
-                </p>
-              )}
-
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={loading}
-                data-testid="button-submit"
-              >
-                {loading ? 'Updating...' : 'Update Password'}
-              </Button>
-            </form>
-          </Form>
-        </Card>
-      </div>
-      <Footer />
-    </div>
-  );
-}

@@ -86,4 +86,28 @@ export function registerAuthRoutes(app: Express): void {
       return res.status(status).json(apiError(message));
     }
   });
+
+  app.post("/api/v2/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      await authService.forgotPassword(email);
+      return res.json(apiSuccess(undefined, "Reset email sent successfully"));
+    } catch (err: any) {
+      const status = err.status || 500;
+      const message = err.message || "Failed to send reset email";
+      return res.status(status).json(apiError(message));
+    }
+  });
+
+  app.post("/api/v2/auth/reset-password", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { password } = req.body;
+      await authService.resetPassword(password);
+      return res.json(apiSuccess(undefined, "Password updated successfully"));
+    } catch (err: any) {
+      const status = err.status || 500;
+      const message = err.message || "Failed to update password";
+      return res.status(status).json(apiError(message));
+    }
+  });
 }

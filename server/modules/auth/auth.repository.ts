@@ -107,4 +107,26 @@ export class AuthRepository {
     if (error) throw error;
     return data;
   }
+
+  async resetPasswordForEmail(email: string): Promise<void> {
+    const sb = this.ensureSupabase();
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: `${process.env.PUBLIC_URL || 'http://localhost:5000'}/reset-password`,
+    });
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async updateUserPassword(password: string): Promise<void> {
+    const sb = this.ensureSupabase();
+    const { error } = await sb.auth.updateUser({
+      password: password,
+    });
+
+    if (error) {
+      throw error;
+    }
+  }
 }
