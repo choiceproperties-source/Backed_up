@@ -9,7 +9,68 @@ import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Timeline, type TimelineStep } from '@/components/timeline';
 import { updateMetaTags } from '@/lib/seo';
-import { Download, FileText, Home, CheckCircle, Clock, Eye, EyeOff, ExternalLink, MessageSquare } from 'lucide-react';
+import { Download, FileText, Home, CheckCircle, Clock, Eye, EyeOff, ExternalLink, MessageSquare, Check } from 'lucide-react';
+
+const STEP_ORDER = ['submitted', 'under_review', 'approved', 'lease_sent'] as const;
+
+function StatusStepper({ currentStatus }: { currentStatus: string }) {
+  const steps = [
+    { id: 'submitted', label: 'Applied' },
+    { id: 'under_review', label: 'Under Review' },
+    { id: 'approved', label: 'Approved' },
+    { id: 'lease_sent', label: 'Lease Sent' },
+  ];
+
+  const currentIndex = STEP_ORDER.indexOf(currentStatus as any);
+  // If status is further along (e.g. lease_accepted), mark all as completed
+  const effectiveIndex = currentIndex === -1 ? (['lease_accepted', 'move_in_ready', 'completed'].includes(currentStatus) ? 3 : 0) : currentIndex;
+
+  return (
+    <div className="w-full py-4" aria-label="Application progress">
+      <div className="relative flex justify-between">
+        {/* Progress Bar Background */}
+        <div className="absolute top-5 left-0 w-full h-0.5 bg-muted" aria-hidden="true" />
+        
+        {/* Active Progress Bar */}
+        <div 
+          className="absolute top-5 left-0 h-0.5 bg-primary transition-all duration-500" 
+          style={{ width: `${(effectiveIndex / (steps.length - 1)) * 100}%` }}
+          aria-hidden="true"
+        />
+
+        {steps.map((step, index) => {
+          const isCompleted = index < effectiveIndex;
+          const isCurrent = index === effectiveIndex;
+          const isFuture = index > effectiveIndex;
+
+          return (
+            <div key={step.id} className="relative flex flex-col items-center group z-10">
+              <div 
+                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-colors bg-background ${
+                  isCompleted ? 'border-primary bg-primary text-primary-foreground' : 
+                  isCurrent ? 'border-primary text-primary ring-4 ring-primary/10' : 
+                  'border-muted text-muted-foreground'
+                }`}
+                aria-current={isCurrent ? 'step' : undefined}
+              >
+                {isCompleted ? (
+                  <Check className="w-5 h-5" />
+                ) : (
+                  <span className="text-sm font-semibold">{index + 1}</span>
+                )}
+              </div>
+              <span className={`mt-2 text-xs font-medium text-center ${
+                isFuture ? 'text-muted-foreground' : 'text-foreground'
+              }`}>
+                {step.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 interface Application {
   id: string;
@@ -167,10 +228,7 @@ export default function TenantLeaseDashboard() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-400 rounded-full text-sm font-medium">
-                          <Clock className="w-4 h-4" />
-                          {app.leaseStatus.replace('_', ' ').toUpperCase()}
-                        </div>
+                        <StatusStepper currentStatus={app.leaseStatus} />
                       </div>
                     </div>
                   </div>
