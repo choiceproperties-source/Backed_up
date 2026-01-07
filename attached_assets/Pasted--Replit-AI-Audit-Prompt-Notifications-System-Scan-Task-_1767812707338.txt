@@ -1,0 +1,40 @@
+# Replit AI Audit Prompt: Notifications System Scan
+
+Task: Perform a comprehensive audit of the Choice Properties notifications system across the application (Tenant, Landlord, Agent dashboards, and any profile/lease updates). Detect gaps, inconsistencies, and potential improvements.
+
+1. **Scope**
+   - Notification types:
+     • Application status changes (Approved, Pending, Rejected)
+     • Lease updates and sent documents
+     • Payment reminders and overdue alerts
+     • Property listing updates (for owners and agents)
+   - Frontend components: notification panels, dropdowns, banners, toasts, or in-app alerts.
+   - Backend: APIs that trigger notifications (email, push, or in-app events).
+
+2. **Audit Goals**
+   - Verify that all notifications are correctly triggered and displayed to the appropriate user roles.
+   - Check for missing notifications for critical actions (e.g., payment failures, new lease sent, application review).
+   - Identify inconsistent UI patterns in notification display (card style, banners, toasts, icons, colors).
+   - Examine role-specific visibility: tenants should not see landlord-only notifications, etc.
+   - Check data flow: ensure notifications are properly fetched, updated, and marked as read.
+   - Ensure error handling for failed fetches or delivery.
+
+3. **UX & Visual Assessment**
+   - Evaluate visual consistency with existing dashboards and profile pages (fonts, colors, spacing, icons).
+   - Check responsiveness on mobile screens (collapse behavior, horizontal scrolling, etc.).
+   - Assess interactive elements: marking as read, dismissing notifications, linking to relevant pages.
+
+4. **Security & Privacy**
+   - Confirm that users can only see notifications relevant to their own account.
+   - Sensitive information (payment, email, lease info) should not be exposed improperly.
+
+5. **Deliverables**
+   - Full inventory of current notification types, triggers, and UI components.
+   - List of missing or inconsistent notifications, prioritized by impact.
+   - Suggestions for UX, visual polish, and micro-interactions.
+   - Optional: propose a consistent notification component structure for reuse across dashboards.
+
+Instructions:
+- Scan both frontend and backend.
+- Provide structured output like a full report or table.
+- Include actionable improvements for missing notifications, UI inconsistencies, and performance/security gaps.
