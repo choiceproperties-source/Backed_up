@@ -8,6 +8,11 @@ export class AuthService {
   }
 
   async signup(email: string, password: string, fullName: string, phone: string | null, role: string = 'renter') {
+    const allowedRoles = ['renter', 'landlord', 'agent', 'property_manager', 'buyer'];
+    if (!allowedRoles.includes(role)) {
+      throw { status: 400, message: `Invalid role selected: ${role}. Please choose a valid role.` };
+    }
+
     if (!email || !password || !fullName) {
       throw { status: 400, message: "Email, password, and full name are required" };
     }
