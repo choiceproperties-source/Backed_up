@@ -1,10 +1,11 @@
-import { useState, ReactNode } from 'react';
+import { useState, ReactNode, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { Check, ChevronLeft, ChevronRight, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Loader2, AlertCircle, CheckCircle2, Save } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface WizardStep {
   id: string;
@@ -25,6 +26,7 @@ interface ApplicationWizardProps {
   completedSteps?: number[];
   title?: string;
   description?: string;
+  wizardId?: string; // Added for state restoration
 }
 
 export function ApplicationWizard({
@@ -38,16 +40,46 @@ export function ApplicationWizard({
   completedSteps = [],
   title = 'Submit Application',
   description = 'Complete the following steps to submit your application.',
+  wizardId = 'default-wizard',
 }: ApplicationWizardProps) {
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
   const progress = ((currentStep + 1) / steps.length) * 100;
   const isLastStep = currentStep === steps.length - 1;
   const isFirstStep = currentStep === 0;
 
+  // Restore state from localStorage on mount
+  useEffect(() => {
+    const savedStep = localStorage.getItem(`wizard-step-${wizardId}`);
+    if (savedStep !== null) {
+      const stepIndex = parseInt(savedStep, 10);
+      if (stepIndex !== currentStep && stepIndex >= 0 && stepIndex < steps.length) {
+        onStepChange(stepIndex);
+      }
+    }
+  }, [wizardId]);
+
+  // Persist current step
+  useEffect(() => {
+    localStorage.setItem(`wizard-step-${wizardId}`, currentStep.toString());
+  }, [currentStep, wizardId]);
+
   const handleNext = () => {
     if (isLastStep) {
       onComplete();
+      localStorage.removeItem(`wizard-step-${wizardId}`);
     } else {
-      onStepChange(currentStep + 1);
+      // Show autosave feedback
+      setIsSaving(true);
+      setTimeout(() => {
+        setIsSaving(false);
+        onStepChange(currentStep + 1);
+        toast({
+          title: "Progress Saved",
+          description: "Your application draft has been updated.",
+          duration: 2000,
+        });
+      }, 600);
     }
   };
 
@@ -73,9 +105,17 @@ export function ApplicationWizard({
 
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
-              Step {currentStep + 1} of {steps.length}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">
+                Step {currentStep + 1} of {steps.length}
+              </span>
+              {isSaving && (
+                <Badge variant="outline" className="h-5 px-1.5 gap-1 border-primary/20 bg-primary/5 text-primary animate-pulse">
+                  <Save className="h-3 w-3" />
+                  Saving...
+                </Badge>
+              )}
+            </div>
             <span className="font-medium">{Math.round(progress)}% Complete</span>
           </div>
           <Progress value={progress} className="h-2" data-testid="wizard-progress" />

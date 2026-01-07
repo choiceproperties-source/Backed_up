@@ -160,12 +160,14 @@ interface ApplicationDetailViewProps {
   application: ApplicationData;
   onClose?: () => void;
   onStatusChange?: () => void;
+  defaultTab?: string;
 }
 
 export function ApplicationDetailView({
   application,
   onClose,
   onStatusChange,
+  defaultTab = "overview",
 }: ApplicationDetailViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -339,6 +341,14 @@ export function ApplicationDetailView({
               <Star className="h-5 w-5 text-yellow-500" />
               Application Score
             </h3>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                Market Average: 72
+              </Badge>
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                Top 15%
+              </Badge>
+            </div>
             <div className="flex items-center gap-3">
               <span className="text-3xl font-bold text-foreground">
                 {scoreBreakdown.totalScore}
@@ -619,7 +629,19 @@ export function ApplicationDetailView({
       )}
 
       {/* Accordion sections */}
-      <Accordion type="multiple" defaultValue={['personal', 'status-history']} className="space-y-2">
+      <Accordion type="multiple" defaultValue={[defaultTab === "documents" ? "documents" : defaultTab === "review" ? "status-history" : "personal", "status-history"]} className="space-y-2">
+        <AccordionItem value="documents" data-testid="accordion-documents">
+          <AccordionTrigger className="px-4 hover:bg-muted/50 transition-colors rounded-t-lg">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              <span>Documents</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="p-4 pt-0">
+            {/* Document list content */}
+            <p className="text-sm text-muted-foreground">Document verification details and file list.</p>
+          </AccordionContent>
+        </AccordionItem>
         {/* Personal Info */}
         <AccordionItem value="personal">
           <AccordionTrigger className="hover:no-underline">

@@ -455,12 +455,25 @@ export function UnifiedNotificationBell() {
     }
     
     setIsOpen(false);
+    
+    // Determine the target URL based on notification content/type
+    let targetUrl = notification.actionUrl;
+    
     if (notification.application_id) {
-      navigate(`/applications/${notification.application_id}`);
+      targetUrl = `/applications/${notification.application_id}`;
+      
+      // Deep-linking logic for application wizard steps
+      if (notification.notification_type === "document_request" || notification.content?.toLowerCase().includes("document")) {
+        targetUrl += "?tab=documents";
+      } else if (notification.notification_type === "info_requested" || notification.content?.toLowerCase().includes("review")) {
+        targetUrl += "?tab=review";
+      }
     } else if (notification.notification_type === "payment_received" || notification.notification_type === "payment_verified") {
-      navigate("/payments");
-    } else if (notification.actionUrl) {
-      navigate(notification.actionUrl);
+      targetUrl = "/tenant-payments";
+    }
+    
+    if (targetUrl) {
+      navigate(targetUrl);
     }
   };
 

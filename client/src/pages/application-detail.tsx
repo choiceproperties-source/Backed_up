@@ -125,6 +125,9 @@ export default function ApplicationDetail() {
     );
   }
 
+  const queryParams = new URLSearchParams(window.location.search);
+  const activeTab = queryParams.get('tab') || 'overview';
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -185,6 +188,7 @@ export default function ApplicationDetail() {
             </CardHeader>
             <CardContent>
               <ApplicationDetailView
+                defaultTab={activeTab}
                 application={{
                   id: application.id,
                   userId: application.user_id,
