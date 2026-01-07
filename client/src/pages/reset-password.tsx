@@ -286,3 +286,31 @@ export default function ResetPassword() {
                   </FormItem>
                 )}
               />
+
+              {form.formState.errors.root && (
+                <div className="text-red-600 text-sm bg-red-50 dark:bg-red-950/50 p-4 rounded-lg border border-red-100 dark:border-red-900/50" data-testid="text-error">
+                  {form.formState.errors.root.message}
+                </div>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full h-11 font-medium mt-2" 
+                disabled={loading}
+                data-testid="button-submit"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : 'Update Password'}
+              </Button>
+            </form>
+          </Form>
+        </Card>
+      </div>
+      <Footer />
+    </div>
+  );
+}
