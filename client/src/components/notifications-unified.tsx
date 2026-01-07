@@ -177,40 +177,40 @@ export function NotificationItem({
   return (
     <div
       className={cn(
-        'p-3 rounded-lg border transition-all hover-elevate group cursor-pointer',
-        !isRead ? 'bg-accent/50 border-primary/20' : 'hover:bg-muted/50 border-transparent'
+        'p-3 rounded-lg border transition-all hover:shadow-sm active:scale-[0.98] group cursor-pointer',
+        !isRead ? 'bg-accent/40 border-primary/10 shadow-sm' : 'hover:bg-muted/30 border-transparent'
       )}
       onClick={() => onClick?.(notification)}
       data-testid={`notification-${notification.id}`}
     >
       <div className="flex gap-3">
-        <div className={cn('p-2 rounded-full flex-shrink-0 h-9 w-9 flex items-center justify-center', config.bgClassName)}>
-          <Icon className={cn('h-4 w-4', config.className)} strokeWidth={2} />
+        <div className={cn('p-2 rounded-full flex-shrink-0 h-9 w-9 flex items-center justify-center transition-colors', config.bgClassName)}>
+          <Icon className={cn('h-4 w-4', config.className)} strokeWidth={1.5} />
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2 overflow-hidden">
-              <p className={cn('font-medium text-sm truncate', !isRead && 'font-semibold')}>
+              <p className={cn('text-sm truncate transition-colors', !isRead ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground')}>
                 {title}
               </p>
               {!isRead && (
-                <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0 animate-pulse" />
               )}
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0 transition-opacity">
+            <div className="flex items-center gap-1 flex-shrink-0">
               {onMarkAsRead && !isRead && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-7 w-7 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
                     onMarkAsRead(notification.id);
                   }}
                   data-testid={`button-mark-read-${notification.id}`}
                 >
-                  <Check className="h-4 w-4" />
+                  <Check className="h-3.5 w-3.5" />
                 </Button>
               )}
               {onDismiss && (
@@ -250,6 +250,26 @@ export function NotificationItem({
   );
 }
 
+import { Skeleton } from "@/components/ui/skeleton";
+
+export function NotificationSkeleton() {
+  return (
+    <div className="p-3 rounded-lg border border-transparent space-y-3">
+      <div className="flex gap-3">
+        <Skeleton className="h-9 w-9 rounded-full flex-shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="flex justify-between">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-12" />
+          </div>
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-2/3" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function UnifiedNotificationsList({
   notifications,
   isLoading,
@@ -273,16 +293,15 @@ export function UnifiedNotificationsList({
 
   if (isLoading) {
     return (
-      <div className="p-8 text-center space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="flex gap-3 animate-pulse">
-            <div className="h-8 w-8 rounded-full bg-muted" />
-            <div className="flex-1 space-y-2">
-              <div className="h-3 w-3/4 bg-muted rounded" />
-              <div className="h-2 w-full bg-muted rounded" />
-            </div>
-          </div>
-        ))}
+      <div className={cn("flex flex-col h-full", className)}>
+        <div className="p-4 border-b">
+          <Skeleton className="h-6 w-32" />
+        </div>
+        <div className="p-2 space-y-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <NotificationSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -377,7 +396,27 @@ export function UnifiedNotificationBell() {
       const response = await apiRequest("PATCH", `/api/notifications/${notificationId}/read`);
       return response.json();
     },
-    onSuccess: () => {
+    onMutate: async (notificationId) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/user/notifications"] });
+      const previousNotifications = queryClient.getQueryData<{ data: Notification[] }>(["/api/user/notifications"]);
+      
+      if (previousNotifications) {
+        queryClient.setQueryData(["/api/user/notifications"], {
+          ...previousNotifications,
+          data: previousNotifications.data.map(n => 
+            n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n
+          )
+        });
+      }
+      
+      return { previousNotifications };
+    },
+    onError: (err, newId, context) => {
+      if (context?.previousNotifications) {
+        queryClient.setQueryData(["/api/user/notifications"], context.previousNotifications);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/notifications"] });
     }
   });
@@ -387,7 +426,25 @@ export function UnifiedNotificationBell() {
       const response = await apiRequest("POST", "/api/notifications/mark-all-read");
       return response.json();
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["/api/user/notifications"] });
+      const previousNotifications = queryClient.getQueryData<{ data: Notification[] }>(["/api/user/notifications"]);
+      
+      if (previousNotifications) {
+        queryClient.setQueryData(["/api/user/notifications"], {
+          ...previousNotifications,
+          data: previousNotifications.data.map(n => ({ ...n, read_at: new Date().toISOString() }))
+        });
+      }
+      
+      return { previousNotifications };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousNotifications) {
+        queryClient.setQueryData(["/api/user/notifications"], context.previousNotifications);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/notifications"] });
     }
   });
