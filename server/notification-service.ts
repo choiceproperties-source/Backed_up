@@ -41,6 +41,7 @@ interface NotificationRecord {
   type: NotificationType;
   subject: string;
   content: string;
+  metadata?: Record<string, any>;
 }
 
 // Create notification record in database
@@ -55,6 +56,7 @@ async function createNotificationRecord(record: NotificationRecord): Promise<str
         channel: "email",
         subject: record.subject,
         content: record.content,
+        metadata: record.metadata,
         status: "pending",
       }])
       .select("id")
@@ -84,6 +86,10 @@ async function updateNotificationStatus(
       .from("application_notifications")
       .update(updateData)
       .eq("id", notificationId);
+
+    // Prepare for Real-time WebSocket delivery
+    // Note: Supabase Realtime will automatically pick up this insert/update.
+    // Frontend should subscribe to 'application_notifications' table.
   } catch (err) {
     console.error("[NOTIFICATION] Failed to update status:", err);
   }
@@ -96,6 +102,8 @@ export async function sendStatusChangeNotification(
   options?: {
     rejectionReason?: string;
     appealable?: boolean;
+    wizardStep?: number;
+    actionRequired?: string;
   }
 ): Promise<boolean> {
   try {
@@ -133,13 +141,29 @@ export async function sendStatusChangeNotification(
       appealable: options?.appealable,
     });
 
-    // Create notification record
+    // Determine target wizard step for deep-linking
+    let targetStep = options?.wizardStep;
+    if (!targetStep) {
+      const stepMap: Record<string, number> = {
+        'info_requested': 5, // Documents step
+        'pending_payment': 1, // Start or Payment step
+        'draft': 0
+      };
+      targetStep = stepMap[newStatus];
+    }
+
+    // Create notification record with metadata for deep-linking
     const notificationId = await createNotificationRecord({
       applicationId,
       userId: user.id,
       type: "status_change",
       subject,
       content,
+      metadata: {
+        status: newStatus,
+        targetStep,
+        actionRequired: options?.actionRequired || (newStatus === 'info_requested' ? 'Upload requested documents' : undefined)
+      }
     });
 
     // Send email
