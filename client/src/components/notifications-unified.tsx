@@ -131,6 +131,18 @@ function getNotificationMetadata(notification: Notification) {
     mappedType = 'success';
     category = 'payment';
     Icon = CreditCard;
+  } else if (type === "payment_failed") {
+    mappedType = 'error';
+    category = 'payment';
+    Icon = AlertCircle;
+  } else if (type === "lease_signature_complete") {
+    mappedType = 'success';
+    category = 'application';
+    Icon = CheckCircle2;
+  } else if (type === "price_drop") {
+    mappedType = 'info';
+    category = 'property';
+    Icon = Home;
   } else if (type === "message") {
     mappedType = 'info';
     category = 'message';

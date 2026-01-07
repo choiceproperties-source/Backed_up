@@ -29,6 +29,9 @@ export type NotificationType =
   | "reminder"
   | "payment_received"
   | "payment_verified"
+  | "payment_failed"
+  | "lease_signature_complete"
+  | "price_drop"
   | "deposit_required"
   | "rent_due_soon";
 
@@ -637,6 +640,181 @@ export async function sendRentDueSoonNotification(
     return result.success;
   } catch (err) {
     console.error("[NOTIFICATION] Failed to send rent due soon:", err);
+    return false;
+  }
+}
+
+// Send payment failure notification
+export async function sendPaymentFailureNotification(
+  userId: string,
+  paymentType: string,
+  amount: string,
+  reason: string
+): Promise<boolean> {
+  try {
+    const { data: user } = await getSupabase()
+      .from("users")
+      .select("id, email, full_name")
+      .eq("id", userId)
+      .single();
+
+    if (!user?.email) return false;
+
+    const subject = `Payment Failed: ${paymentType}`;
+    const content = `
+      <p>Hi ${user.full_name},</p>
+      <p>Your ${paymentType} payment of $${amount} has failed.</p>
+      <p><strong>Reason:</strong> ${reason}</p>
+      <p>Please log in to your account to resolve this issue.</p>
+      <p>Best regards,<br>Choice Properties</p>
+    `;
+
+    const notificationId = await createNotificationRecord({
+      applicationId: "",
+      userId: user.id,
+      type: "payment_failed",
+      subject,
+      content,
+    });
+
+    const result = await sendEmail({ to: user.email, subject, html: content });
+
+    if (notificationId) {
+      await updateNotificationStatus(notificationId, result.success ? "sent" : "failed");
+    }
+
+    return result.success;
+  } catch (err) {
+    console.error("[NOTIFICATION] Failed to send payment failure:", err);
+    return false;
+  }
+}
+
+// Send lease signature complete notification
+export async function sendLeaseSignatureCompleteNotification(
+  applicationId: string,
+  propertyTitle: string
+): Promise<boolean> {
+  try {
+    const { data: application } = await getSupabase()
+      .from("applications")
+      .select(`
+        id,
+        user_id,
+        users(id, email, full_name),
+        properties(id, title, owner_id)
+      `)
+      .eq("id", applicationId)
+      .single();
+
+    if (!application) return false;
+
+    const tenant = application.users as any;
+    const property = application.properties as any;
+
+    if (!tenant?.email) return false;
+
+    // Notify Tenant
+    const tenantSubject = `Lease Signed Successfully: ${propertyTitle}`;
+    const tenantContent = `
+      <p>Hi ${tenant.full_name},</p>
+      <p>Congratulations! Your lease for <strong>${propertyTitle}</strong> has been fully signed.</p>
+      <p>You can now access your digital lease in the dashboard.</p>
+      <p>Best regards,<br>Choice Properties</p>
+    `;
+
+    await createNotificationRecord({
+      applicationId,
+      userId: tenant.id,
+      type: "lease_signature_complete",
+      subject: tenantSubject,
+      content: tenantContent,
+    });
+    await sendEmail({ to: tenant.email, subject: tenantSubject, html: tenantContent });
+
+    // Notify Owner
+    if (property?.owner_id) {
+      const { data: owner } = await getSupabase()
+        .from("users")
+        .select("id, email, full_name")
+        .eq("id", property.owner_id)
+        .single();
+
+      if (owner?.email) {
+        const ownerSubject = `Lease Signature Complete: ${propertyTitle}`;
+        const ownerContent = `
+          <p>Hi ${owner.full_name},</p>
+          <p>The lease for <strong>${propertyTitle}</strong> has been fully signed by all parties.</p>
+          <p>Best regards,<br>Choice Properties</p>
+        `;
+
+        await createNotificationRecord({
+          applicationId,
+          userId: owner.id,
+          type: "lease_signature_complete",
+          subject: ownerSubject,
+          content: ownerContent,
+        });
+        await sendEmail({ to: owner.email, subject: ownerSubject, html: ownerContent });
+      }
+    }
+
+    return true;
+  } catch (err) {
+    console.error("[NOTIFICATION] Failed to send lease signature complete:", err);
+    return false;
+  }
+}
+
+// Send price drop notification
+export async function sendPriceDropNotification(
+  propertyId: string,
+  newPrice: string,
+  oldPrice: string
+): Promise<boolean> {
+  try {
+    const { data: property } = await getSupabase()
+      .from("properties")
+      .select("id, title")
+      .eq("id", propertyId)
+      .single();
+
+    if (!property) return false;
+
+    // Get users who favorited this property
+    const { data: favorites } = await getSupabase()
+      .from("favorites")
+      .select("user_id, users(id, email, full_name)")
+      .eq("property_id", propertyId);
+
+    if (!favorites) return true;
+
+    for (const fav of favorites) {
+      const user = (fav as any).users;
+      if (!user?.email) continue;
+
+      const subject = `Price Drop! ${property.title} is now $${newPrice}`;
+      const content = `
+        <p>Hi ${user.full_name},</p>
+        <p>Great news! The property <strong>${property.title}</strong> that you favorited just had a price drop.</p>
+        <p>It was $${oldPrice} and is now only <strong>$${newPrice}</strong>.</p>
+        <p>Don't miss out, check it out now!</p>
+        <p>Best regards,<br>Choice Properties</p>
+      `;
+
+      await createNotificationRecord({
+        applicationId: "",
+        userId: user.id,
+        type: "price_drop",
+        subject,
+        content,
+      });
+      await sendEmail({ to: user.email, subject, html: content });
+    }
+
+    return true;
+  } catch (err) {
+    console.error("[NOTIFICATION] Failed to send price drop notification:", err);
     return false;
   }
 }
