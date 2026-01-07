@@ -223,7 +223,7 @@ export default function Signup() {
                       <FormLabel className="flex items-center gap-2">
                         <CheckCircle2 className="h-4 w-4" />
                         I am a...
-                      </CheckCircle2>
+                      </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
