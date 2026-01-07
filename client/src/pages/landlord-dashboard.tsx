@@ -117,9 +117,9 @@ export default function LandlordDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="container mx-auto px-4 -mt-8 relative z-10 pb-8">
+      <div className="container mx-auto px-4 -mt-10 relative z-10 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-properties">
+          <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-properties">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Total Properties</p>
@@ -134,7 +134,7 @@ export default function LandlordDashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-occupancy">
+          <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-occupancy">
             <div className="flex items-start justify-between">
               <div className="w-full">
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Occupancy Rate</p>
@@ -151,7 +151,7 @@ export default function LandlordDashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-revenue">
+          <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-revenue">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Monthly Revenue</p>
@@ -166,7 +166,7 @@ export default function LandlordDashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-applications">
+          <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-applications">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Applications</p>

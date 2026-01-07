@@ -80,9 +80,9 @@ export default function AgentDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="container mx-auto px-4 -mt-8 relative z-10 pb-12">
+      <div className="container mx-auto px-4 -mt-10 relative z-10 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-assigned-properties">
+          <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-assigned-properties">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Assigned Properties</p>
@@ -94,7 +94,7 @@ export default function AgentDashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-active-listings">
+          <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-active-listings">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Active Listings</p>
@@ -106,7 +106,7 @@ export default function AgentDashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-total-applications">
+          <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-total-applications">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Total Applications</p>
@@ -118,7 +118,7 @@ export default function AgentDashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/10 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-pending">
+          <Card className="p-8 rounded-xl border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/10 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-pending">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Pending Review</p>
