@@ -1,0 +1,94 @@
+You are auditing the **Property Application System** of the Choice Properties project. Perform a full audit and generate clear, actionable recommendations. Divide your analysis into the following sections:
+
+---
+
+## 1. Inventory & Flow Mapping
+- List all **frontend pages and components** related to property applications:
+  - Name
+  - File location
+  - Purpose
+  - How it interacts with applications (view, submit, update)
+- List all **backend endpoints** for applications:
+  - Endpoint URL
+  - Purpose
+  - Required parameters
+  - Role restrictions
+- List all **hooks/services**:
+  - Name
+  - File location
+  - Purpose
+  - Data returned
+- Provide a **data flow overview** showing how data moves from form submission to backend storage, including any transformations (camelCase vs snake_case).
+- Include notes about integration points and potential gaps.
+
+---
+
+## 2. Data & State Analysis
+- Audit **field mapping**:
+  - Consistency between frontend and backend
+  - Missing fields or optional fields not handled
+- Audit **validation**:
+  - Frontend form validations (required fields, min/max lengths, regex)
+  - Backend validations for submitted data
+- Audit **conditional rendering**:
+  - Handling of missing or incomplete data
+  - Edge cases like empty application lists or partially filled forms
+- Audit **role enforcement**:
+  - Tenants can view/submit only their own applications
+  - Landlords/agents can view/manage applications for their properties
+  - Unauthorized users cannot access these routes
+- Output **list of inconsistencies, missing validations, or potential data issues**.
+
+---
+
+## 3. UI/UX Audit
+- Audit **multi-step applications**:
+  - Step indicators, progress bars, status badges
+  - Clarity of current step vs completed steps
+- Audit **loading & empty states**:
+  - Skeletons or spinners during API calls
+  - Empty states with descriptive text and icons
+- Audit **mobile responsiveness**:
+  - Grid collapse, scrolling, button alignment
+  - Touch targets for interactive elements
+- Audit **accessibility**:
+  - ARIA labels for icons/buttons
+  - Keyboard navigation
+  - Color contrast for badges and alerts
+- Output **recommendations** for visual polish, interaction improvements, and mobile adjustments.
+
+---
+
+## 4. Security & Role Enforcement
+- Audit **route protection**:
+  - Authenticated access only
+  - Role-specific access for tenants, landlords, agents
+- Audit **backend validation**:
+  - Prevent unauthorized submissions
+  - Verify property ownership before updates
+- Audit **duplication & spoofing risks**:
+  - Duplicate submissions
+  - Data spoofing vulnerabilities
+- Output a **prioritized list of critical security gaps and suggested fixes**.
+
+---
+
+## 5. High-Level Recommendations & Enhancements
+- List **missing features**:
+  - Real-time notifications for status updates
+  - Email alerts for tenants/landlords
+  - Multi-step progress visibility
+- List **visual polish recommendations**:
+  - Consistent card padding, hover effects, rounded corners
+  - Standardized status badges and typography
+  - Mobile-friendly layouts
+- List **performance & reliability improvements**:
+  - Pagination/lazy loading for large application lists
+  - Optimized API calls and caching
+  - Better error handling
+- Suggest **component/service refactors** and a **checklist for phased implementation**
+- Output a **clear, actionable roadmap** in markdown.
+
+---
+
+Deliver the **full audit report** in markdown, structured with headings, tables where helpful, and numbered lists. Include notes on **frontend/backend gaps, UX improvements, security enhancements, and visual polish**.
