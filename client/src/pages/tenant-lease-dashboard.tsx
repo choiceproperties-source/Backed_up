@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Timeline, type TimelineStep } from '@/components/timeline';
 import { updateMetaTags } from '@/lib/seo';
-import { Download, FileText, Home, CheckCircle, Clock } from 'lucide-react';
+import { Download, FileText, Home, CheckCircle, Clock, Eye, EyeOff, ExternalLink } from 'lucide-react';
 
 interface Application {
   id: string;
@@ -20,6 +20,8 @@ interface Application {
   leaseSignedAt: string | null;
   moveInDate: string | null;
   moveInInstructions: any;
+  leaseUrl?: string; // Standard lease URL field
+  signedLeaseUrl?: string; // Standard signed lease URL field
   property: {
     title: string;
     address: string;
@@ -40,6 +42,8 @@ export default function TenantLeaseDashboard() {
   const { user, isLoggedIn } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const [previewLeaseId, setPreviewLeaseId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   if (!isLoggedIn) {
     navigate('/login');
@@ -95,6 +99,16 @@ export default function TenantLeaseDashboard() {
       },
     ];
     return statuses;
+  };
+
+  const togglePreview = (id: string, url: string) => {
+    if (previewLeaseId === id && previewUrl === url) {
+      setPreviewLeaseId(null);
+      setPreviewUrl(null);
+    } else {
+      setPreviewLeaseId(id);
+      setPreviewUrl(url);
+    }
   };
 
   if (isLoading) {
@@ -170,18 +184,87 @@ export default function TenantLeaseDashboard() {
                     {app.leaseSentAt && (
                       <div>
                         <h4 className="text-sm font-semibold mb-2">Documents</h4>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="gap-2">
-                            <Download className="w-4 h-4" />
-                            Download Lease
-                          </Button>
-                          {app.leaseSignedAt && (
-                            <Button variant="outline" size="sm" className="gap-2">
-                              <Download className="w-4 h-4" />
-                              Download Signed Lease
-                            </Button>
-                          )}
+                        <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-col gap-2 w-full sm:w-auto">
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="gap-2"
+                                onClick={() => app.leaseUrl && togglePreview(app.id + '-base', app.leaseUrl)}
+                                disabled={!app.leaseUrl}
+                              >
+                                {previewLeaseId === app.id + '-base' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                {previewLeaseId === app.id + '-base' ? 'Hide' : 'Preview'} Lease
+                              </Button>
+                              <Button variant="outline" size="sm" className="gap-2" asChild>
+                                <a href={app.leaseUrl} download target="_blank" rel="noopener noreferrer">
+                                  <Download className="w-4 h-4" />
+                                  Download
+                                </a>
+                              </Button>
+                            </div>
+                            
+                            {app.leaseSignedAt && (
+                              <div className="flex gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="gap-2"
+                                  onClick={() => app.signedLeaseUrl && togglePreview(app.id + '-signed', app.signedLeaseUrl)}
+                                  disabled={!app.signedLeaseUrl}
+                                >
+                                  {previewLeaseId === app.id + '-signed' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                  {previewLeaseId === app.id + '-signed' ? 'Hide' : 'Preview'} Signed
+                                </Button>
+                                <Button variant="outline" size="sm" className="gap-2" asChild>
+                                  <a href={app.signedLeaseUrl} download target="_blank" rel="noopener noreferrer">
+                                    <Download className="w-4 h-4" />
+                                    Download Signed
+                                  </a>
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </div>
+
+                        {/* Inline Document Viewer */}
+                        {previewLeaseId?.startsWith(app.id) && previewUrl && (
+                          <div className="mt-4 border rounded-lg overflow-hidden bg-muted/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div className="flex items-center justify-between p-2 bg-muted border-b">
+                              <span className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                                <FileText className="w-3 h-3" />
+                                Document Preview
+                              </span>
+                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setPreviewLeaseId(null); setPreviewUrl(null); }}>
+                                <Clock className="w-3 h-3 rotate-45" />
+                              </Button>
+                            </div>
+                            <div className="relative aspect-[3/4] sm:aspect-video w-full bg-white dark:bg-zinc-900">
+                              {previewUrl.toLowerCase().endsWith('.pdf') || previewUrl.includes('blob') ? (
+                                <iframe 
+                                  src={previewUrl} 
+                                  className="w-full h-full border-0" 
+                                  title="Lease Document Preview"
+                                />
+                              ) : (
+                                <div className="flex flex-col items-center justify-center h-full p-4">
+                                  <img 
+                                    src={previewUrl} 
+                                    alt="Lease Document Preview" 
+                                    className="max-h-full max-w-full object-contain shadow-sm"
+                                  />
+                                  <Button variant="link" size="sm" className="mt-2 gap-1" asChild>
+                                    <a href={previewUrl} target="_blank" rel="noopener noreferrer">
+                                      <ExternalLink className="w-3 h-3" />
+                                      View full size
+                                    </a>
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
