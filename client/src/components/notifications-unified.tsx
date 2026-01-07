@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth-context";
@@ -22,6 +22,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -264,8 +271,16 @@ export function UnifiedNotificationsList({
 
   if (isLoading) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        Loading...
+      <div className="p-8 text-center space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex gap-3 animate-pulse">
+            <div className="h-8 w-8 rounded-full bg-muted" />
+            <div className="flex-1 space-y-2">
+              <div className="h-3 w-3/4 bg-muted rounded" />
+              <div className="h-2 w-full bg-muted rounded" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -323,6 +338,14 @@ export function UnifiedNotificationBell() {
   const { user, isLoggedIn } = useAuth();
   const [, navigate] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const { data: notificationsResponse, isLoading } = useQuery<{ data: Notification[] }>({
     queryKey: ["/api/user/notifications"],
@@ -370,28 +393,55 @@ export function UnifiedNotificationBell() {
 
   if (!user) return null;
 
+  const Trigger = (
+    <Button 
+      variant="ghost" 
+      size="icon" 
+      className="relative h-9 w-9"
+      data-testid="button-notification-bell"
+    >
+      <Bell className="h-5 w-5" />
+      {unreadCount > 0 && (
+        <Badge 
+          variant="destructive" 
+          className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] rounded-full border-2 border-background"
+          data-testid="badge-notification-count"
+        >
+          {unreadCount > 9 ? "9+" : unreadCount}
+        </Badge>
+      )}
+    </Button>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          {Trigger}
+        </SheetTrigger>
+        <SheetContent side="bottom" className="h-[80vh] p-0 rounded-t-xl overflow-hidden">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Notifications</SheetTitle>
+          </SheetHeader>
+          <UnifiedNotificationsList
+            notifications={notifications}
+            isLoading={isLoading}
+            onMarkAsRead={(id) => markAsReadMutation.mutate(id)}
+            onMarkAllAsRead={() => markAllAsReadMutation.mutate()}
+            onNotificationClick={handleNotificationClick}
+            className="h-full"
+          />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="relative"
-          data-testid="button-notification-bell"
-        >
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px] rounded-full"
-              data-testid="badge-notification-count"
-            >
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </Badge>
-          )}
-        </Button>
+        {Trigger}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[380px] p-0 overflow-hidden">
+      <DropdownMenuContent align="end" className="w-[380px] p-0 overflow-hidden mt-1">
         <UnifiedNotificationsList
           notifications={notifications}
           isLoading={isLoading}
@@ -405,7 +455,7 @@ export function UnifiedNotificationBell() {
           <Button
             variant="ghost"
             size="sm"
-            className="w-full text-xs"
+            className="w-full text-xs h-8"
             onClick={() => {
               setIsOpen(false);
               navigate("/applications");

@@ -71,12 +71,15 @@ function Loading() {
 
 /* ---------------- Router ---------------- */
 
+import Notifications from "@/pages/notifications";
+
 function Router() {
   return (
     <Suspense fallback={<Loading />}>
       <Switch>
         {/* Public Pages */}
         <Route path="/" component={Home} />
+        <Route path="/notifications" component={Notifications} />
         <Route path="/properties" component={Properties} />
         <Route path="/property/:id" component={PropertyDetails} />
         <Route path="/owner/:slug" component={OwnerProfile} />
