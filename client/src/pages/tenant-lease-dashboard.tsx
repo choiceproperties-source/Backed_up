@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Timeline, type TimelineStep } from '@/components/timeline';
 import { updateMetaTags } from '@/lib/seo';
-import { Download, FileText, Home, CheckCircle, Clock, Eye, EyeOff, ExternalLink } from 'lucide-react';
+import { Download, FileText, Home, CheckCircle, Clock, Eye, EyeOff, ExternalLink, MessageSquare } from 'lucide-react';
 
 interface Application {
   id: string;
@@ -23,10 +23,12 @@ interface Application {
   leaseUrl?: string; // Standard lease URL field
   signedLeaseUrl?: string; // Standard signed lease URL field
   property: {
+    id: string;
     title: string;
     address: string;
     city: string;
     state: string;
+    owner_id?: string;
   };
 }
 
@@ -334,13 +336,25 @@ export default function TenantLeaseDashboard() {
                   </div>
 
                   {/* Quick Links */}
-                  <div className="mt-6 pt-6 border-t">
+                  <div className="mt-6 pt-6 border-t flex flex-col sm:flex-row gap-3">
                     <Link href={`/applications/${app.id}`}>
-                      <Button variant="outline" className="w-full gap-2">
+                      <Button variant="outline" className="flex-1 gap-2">
                         <FileText className="w-4 h-4" />
                         View Full Application
                       </Button>
                     </Link>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 gap-2"
+                      onClick={() => {
+                        // Messaging is typically handled through inquiries
+                        // Navigate to property details where the contact dialog lives
+                        navigate(`/properties/${app.property.id}?contact=true`);
+                      }}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      Message Landlord
+                    </Button>
                   </div>
                 </Card>
               ))}
