@@ -52,6 +52,8 @@ The application is built with a React frontend, an Express.js backend, and a Pos
 - **Helmet:** Security headers.
 
 ## Recent Changes (January 07, 2026)
+- **Login Polish:** Aligned login UI with signup flow using SaaS-style cards, h-12 inputs, and enhanced motion transitions.
+- **Verification UX:** Integrated "Email Pending Verification" handling directly into the login flow with an inline resend button.
 - **Signup Polish:** Implemented SaaS-style signup form with role selection, password strength meter, hover elevations, and smooth transitions.
 - **Auth Security:** Migrated signup to atomic backend transactions with role validation and error handling.
 
