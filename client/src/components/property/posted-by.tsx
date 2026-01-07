@@ -1,5 +1,4 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 
 interface PostedByProps {
   fullName: string;
@@ -16,21 +15,21 @@ export function PostedBy({ fullName, profileImage, role }: PostedByProps) {
     .substring(0, 2);
 
   return (
-    <div className="flex items-center gap-3 py-2">
-      <Avatar className="h-8 w-8 border border-gray-100 dark:border-gray-800">
+    <div className="flex items-center gap-3 py-2 transition-colors hover:bg-muted/50 rounded-lg pr-3">
+      <Avatar className="h-10 w-10 border border-muted shadow-sm rounded-full">
         <AvatarImage src={profileImage || undefined} alt={fullName} />
-        <AvatarFallback className="bg-blue-50 text-blue-600 text-xs font-bold">
+        <AvatarFallback className="bg-blue-50 text-blue-600 text-sm font-bold">
           {initials || "O"}
         </AvatarFallback>
       </Avatar>
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+      <div className="flex flex-col justify-center">
+        <span className="text-sm font-medium text-foreground leading-none">
           {fullName}
         </span>
         {role && (
-          <Badge variant="secondary" className="text-[10px] uppercase px-1.5 h-4 font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 border-none">
-            {role === 'agent' ? 'Agent' : 'Landlord'}
-          </Badge>
+          <span className="text-xs text-muted-foreground mt-1">
+            {role === 'agent' ? 'Listing Agent' : 'Property Owner'}
+          </span>
         )}
       </div>
     </div>
