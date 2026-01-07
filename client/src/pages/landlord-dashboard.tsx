@@ -118,23 +118,23 @@ export default function LandlordDashboard() {
 
       {/* Stats Cards */}
       <div className="container mx-auto px-4 -mt-8 relative z-10 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="p-6" data-testid="stat-properties">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="p-6 hover:shadow-md transition-shadow duration-300" data-testid="stat-properties">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-semibold text-muted-foreground">Total Properties</p>
                 <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">
                   {stats.properties}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-1 font-medium">
                   {stats.activeListings} active • {stats.rentedProperties} rented
                 </p>
               </div>
-              <Building2 className="h-8 w-8 text-blue-500 opacity-20" />
+              <Building2 className="h-8 w-8 text-blue-500 opacity-20" strokeWidth={1.5} />
             </div>
           </Card>
 
-          <Card className="p-6" data-testid="stat-occupancy">
+          <Card className="p-6 hover:shadow-md transition-shadow duration-300" data-testid="stat-occupancy">
             <div className="flex items-start justify-between">
               <div className="w-full">
                 <p className="text-sm font-semibold text-muted-foreground">Occupancy Rate</p>
@@ -144,29 +144,29 @@ export default function LandlordDashboard() {
                 {stats.properties > 0 ? (
                   <Progress value={stats.occupancyRate} className="h-1.5 mt-2" />
                 ) : (
-                  <p className="text-xs text-muted-foreground mt-2">Add properties to track</p>
+                  <p className="text-xs text-muted-foreground mt-2 font-medium">Add properties to track</p>
                 )}
               </div>
-              <TrendingUp className="h-8 w-8 text-emerald-500 opacity-20 flex-shrink-0 ml-2" />
+              <TrendingUp className="h-8 w-8 text-emerald-500 opacity-20 flex-shrink-0 ml-2" strokeWidth={1.5} />
             </div>
           </Card>
 
-          <Card className="p-6" data-testid="stat-revenue">
+          <Card className="p-6 hover:shadow-md transition-shadow duration-300" data-testid="stat-revenue">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-semibold text-muted-foreground">Monthly Revenue</p>
                 <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
                   ${stats.monthlyRevenue.toLocaleString()}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-1 font-medium">
                   ${stats.potentialRevenue.toLocaleString()} potential
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 text-green-500 opacity-20" />
+              <DollarSign className="h-8 w-8 text-green-500 opacity-20" strokeWidth={1.5} />
             </div>
           </Card>
 
-          <Card className="p-6" data-testid="stat-applications">
+          <Card className="p-6 hover:shadow-md transition-shadow duration-300" data-testid="stat-applications">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-semibold text-muted-foreground">Applications</p>
@@ -175,13 +175,13 @@ export default function LandlordDashboard() {
                 </p>
                 <div className="flex gap-2 mt-1">
                   {stats.pendingApps > 0 && (
-                    <Badge variant="outline" className="text-xs bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700">
+                    <Badge variant="outline" className="text-xs bg-yellow-50/50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800 rounded-full px-2 py-0.5 font-semibold">
                       {stats.pendingApps} pending
                     </Badge>
                   )}
                 </div>
               </div>
-              <FileText className="h-8 w-8 text-indigo-500 opacity-20" />
+              <FileText className="h-8 w-8 text-indigo-500 opacity-20" strokeWidth={1.5} />
             </div>
           </Card>
         </div>

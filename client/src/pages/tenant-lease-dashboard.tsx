@@ -204,10 +204,10 @@ export default function TenantLeaseDashboard() {
           </div>
 
           {activeApplications.length === 0 ? (
-            <Card className="p-8 text-center">
-              <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-lg font-semibold mb-2">No Active Leases</h2>
-              <p className="text-muted-foreground mb-4">
+            <Card className="p-16 flex flex-col items-center justify-center text-center">
+              <FileText className="w-20 h-20 text-muted-foreground/40 mb-6" strokeWidth={1.5} />
+              <h2 className="text-xl font-bold mb-2">No Active Leases</h2>
+              <p className="text-muted-foreground mb-6 max-w-sm">
                 You don't have any active leases yet. Browse properties and apply to get started.
               </p>
               <Link href="/properties">

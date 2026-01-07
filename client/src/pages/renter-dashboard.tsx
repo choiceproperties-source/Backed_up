@@ -207,13 +207,13 @@ export default function RenterDashboard() {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      pending: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-700',
-      submitted: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-700',
-      under_review: 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 border border-indigo-300 dark:border-indigo-700',
-      info_requested: 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700',
-      conditional_approval: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700',
-      approved: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700',
-      rejected: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700',
+      pending: 'bg-blue-50/50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800 rounded-full px-3 py-1',
+      submitted: 'bg-blue-50/50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800 rounded-full px-3 py-1',
+      under_review: 'bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-200 border-indigo-200 dark:border-indigo-800 rounded-full px-3 py-1',
+      info_requested: 'bg-amber-50/50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-800 rounded-full px-3 py-1',
+      conditional_approval: 'bg-yellow-50/50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800 rounded-full px-3 py-1',
+      approved: 'bg-green-50/50 dark:bg-green-900/20 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800 rounded-full px-3 py-1',
+      rejected: 'bg-red-50/50 dark:bg-red-900/20 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800 rounded-full px-3 py-1',
     };
     return styles[status] || styles.pending;
   };
@@ -338,15 +338,15 @@ export default function RenterDashboard() {
 
       {/* Stats Cards */}
       <div className="container mx-auto px-4 -mt-10 relative z-10 mb-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Applications Card */}
           <Card
-            className="p-6 hover:shadow-lg transition-all duration-300 border border-border hover:border-blue-300 dark:hover:border-blue-700"
+            className="p-6 hover:shadow-md transition-shadow duration-300 border border-border hover:border-blue-300 dark:hover:border-blue-700"
             data-testid="stat-applications"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                   Applications
                 </p>
                 <p className="text-4xl font-bold text-blue-600 dark:text-blue-400 mt-2">
@@ -356,70 +356,70 @@ export default function RenterDashboard() {
                   {stats.approved} approved • {stats.pending} pending
                 </p>
               </div>
-              <FileText className="h-8 w-8 text-blue-200 dark:text-blue-800 flex-shrink-0" />
+              <FileText className="h-8 w-8 text-blue-200 dark:text-blue-800 flex-shrink-0" strokeWidth={1.5} />
             </div>
           </Card>
 
           {/* Saved Properties Card */}
           <Card
-            className="p-6 hover:shadow-lg transition-all duration-300 border border-border hover:border-red-300 dark:hover:border-red-700"
+            className="p-6 hover:shadow-md transition-shadow duration-300 border border-border hover:border-red-300 dark:hover:border-red-700"
             data-testid="stat-favorites"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                   Saved Properties
                 </p>
                 <p className="text-4xl font-bold text-red-600 dark:text-red-400 mt-2">
                   {stats.favorites}
                 </p>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-2 font-medium">
                   {stats.favorites === 1 ? 'property' : 'properties'} in wishlist
                 </p>
               </div>
-              <Heart className="h-8 w-8 text-red-200 dark:text-red-800 flex-shrink-0 fill-current" />
+              <Heart className="h-8 w-8 text-red-200 dark:text-red-800 flex-shrink-0 fill-current" strokeWidth={1.5} />
             </div>
           </Card>
 
           {/* Saved Searches Card */}
           <Card
-            className="p-6 hover:shadow-lg transition-all duration-300 border border-border hover:border-indigo-300 dark:hover:border-indigo-700"
+            className="p-6 hover:shadow-md transition-shadow duration-300 border border-border hover:border-indigo-300 dark:hover:border-indigo-700"
             data-testid="stat-searches"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                   Saved Searches
                 </p>
                 <p className="text-4xl font-bold text-indigo-600 dark:text-indigo-400 mt-2">
                   {stats.savedSearches}
                 </p>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-2 font-medium">
                   Quick access to filters
                 </p>
               </div>
-              <Search className="h-8 w-8 text-indigo-200 dark:text-indigo-800 flex-shrink-0" />
+              <Search className="h-8 w-8 text-indigo-200 dark:text-indigo-800 flex-shrink-0" strokeWidth={1.5} />
             </div>
           </Card>
 
           {/* Member Since Card */}
           <Card
-            className="p-6 hover:shadow-lg transition-all duration-300 border border-border hover:border-emerald-300 dark:hover:border-emerald-700"
+            className="p-6 hover:shadow-md transition-shadow duration-300 border border-border hover:border-emerald-300 dark:hover:border-emerald-700"
             data-testid="stat-member-since"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                   Member Since
                 </p>
                 <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">
                   {stats.memberSince}
                 </p>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-2 font-medium">
                   Active member
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-emerald-200 dark:text-emerald-800 flex-shrink-0" />
+              <CheckCircle className="h-8 w-8 text-emerald-200 dark:text-emerald-800 flex-shrink-0" strokeWidth={1.5} />
             </div>
           </Card>
         </div>
@@ -467,12 +467,12 @@ export default function RenterDashboard() {
                 </p>
               </Card>
             ) : applications.length === 0 ? (
-              <Card className="p-16 text-center">
-                <FileText className="h-16 w-16 text-muted-foreground/40 mx-auto mb-6" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">
+              <Card className="p-16 flex flex-col items-center justify-center text-center">
+                <FileText className="h-20 w-20 text-muted-foreground/40 mb-6" strokeWidth={1.5} />
+                <h3 className="text-xl font-bold text-foreground mb-2">
                   No Applications Yet
                 </h3>
-                <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                <p className="text-muted-foreground mb-6 max-w-sm">
                   Start your rental journey by applying to properties that catch your eye.
                 </p>
                 <Button

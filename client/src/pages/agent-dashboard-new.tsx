@@ -81,8 +81,8 @@ export default function AgentDashboard() {
 
       {/* Stats Cards */}
       <div className="container mx-auto px-4 -mt-8 relative z-10 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="p-6" data-testid="stat-assigned-properties">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="p-6 hover:shadow-md transition-shadow duration-300" data-testid="stat-assigned-properties">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-semibold text-muted-foreground">Assigned Properties</p>
@@ -90,11 +90,11 @@ export default function AgentDashboard() {
                   {stats.assignedProperties}
                 </p>
               </div>
-              <Home className="h-8 w-8 text-purple-500 opacity-20" />
+              <Home className="h-8 w-8 text-purple-500 opacity-20" strokeWidth={1.5} />
             </div>
           </Card>
 
-          <Card className="p-6" data-testid="stat-active-listings">
+          <Card className="p-6 hover:shadow-md transition-shadow duration-300" data-testid="stat-active-listings">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-semibold text-muted-foreground">Active Listings</p>
@@ -102,11 +102,11 @@ export default function AgentDashboard() {
                   {stats.activeListings}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-indigo-500 opacity-20" />
+              <TrendingUp className="h-8 w-8 text-indigo-500 opacity-20" strokeWidth={1.5} />
             </div>
           </Card>
 
-          <Card className="p-6" data-testid="stat-total-applications">
+          <Card className="p-6 hover:shadow-md transition-shadow duration-300" data-testid="stat-total-applications">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-semibold text-muted-foreground">Total Applications</p>
@@ -114,11 +114,11 @@ export default function AgentDashboard() {
                   {stats.totalApplications}
                 </p>
               </div>
-              <FileText className="h-8 w-8 text-green-500 opacity-20" />
+              <FileText className="h-8 w-8 text-green-500 opacity-20" strokeWidth={1.5} />
             </div>
           </Card>
 
-          <Card className="p-6" data-testid="stat-pending">
+          <Card className="p-6 hover:shadow-md transition-shadow duration-300" data-testid="stat-pending">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-semibold text-muted-foreground">Pending Review</p>
@@ -126,7 +126,7 @@ export default function AgentDashboard() {
                   {stats.pendingApps}
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-500 opacity-20" />
+              <Clock className="h-8 w-8 text-yellow-500 opacity-20" strokeWidth={1.5} />
             </div>
           </Card>
         </div>

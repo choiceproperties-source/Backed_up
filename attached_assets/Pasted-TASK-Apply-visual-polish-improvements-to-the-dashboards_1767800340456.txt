@@ -1,0 +1,60 @@
+TASK: Apply visual polish improvements to the dashboards based strictly on the completed visual audit.
+
+IMPORTANT CONSTRAINTS (MUST FOLLOW):
+- ❌ Do NOT modify backend logic, APIs, database, or data fetching
+- ❌ Do NOT introduce new features or workflows
+- ❌ Do NOT refactor business logic
+- ✅ Frontend-only, cosmetic changes using Tailwind CSS utilities
+- ✅ Changes must be minimal, scoped, and reversible
+
+FILES IN SCOPE:
+- renter-dashboard.tsx
+- landlord-dashboard.tsx
+- tenant-lease-dashboard.tsx
+- tenant-payments-dashboard.tsx
+- agent-dashboard-new.tsx
+- Shared dashboard card and stat components
+
+--------------------------------------------------
+
+VISUAL POLISH CHECKLIST TO IMPLEMENT:
+
+1. TYPOGRAPHY & HIERARCHY
+- Use `font-semibold` for stat labels and section titles where clarity is needed
+- Ensure `text-muted-foreground` is only used for secondary/supporting text
+- Improve label/value contrast in dense lists without changing content
+
+2. SPACING & LAYOUT CONSISTENCY
+- Standardize dashboard card padding to `p-6`
+- Increase grid spacing on large screens (`gap-6` instead of `gap-4`)
+- Ensure consistent vertical spacing between dashboard sections
+
+3. UI CONSISTENCY
+- Standardize status badge styles:
+  - Pill shape (`rounded-full`)
+  - Consistent horizontal padding (`px-3 py-1`)
+- Ensure all lucide-react icons use consistent stroke width
+  - Prefer `strokeWidth={1.5}` or `strokeWidth={2}` (pick one and apply consistently)
+- Align alert banners visually with dashboard tone using subtle backgrounds
+  - Example: `bg-blue-50/50`, `border-blue-200`
+
+4. INTERACTION POLISH
+- Add subtle hover feedback to interactive cards:
+  - `hover:shadow-md transition-shadow`
+- Ensure hover effects are consistent across all dashboards
+
+5. EMPTY STATE PRESENTATION
+- Center empty state content vertically within cards
+- Slightly increase icon size for empty states
+- Use descriptive text, no logic changes
+
+--------------------------------------------------
+
+DELIVERABLES:
+- Apply the above cosmetic changes only
+- Do not alter component props, API responses, or state logic
+- Preserve existing layouts and data flow
+- Ensure visual consistency across Tenant, Landlord, and Agent dashboards
+
+GOAL:
+Improve readability, spacing, and professional polish while keeping functionality unchanged.

@@ -213,25 +213,25 @@ export default function TenantPaymentsDashboard() {
           ) : (
             <div className="space-y-8">
               {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="p-6 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Outstanding</p>
-                      <p className="text-3xl font-bold">${totalOutstanding.toFixed(2)}</p>
+                      <p className="text-sm font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Outstanding</p>
+                      <p className="text-3xl font-bold text-foreground">${totalOutstanding.toFixed(2)}</p>
                     </div>
                     {totalOutstanding > 0 && (
-                      <AlertCircle className="w-8 h-8 text-amber-500" />
+                      <AlertCircle className="w-8 h-8 text-amber-500 opacity-20" strokeWidth={1.5} />
                     )}
                   </div>
                 </Card>
-                <Card className="p-6">
+                <Card className="p-6 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Paid</p>
-                      <p className="text-3xl font-bold">${totalPaid.toFixed(2)}</p>
+                      <p className="text-sm font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Paid</p>
+                      <p className="text-3xl font-bold text-foreground">${totalPaid.toFixed(2)}</p>
                     </div>
-                    <CheckCircle className="w-8 h-8 text-green-500" />
+                    <CheckCircle className="w-8 h-8 text-green-500 opacity-20" strokeWidth={1.5} />
                   </div>
                 </Card>
               </div>
