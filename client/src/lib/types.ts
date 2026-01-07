@@ -77,6 +77,7 @@ export interface Property {
   application_fee: string | null;
   created_at: string;
   updated_at: string | null;
+  owner?: Owner;
 }
 
 // Extended property with computed/joined fields for display

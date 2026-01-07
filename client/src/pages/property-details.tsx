@@ -170,10 +170,11 @@ export default function PropertyDetails() {
               {/* Header Info */}
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
-                        {property.title}
-                      </h1>
+                  <div className="space-y-1">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+                      {property.title}
+                    </h1>
+                    {property.owner && (
                       <div className="space-y-4">
                         <div className="h-[1px] bg-border my-4" />
                         <div className="flex flex-col gap-1">
@@ -181,13 +182,14 @@ export default function PropertyDetails() {
                             Listed by
                           </span>
                           <PostedBy 
-                            fullName={propertyData?.property?.owner?.full_name || "Choice Properties Agent"}
-                            profileImage={propertyData?.property?.owner?.profile_image}
-                            role={propertyData?.property?.owner?.role || "Agent"}
+                            fullName={property.owner.full_name || "Property Owner"}
+                            profileImage={property.owner.profile_image}
+                            role={property.owner.role}
                           />
                         </div>
                       </div>
-                      <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
+                    )}
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
                       <MapPin className="h-5 w-5 mr-1 text-blue-600" />
                       {property.address}, {property.city}, {property.state} {property.zip_code}
                     </div>
@@ -410,37 +412,34 @@ export default function PropertyDetails() {
                   <div className="bg-blue-600 p-4 text-center">
                     <p className="text-white font-bold uppercase tracking-widest text-xs">Interested? Contact Agent</p>
                   </div>
-                  <CardContent className="p-6 space-y-6">
-                    {propertyData?.property?.owner && (
+                    <CardContent className="p-6 space-y-6">
                       <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
                         <div className="h-12 w-12 rounded-full overflow-hidden border border-gray-200 dark:border-gray-800">
-                          {propertyData.property.owner.profile_image ? (
+                          {property.owner?.profile_image ? (
                             <img 
-                              src={propertyData.property.owner.profile_image} 
-                              alt={propertyData.property.owner.full_name || "Owner"} 
+                              src={property.owner.profile_image} 
+                              alt={property.owner.full_name || "Owner"} 
                               className="h-full w-full object-cover"
                             />
                           ) : (
                             <div className="h-full w-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold text-lg">
-                              {propertyData.property.owner.full_name?.[0] || "O"}
+                              {(property.owner?.full_name || "Choice Properties Agent")[0]}
                             </div>
                           )}
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900 dark:text-white">{propertyData.property.owner.full_name || "Property Owner"}</p>
+                          <p className="font-bold text-gray-900 dark:text-white">{property.owner?.full_name || "Choice Properties Agent"}</p>
                           <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">
-                            {propertyData.property.owner.role === 'agent' ? 'Listing Agent' : 'Property Owner'}
+                            {property.owner?.role === 'agent' ? 'Listing Agent' : 'Property Owner'}
                           </p>
                           <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                            <Phone className="h-3 w-3" /> {propertyData.property.owner.display_phone || "Not listed"}
+                            <Phone className="h-3 w-3" /> {property.owner?.display_phone || "Not listed"}
                           </div>
                           <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                            <Mail className="h-3 w-3" /> {propertyData.property.owner.display_email || propertyData.property.owner.email || "Not listed"}
+                            <Mail className="h-3 w-3" /> {property.owner?.display_email || property.owner?.email || "Not listed"}
                           </div>
                         </div>
                       </div>
-                    )}
-                    
                     <div className="space-y-4">
                       <Input 
                         placeholder="Full Name" 
