@@ -75,7 +75,10 @@ export function registerPropertyRoutes(app: Express): void {
 
       const { data, error } = await getSupabase()
         .from("properties")
-        .select("*")
+        .select(`
+          *,
+          owner:users!owner_id(id, full_name, profile_image, role, display_email, display_phone)
+        `)
         .eq("id", req.params.id)
         .single();
 

@@ -396,18 +396,31 @@ export default function PropertyDetails() {
                     <p className="text-white font-bold uppercase tracking-widest text-xs">Interested? Contact Agent</p>
                   </div>
                   <CardContent className="p-6 space-y-6">
-                    {propertyData?.owner && (
+                    {propertyData?.property?.owner && (
                       <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
-                        <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold text-lg">
-                          {propertyData.owner.full_name?.[0] || "O"}
+                        <div className="h-12 w-12 rounded-full overflow-hidden border border-gray-200 dark:border-gray-800">
+                          {propertyData.property.owner.profile_image ? (
+                            <img 
+                              src={propertyData.property.owner.profile_image} 
+                              alt={propertyData.property.owner.full_name || "Owner"} 
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold text-lg">
+                              {propertyData.property.owner.full_name?.[0] || "O"}
+                            </div>
+                          )}
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900 dark:text-white">{propertyData.owner.full_name || "Property Owner"}</p>
+                          <p className="font-bold text-gray-900 dark:text-white">{propertyData.property.owner.full_name || "Property Owner"}</p>
+                          <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">
+                            {propertyData.property.owner.role === 'agent' ? 'Listing Agent' : 'Property Owner'}
+                          </p>
                           <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                            <Phone className="h-3 w-3" /> {propertyData.owner.phone || "Not listed"}
+                            <Phone className="h-3 w-3" /> {propertyData.property.owner.display_phone || "Not listed"}
                           </div>
                           <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                            <Mail className="h-3 w-3" /> {propertyData.owner.email}
+                            <Mail className="h-3 w-3" /> {propertyData.property.owner.display_email || propertyData.property.owner.email || "Not listed"}
                           </div>
                         </div>
                       </div>
