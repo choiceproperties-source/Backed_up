@@ -537,13 +537,14 @@ export function UnifiedNotificationBell() {
           <Button
             variant="ghost"
             size="sm"
-            className="w-full text-xs h-8"
+            className="w-full text-xs h-8 hover:bg-primary/5 transition-colors"
             onClick={() => {
               setIsOpen(false);
-              navigate("/applications");
+              navigate("/notifications");
             }}
+            data-testid="button-view-all-notifications"
           >
-            View All Applications
+            View All Notifications
           </Button>
         </div>
       </DropdownMenuContent>
