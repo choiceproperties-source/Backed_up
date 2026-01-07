@@ -1,0 +1,112 @@
+TASK TYPE: Visual polish / UI refinement ONLY
+
+TARGET FILES:
+- client/src/pages/landlord-dashboard.tsx
+- client/src/pages/agent-dashboard-new.tsx
+
+CONSTRAINTS (STRICT):
+- DO NOT modify backend logic
+- DO NOT change API calls, hooks, or state logic
+- DO NOT rename variables or functions
+- DO NOT restructure component hierarchy
+- DO NOT remove or add new features
+- DO NOT break responsiveness
+- ONLY adjust JSX layout, Tailwind classes, and visual consistency
+
+REFERENCE:
+Use the previously completed FULL INVENTORY SCAN as the single source of truth.
+Do not introduce new sections.
+
+────────────────────────────
+1️⃣ HERO / HEADER POLISH
+────────────────────────────
+- Keep existing gradient colors per role
+- Improve hierarchy by:
+  • Slightly increasing title letter-spacing
+  • Reducing subtitle opacity (text-white/80)
+- Ensure consistent vertical spacing (py-12 remains unchanged)
+- Keep Sign Out button exactly where it is (visual polish only)
+
+────────────────────────────
+2️⃣ STAT CARDS REFINEMENT
+────────────────────────────
+Apply consistently across both dashboards:
+- Ensure all stat cards use:
+  • p-6
+  • rounded-xl
+  • border border-border/50
+- Icons:
+  • Standardize size to h-5 w-5
+  • strokeWidth={1.5}
+- Typography:
+  • Stat labels → font-semibold text-sm
+  • Primary numbers → text-2xl font-bold
+- Hover:
+  • hover:shadow-md transition-shadow
+- DO NOT change stat order or content
+
+Landlord-specific:
+- Occupancy progress bar:
+  • Add subtle rounded-full and bg-muted
+  • Keep logic unchanged
+
+Agent-specific:
+- Pending Review card:
+  • Visually elevate importance using a subtle bg-amber-50/50 or border-amber-200
+  • No logic changes
+
+────────────────────────────
+3️⃣ PENDING ACTIONS ALERT (LANDLORD ONLY)
+────────────────────────────
+- Keep existing conditional rendering
+- Visually refine:
+  • Rounded corners (rounded-lg)
+  • Slight background softening (bg-amber-50/50)
+  • Align icon and text cleanly with gap utilities
+- DO NOT change text or CTA behavior
+
+────────────────────────────
+4️⃣ MAIN CONTENT CARDS (Quick Actions & Overview)
+────────────────────────────
+- Standardize both cards:
+  • p-8
+  • rounded-xl
+  • border border-border/50
+- Quick Actions:
+  • Ensure buttons have consistent spacing (gap-3 or gap-4)
+  • Keep existing button colors per role
+- Overview card:
+  • Break long text visually using spacing (space-y-2)
+  • No content edits
+
+────────────────────────────
+5️⃣ BUTTON CONSISTENCY
+────────────────────────────
+- Ensure all primary buttons:
+  • h-11
+  • font-medium
+- Outline buttons:
+  • border-border/60
+- No color changes beyond existing role colors
+
+────────────────────────────
+6️⃣ GLOBAL VISUAL CONSISTENCY
+────────────────────────────
+- Ensure:
+  • gap-6 for stats grid
+  • gap-8 for main content grid
+- Verify all icons are lucide-react with strokeWidth={1.5}
+- Ensure Badge components remain rounded-full px-2 py-0.5
+
+────────────────────────────
+7️⃣ FINAL CHECK
+────────────────────────────
+- No console errors
+- No TypeScript errors
+- No visual regressions
+- Dashboards should feel cohesive, premium, and consistent with Tenant dashboard polish
+
+END CONDITION:
+Stop after visual polish is complete.
+Do not suggest new features.
+Do not request Autonomous mode.
