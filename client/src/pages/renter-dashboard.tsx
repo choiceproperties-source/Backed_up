@@ -257,12 +257,12 @@ export default function RenterDashboard() {
       <Navbar />
 
       {/* Hero Header */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white py-16">
-        <div className="container mx-auto px-4">
+      <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white py-16 relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-2">Renter Dashboard</h1>
-              <p className="text-blue-100 text-lg">
+              <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">Renter Dashboard</h1>
+              <p className="text-white/80 text-lg">
                 Welcome back, <span className="font-semibold">{user?.email?.split('@')[0]}</span>!
               </p>
             </div>
@@ -341,7 +341,7 @@ export default function RenterDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Applications Card */}
           <Card
-            className="p-6 hover:shadow-md transition-shadow duration-300 border border-border hover:border-blue-300 dark:hover:border-blue-700"
+            className="p-6 rounded-xl hover:shadow-md transition-shadow duration-300 border border-border/50 hover:border-blue-300 dark:hover:border-blue-700"
             data-testid="stat-applications"
           >
             <div className="flex items-start justify-between">
@@ -362,7 +362,7 @@ export default function RenterDashboard() {
 
           {/* Saved Properties Card */}
           <Card
-            className="p-6 hover:shadow-md transition-shadow duration-300 border border-border hover:border-red-300 dark:hover:border-red-700"
+            className="p-6 rounded-xl hover:shadow-md transition-shadow duration-300 border border-border/50 hover:border-red-300 dark:hover:border-red-700"
             data-testid="stat-favorites"
           >
             <div className="flex items-start justify-between">
@@ -383,7 +383,7 @@ export default function RenterDashboard() {
 
           {/* Saved Searches Card */}
           <Card
-            className="p-6 hover:shadow-md transition-shadow duration-300 border border-border hover:border-indigo-300 dark:hover:border-indigo-700"
+            className="p-6 rounded-xl hover:shadow-md transition-shadow duration-300 border border-border/50 hover:border-indigo-300 dark:hover:border-indigo-700"
             data-testid="stat-searches"
           >
             <div className="flex items-start justify-between">
@@ -404,7 +404,7 @@ export default function RenterDashboard() {
 
           {/* Member Since Card */}
           <Card
-            className="p-6 hover:shadow-md transition-shadow duration-300 border border-border hover:border-emerald-300 dark:hover:border-emerald-700"
+            className="p-6 rounded-xl hover:shadow-md transition-shadow duration-300 border border-border/50 hover:border-emerald-300 dark:hover:border-emerald-700"
             data-testid="stat-member-since"
           >
             <div className="flex items-start justify-between">
@@ -489,7 +489,7 @@ export default function RenterDashboard() {
                 {(applications as ApplicationData[]).map((app) => (
                   <Card
                     key={app.id}
-                    className="p-6 hover:shadow-md transition-all duration-200 border-l-4 border-l-blue-500 hover:border-l-blue-600"
+                    className="p-6 rounded-xl hover:shadow-md transition-all duration-200 border-l-4 border-l-blue-500 hover:border-l-blue-600 border-t border-r border-b border-border/50"
                     data-testid={`card-application-${app.id}`}
                   >
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">

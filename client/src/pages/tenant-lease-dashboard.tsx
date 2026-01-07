@@ -193,15 +193,18 @@ export default function TenantLeaseDashboard() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-background py-12">
-        <div className="container max-w-6xl mx-auto px-4">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Lease Dashboard</h1>
-            <p className="text-muted-foreground">
+      <main className="min-h-screen bg-background flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 py-16 relative overflow-hidden mb-12">
+          <div className="container max-w-6xl mx-auto px-4 relative z-10">
+            <h1 className="text-4xl font-bold tracking-tight mb-2">Lease Dashboard</h1>
+            <p className="text-white/80 text-lg font-medium">
               Track your lease status and prepare for move-in
             </p>
           </div>
+        </div>
+
+        <div className="container max-w-6xl mx-auto px-4 pb-12">
 
           {activeApplications.length === 0 ? (
             <Card className="p-16 flex flex-col items-center justify-center text-center">
@@ -217,7 +220,7 @@ export default function TenantLeaseDashboard() {
           ) : (
             <div className="space-y-8">
               {activeApplications.map((app) => (
-                <Card key={app.id} className="p-6">
+                <Card key={app.id} className="p-8 rounded-xl border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-300">
                   {/* Property Header */}
                   <div className="mb-8">
                     <div className="flex items-start justify-between mb-4">

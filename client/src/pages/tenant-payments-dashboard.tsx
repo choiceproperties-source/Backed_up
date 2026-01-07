@@ -192,15 +192,18 @@ export default function TenantPaymentsDashboard() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-background py-12">
-        <div className="container max-w-6xl mx-auto px-4">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Your Payments</h1>
-            <p className="text-muted-foreground">
+      <main className="min-h-screen bg-background flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 py-16 relative overflow-hidden mb-12">
+          <div className="container max-w-6xl mx-auto px-4 relative z-10">
+            <h1 className="text-4xl font-bold tracking-tight mb-2">Your Payments</h1>
+            <p className="text-white/80 text-lg font-medium">
               Track your rent and security deposit payments
             </p>
           </div>
+        </div>
+
+        <div className="container max-w-6xl mx-auto px-4 pb-12">
 
           {!hasPayments ? (
             <Card className="p-8 text-center">
@@ -257,7 +260,7 @@ export default function TenantPaymentsDashboard() {
                   <h2 className="text-xl font-bold mb-4">Upcoming Payments</h2>
                   <div className="space-y-3">
                     {upcomingPayments.map((payment) => (
-                      <Card key={payment.id} className="p-4">
+                      <Card key={payment.id} className="p-6 rounded-xl border border-border/50 hover:shadow-md transition-shadow duration-300">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
@@ -305,7 +308,7 @@ export default function TenantPaymentsDashboard() {
                   <h2 className="text-xl font-bold mb-4">Payments Requiring Attention</h2>
                   <div className="space-y-3">
                     {overduePayments.map((payment) => (
-                      <Card key={payment.id} className="p-4">
+                      <Card key={payment.id} className="p-6 rounded-xl border border-border/50 hover:shadow-md transition-shadow duration-300 ring-1 ring-red-500/20">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
@@ -351,7 +354,7 @@ export default function TenantPaymentsDashboard() {
                   <h2 className="text-xl font-bold mb-4">Payment History</h2>
                   <div className="space-y-3">
                     {paidPayments.map((payment) => (
-                      <Card key={payment.id} className="p-4 opacity-75">
+                      <Card key={payment.id} className="p-6 rounded-xl border border-border/50 opacity-80 hover:opacity-100 transition-opacity">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
