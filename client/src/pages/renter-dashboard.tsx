@@ -257,8 +257,8 @@ export default function RenterDashboard() {
       <Navbar />
 
       {/* Hero Header */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white py-16 relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
+      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 text-white py-12 px-6 relative overflow-hidden">
+        <div className="container mx-auto relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">Renter Dashboard</h1>
@@ -272,10 +272,10 @@ export default function RenterDashboard() {
                 navigate('/');
               }}
               variant="ghost"
-              className="text-white hover:bg-white/20 border border-white/30"
+              className="text-white hover:bg-white/20 border border-white/30 h-11 font-medium"
               data-testid="button-logout"
             >
-              <LogOut className="h-5 w-5 mr-2" />
+              <LogOut className="h-5 w-5 mr-2" strokeWidth={1.5} />
               Sign Out
             </Button>
           </div>
@@ -341,12 +341,12 @@ export default function RenterDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Applications Card */}
           <Card
-            className="p-6 rounded-xl hover:shadow-md transition-shadow duration-300 border border-border/50 hover:border-blue-300 dark:hover:border-blue-700"
+            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50 hover:border-blue-300 dark:hover:border-blue-700"
             data-testid="stat-applications"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                   Applications
                 </p>
                 <p className="text-4xl font-bold text-blue-600 dark:text-blue-400 mt-2">
@@ -362,12 +362,12 @@ export default function RenterDashboard() {
 
           {/* Saved Properties Card */}
           <Card
-            className="p-6 rounded-xl hover:shadow-md transition-shadow duration-300 border border-border/50 hover:border-red-300 dark:hover:border-red-700"
+            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50 hover:border-red-300 dark:hover:border-red-700"
             data-testid="stat-favorites"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                   Saved Properties
                 </p>
                 <p className="text-4xl font-bold text-red-600 dark:text-red-400 mt-2">
@@ -383,12 +383,12 @@ export default function RenterDashboard() {
 
           {/* Saved Searches Card */}
           <Card
-            className="p-6 rounded-xl hover:shadow-md transition-shadow duration-300 border border-border/50 hover:border-indigo-300 dark:hover:border-indigo-700"
+            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50 hover:border-indigo-300 dark:hover:border-indigo-700"
             data-testid="stat-searches"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                   Saved Searches
                 </p>
                 <p className="text-4xl font-bold text-indigo-600 dark:text-indigo-400 mt-2">
@@ -404,12 +404,12 @@ export default function RenterDashboard() {
 
           {/* Member Since Card */}
           <Card
-            className="p-6 rounded-xl hover:shadow-md transition-shadow duration-300 border border-border/50 hover:border-emerald-300 dark:hover:border-emerald-700"
+            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50 hover:border-emerald-300 dark:hover:border-emerald-700"
             data-testid="stat-member-since"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                   Member Since
                 </p>
                 <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">
@@ -428,24 +428,24 @@ export default function RenterDashboard() {
       {/* Main Content */}
       <div className="container mx-auto px-4 flex-1 pb-12">
         {/* Tab Navigation */}
-        <div className="flex gap-1 mb-8 border-b border-border overflow-x-auto -mx-4 px-4">
+        <div className="flex gap-1 mb-8 border-b border-border overflow-x-auto -mx-4 px-4 scrollbar-hide">
           {tabOptions.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-3 font-semibold text-sm transition-all duration-200 border-b-2 flex items-center gap-2 whitespace-nowrap relative group ${
                 activeTab === tab.id
-                  ? 'border-b-blue-600 text-blue-600 dark:text-blue-400'
+                  ? 'border-b-primary text-primary'
                   : 'border-b-transparent text-muted-foreground hover:text-foreground'
               }`}
               data-testid={`tab-${tab.id}`}
             >
-              <tab.icon className="h-4 w-4" />
+              <tab.icon className="h-4 w-4" strokeWidth={1.5} />
               <span>{tab.label}</span>
               {tab.count > 0 && (
                 <Badge
                   variant="secondary"
-                  className="ml-1 text-xs"
+                  className="ml-1 text-xs rounded-full px-2 py-0.5 font-bold"
                   data-testid={`tab-count-${tab.id}`}
                 >
                   {tab.count}
@@ -489,7 +489,7 @@ export default function RenterDashboard() {
                 {(applications as ApplicationData[]).map((app) => (
                   <Card
                     key={app.id}
-                    className="p-6 rounded-xl hover:shadow-md transition-all duration-200 border-l-4 border-l-blue-500 hover:border-l-blue-600 border-t border-r border-b border-border/50"
+                    className="p-8 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border-l-4 border-l-blue-500 hover:border-l-blue-600 border-t border-r border-b border-border/50"
                     data-testid={`card-application-${app.id}`}
                   >
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">

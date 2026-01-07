@@ -195,9 +195,9 @@ export default function TenantLeaseDashboard() {
       <Navbar />
       <main className="min-h-screen bg-background flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 py-16 relative overflow-hidden mb-12">
-          <div className="container max-w-6xl mx-auto px-4 relative z-10">
-            <h1 className="text-4xl font-bold tracking-tight mb-2">Lease Dashboard</h1>
+        <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 py-12 px-6 relative overflow-hidden mb-12">
+          <div className="container max-w-6xl mx-auto relative z-10">
+            <h1 className="text-4xl font-bold tracking-tight mb-2 text-white">Lease Dashboard</h1>
             <p className="text-white/80 text-lg font-medium">
               Track your lease status and prepare for move-in
             </p>

@@ -79,9 +79,9 @@ export default function TenantProfile() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 py-16 relative overflow-hidden">
-        <div className="container mx-auto px-4 max-w-6xl relative z-10">
-          <h1 className="text-4xl font-bold tracking-tight">Account Settings</h1>
+      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 py-12 px-6 relative overflow-hidden">
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <h1 className="text-4xl font-bold tracking-tight text-white">Account Settings</h1>
           <p className="text-white/80 mt-2 text-lg font-medium">Manage your personal information and contact preferences.</p>
         </div>
       </div>
@@ -90,9 +90,9 @@ export default function TenantProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
           <div className="lg:col-span-1 space-y-8">
             <Card className="p-8 rounded-xl border border-border/50 shadow-xl text-center">
-              <Avatar className="h-40 w-40 mx-auto mb-6 border-4 border-background shadow-2xl transition-transform hover:scale-105">
+              <Avatar className="h-14 w-14 mx-auto mb-6 border-4 border-background shadow-2xl transition-transform hover:scale-105">
                 <AvatarImage src={user.profile_image || undefined} alt={user.full_name || ''} />
-                <AvatarFallback className="text-3xl font-bold bg-primary/5">{initials}</AvatarFallback>
+                <AvatarFallback className="text-xl font-bold bg-primary/5">{initials}</AvatarFallback>
               </Avatar>
               <h2 className="text-3xl font-bold mb-2 tracking-tight">{user.full_name || 'Tenant'}</h2>
               <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-8">Verified Resident</p>

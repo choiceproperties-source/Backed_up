@@ -95,8 +95,8 @@ export default function LandlordDashboard() {
       <Navbar />
 
       {/* Hero Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-12">
-        <div className="container mx-auto px-4 flex justify-between items-center">
+      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 text-white py-12 px-6 relative overflow-hidden">
+        <div className="container mx-auto flex justify-between items-center relative z-10">
           <div>
             <h1 className="text-4xl font-bold tracking-tight">Landlord Dashboard</h1>
             <p className="text-white/80 mt-2">Manage your properties and applications</p>
@@ -107,7 +107,7 @@ export default function LandlordDashboard() {
               navigate('/');
             }}
             variant="ghost"
-            className="text-white hover:bg-white/20 h-11 font-medium"
+            className="text-white hover:bg-white/20 h-11 font-medium border border-white/30"
             data-testid="button-logout"
           >
             <LogOut className="h-5 w-5 mr-2" strokeWidth={1.5} />
@@ -119,25 +119,25 @@ export default function LandlordDashboard() {
       {/* Stats Cards */}
       <div className="container mx-auto px-4 -mt-8 relative z-10 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="p-6 rounded-xl border border-border/50 hover:shadow-md transition-shadow duration-300" data-testid="stat-properties">
+          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-properties">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground">Total Properties</p>
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Total Properties</p>
+                <p className="text-2xl font-bold text-primary mt-2">
                   {stats.properties}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1 font-medium">
                   {stats.activeListings} active • {stats.rentedProperties} rented
                 </p>
               </div>
-              <Building2 className="h-5 w-5 text-blue-500 opacity-20" strokeWidth={1.5} />
+              <Building2 className="h-5 w-5 text-primary opacity-20" strokeWidth={1.5} />
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border border-border/50 hover:shadow-md transition-shadow duration-300" data-testid="stat-occupancy">
+          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-occupancy">
             <div className="flex items-start justify-between">
               <div className="w-full">
-                <p className="text-sm font-semibold text-muted-foreground">Occupancy Rate</p>
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Occupancy Rate</p>
                 <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">
                   {stats.properties > 0 ? `${stats.occupancyRate}%` : '--'}
                 </p>
@@ -151,10 +151,10 @@ export default function LandlordDashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border border-border/50 hover:shadow-md transition-shadow duration-300" data-testid="stat-revenue">
+          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-revenue">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground">Monthly Revenue</p>
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Monthly Revenue</p>
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
                   ${stats.monthlyRevenue.toLocaleString()}
                 </p>
@@ -166,16 +166,16 @@ export default function LandlordDashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border border-border/50 hover:shadow-md transition-shadow duration-300" data-testid="stat-applications">
+          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-applications">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground">Applications</p>
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Applications</p>
                 <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-2">
                   {stats.applications}
                 </p>
                 <div className="flex gap-2 mt-1">
                   {stats.pendingApps > 0 && (
-                    <Badge variant="outline" className="text-xs bg-yellow-50/50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800 rounded-full px-2 py-0.5 font-semibold">
+                    <Badge variant="outline" className="text-xs bg-yellow-50/50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800 rounded-full px-2 py-0.5 font-bold">
                       {stats.pendingApps} pending
                     </Badge>
                   )}
@@ -225,7 +225,7 @@ export default function LandlordDashboard() {
             <div className="grid gap-4">
               <Button
                 onClick={() => navigate('/landlord-properties')}
-                className="w-full justify-between bg-blue-600 hover:bg-blue-700 h-11 font-medium"
+                className="w-full justify-between bg-primary hover:bg-primary/90 h-11 font-medium shadow-sm transition-all duration-200"
                 data-testid="button-manage-properties"
               >
                 <span className="flex items-center gap-2">
@@ -236,7 +236,7 @@ export default function LandlordDashboard() {
               </Button>
               <Button
                 onClick={() => navigate('/landlord-applications')}
-                className="w-full justify-between bg-indigo-600 hover:bg-indigo-700 h-11 font-medium"
+                className="w-full justify-between bg-indigo-600 hover:bg-indigo-700 h-11 font-medium shadow-sm transition-all duration-200"
                 data-testid="button-view-applications"
               >
                 <span className="flex items-center gap-2">
@@ -248,7 +248,7 @@ export default function LandlordDashboard() {
               <Button
                 onClick={() => navigate('/landlord-profile')}
                 variant="outline"
-                className="w-full justify-between h-11 font-medium border-border/60"
+                className="w-full justify-between h-11 font-medium border-border/60 hover-elevate transition-all duration-200"
                 data-testid="button-profile"
               >
                 <span>My Profile</span>

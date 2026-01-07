@@ -46,17 +46,17 @@ export default function OwnerProfile() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 py-16 relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
+      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 py-12 px-6 relative overflow-hidden">
+        <div className="container mx-auto relative z-10">
           <div className="max-w-4xl mx-auto">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
               <div className="relative group">
-                <Avatar className="h-40 w-40 border-4 border-background shadow-2xl transition-transform group-hover:scale-105">
+                <Avatar className="h-14 w-14 border-4 border-background shadow-2xl transition-transform group-hover:scale-105">
                   <AvatarImage src={profile?.profile_image || undefined} alt={profile?.full_name || ""} />
-                  <AvatarFallback className="text-4xl bg-primary/5 font-bold">{initials}</AvatarFallback>
+                  <AvatarFallback className="text-xl bg-primary/5 font-bold">{initials}</AvatarFallback>
                 </Avatar>
                 {profile?.license_verified && (
-                  <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-2.5 shadow-lg ring-4 ring-background">
+                  <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-1 shadow-lg ring-2 ring-background">
                     <CheckCircle2 className="h-6 w-6" strokeWidth={1.5} />
                   </div>
                 )}
@@ -64,9 +64,9 @@ export default function OwnerProfile() {
               
               <div className="flex-1 text-center md:text-left pt-4">
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4">
-                  <h1 className="text-4xl font-bold tracking-tight">{profile?.full_name}</h1>
+                  <h1 className="text-4xl font-bold tracking-tight text-white">{profile?.full_name}</h1>
                   {profile?.rating && (
-                    <div className="flex items-center gap-1 bg-yellow-400/10 text-yellow-600 px-3 py-1 rounded-full text-sm font-bold">
+                    <div className="flex items-center gap-1 bg-white/20 text-white px-3 py-1 rounded-full text-sm font-bold backdrop-blur-sm">
                       <Star className="h-4 w-4 fill-current" />
                       {profile.rating}
                     </div>
@@ -78,17 +78,17 @@ export default function OwnerProfile() {
                 </p>
 
                 <div className="flex flex-wrap gap-6 justify-center md:justify-start text-sm font-semibold">
-                  <div className="flex items-center gap-2 text-foreground/80">
-                    <Building2 className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                  <div className="flex items-center gap-2 text-white/90">
+                    <Building2 className="h-4 w-4 text-white" strokeWidth={1.5} />
                     <span>Member since {memberSince}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-foreground/80">
-                    <MapPin className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                  <div className="flex items-center gap-2 text-white/90">
+                    <MapPin className="h-4 w-4 text-white" strokeWidth={1.5} />
                     <span>{propertiesData?.length || 0} Active Listings</span>
                   </div>
                   {profile?.years_experience && (
-                    <div className="flex items-center gap-2 text-foreground/80">
-                      <CheckCircle2 className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                    <div className="flex items-center gap-2 text-white/90">
+                      <CheckCircle2 className="h-4 w-4 text-white" strokeWidth={1.5} />
                       <span>{profile.years_experience}+ Years Exp.</span>
                     </div>
                   )}

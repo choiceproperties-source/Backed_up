@@ -1,0 +1,68 @@
+You are tasked with implementing a **final visual polish** for the Choice Properties project. Focus on dashboards (Tenant, Landlord, Agent, Lease/Payments) and profile pages (Agent, Landlord, Tenant, Owner). All changes must be **code-based**, using Tailwind CSS, Shadcn/UI components, and existing project conventions. Do not change backend logic or API calls. Follow the checklist below strictly.
+
+---
+
+### Priority 1: High-Impact Visual Issues
+1. **Standardize Card Padding**:
+   - All major cards: `p-8`, rounded-xl, border `border-border/50`.
+   - Sub-cards/stat cards: `p-6`, rounded-xl, hover shadow.
+
+2. **Avatar & Verified Badge**:
+   - All avatars: uniform size (w-14 h-14 for main avatars).
+   - Verified badge: h-6 w-6, strokeWidth 1.5, positioned `absolute -bottom-2 -right-2`.
+   - Ensure fallback initials display correctly.
+
+3. **Hero Section Gradients**:
+   - Standardize all dashboards and profile heroes to `bg-gradient-to-br from-primary via-primary/90 to-secondary/80`.
+   - Apply consistent padding (`py-12 px-6`) and rounded corners.
+
+4. **Empty States**:
+   - Standardize empty state layout using icons (h-20 w-20), bold title, and muted secondary text.
+   - Use `Empty` component where possible.
+
+---
+
+### Priority 2: Medium-Impact Refinements
+1. **Interactive Stat Cards**:
+   - Apply `hover-elevate hover:shadow-md transition-all` to all stat cards.
+   
+2. **Icon Stroke Consistency**:
+   - All lucide-react icons: `strokeWidth={1.5}`.
+
+3. **Status Badge Styling**:
+   - Rounded-full, subtle backgrounds (e.g., `bg-blue-50/50`), consistent font weights.
+
+4. **Button Uniformity**:
+   - All primary buttons: consistent height `h-11`, font-medium.
+
+---
+
+### Priority 3: Minor Polish & Micro-interactions
+1. **Skeleton Loader Alignment**:
+   - Match skeleton heights exactly to final cards.
+
+2. **Typography Hierarchy**:
+   - Use uppercase tracking-widest consistently for labels.
+   - Ensure all headings, stats, and titles match font sizes from dashboards.
+
+3. **Transitions**:
+   - Add `transition-all duration-200` to interactive tabs, card borders, and buttons.
+
+---
+
+### Mobile-Specific Enhancements
+1. **Horizontal Tab Scrolling**:
+   - Dashboards tabs: `overflow-x-auto -mx-4 px-4`.
+   
+2. **Responsive Stat Grids**:
+   - Stat cards collapse to 1-column on mobile early enough to prevent truncation.
+
+---
+
+### Additional Notes
+- Preserve all existing functionality.
+- Apply hover, spacing, typography, and card refinements consistently across all dashboards and profiles.
+- Ensure the design matches a **premium SaaS feel**.
+- Output **only code changes** (JSX/TSX with Tailwind classes). No explanations.
+
+Implement all of the above.

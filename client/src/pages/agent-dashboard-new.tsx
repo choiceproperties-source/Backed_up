@@ -58,8 +58,8 @@ export default function AgentDashboard() {
       <Navbar />
 
       {/* Hero Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-12">
-        <div className="container mx-auto px-4 flex justify-between items-center">
+      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 text-white py-12 px-6 relative overflow-hidden">
+        <div className="container mx-auto flex justify-between items-center relative z-10">
           <div>
             <h1 className="text-4xl font-bold tracking-tight">Agent Dashboard</h1>
             <p className="text-white/80 mt-2">Manage your assigned properties and applications</p>
@@ -70,7 +70,7 @@ export default function AgentDashboard() {
               navigate('/');
             }}
             variant="ghost"
-            className="text-white hover:bg-white/20 h-11 font-medium"
+            className="text-white hover:bg-white/20 h-11 font-medium border border-white/30"
             data-testid="button-logout"
           >
             <LogOut className="h-5 w-5 mr-2" strokeWidth={1.5} />
@@ -82,22 +82,22 @@ export default function AgentDashboard() {
       {/* Stats Cards */}
       <div className="container mx-auto px-4 -mt-8 relative z-10 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="p-6 rounded-xl border border-border/50 hover:shadow-md transition-shadow duration-300" data-testid="stat-assigned-properties">
+          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-assigned-properties">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground">Assigned Properties</p>
-                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-2">
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Assigned Properties</p>
+                <p className="text-2xl font-bold text-primary mt-2">
                   {stats.assignedProperties}
                 </p>
               </div>
-              <Home className="h-5 w-5 text-purple-500 opacity-20" strokeWidth={1.5} />
+              <Home className="h-5 w-5 text-primary opacity-20" strokeWidth={1.5} />
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border border-border/50 hover:shadow-md transition-shadow duration-300" data-testid="stat-active-listings">
+          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-active-listings">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground">Active Listings</p>
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Active Listings</p>
                 <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-2">
                   {stats.activeListings}
                 </p>
@@ -106,10 +106,10 @@ export default function AgentDashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border border-border/50 hover:shadow-md transition-shadow duration-300" data-testid="stat-total-applications">
+          <Card className="p-6 rounded-xl border border-border/50 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-total-applications">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground">Total Applications</p>
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Total Applications</p>
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
                   {stats.totalApplications}
                 </p>
@@ -118,10 +118,10 @@ export default function AgentDashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 rounded-xl border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/10 hover:shadow-md transition-shadow duration-300" data-testid="stat-pending">
+          <Card className="p-6 rounded-xl border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/10 hover-elevate hover:shadow-md transition-all duration-300" data-testid="stat-pending">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground">Pending Review</p>
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Pending Review</p>
                 <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-2">
                   {stats.pendingApps}
                 </p>

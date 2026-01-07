@@ -94,20 +94,20 @@ export default function LandlordProfile() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 py-16 relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10 flex items-center gap-6">
+      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 py-12 px-6 relative overflow-hidden">
+        <div className="container mx-auto relative z-10 flex items-center gap-6">
           <Button
             onClick={() => navigate('/landlord-dashboard')}
             variant="ghost"
             size="sm"
-            className="hover:bg-primary/5 h-11 font-medium"
+            className="text-white hover:bg-white/20 h-11 font-medium border border-white/30"
             data-testid="button-back"
           >
             <ArrowLeft className="h-4 w-4 mr-2" strokeWidth={1.5} />
             Dashboard
           </Button>
           <div className="flex-1">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground">My Profile</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-white">My Profile</h1>
             <p className="text-white/80 mt-2 text-lg font-medium">Manage your professional identity and contact preferences.</p>
           </div>
         </div>
@@ -118,12 +118,12 @@ export default function LandlordProfile() {
           <div className="lg:col-span-1 space-y-8">
             <Card className="p-8 rounded-xl border border-border/50 shadow-xl text-center">
               <div className="relative inline-block mb-6 group">
-                <Avatar className="h-40 w-40 mx-auto border-4 border-background shadow-2xl transition-transform group-hover:scale-105">
+                <Avatar className="h-14 w-14 mx-auto border-4 border-background shadow-2xl transition-transform group-hover:scale-105">
                   <AvatarImage src={user.profile_image || undefined} alt={user.full_name || ''} />
-                  <AvatarFallback className="text-3xl font-bold bg-primary/5">{initials}</AvatarFallback>
+                  <AvatarFallback className="text-xl font-bold bg-primary/5">{initials}</AvatarFallback>
                 </Avatar>
                 {user.license_verified && (
-                  <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-2.5 shadow-lg ring-4 ring-background">
+                  <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-1 shadow-lg ring-2 ring-background">
                     <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
                   </div>
                 )}

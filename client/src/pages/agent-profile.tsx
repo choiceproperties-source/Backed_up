@@ -85,13 +85,13 @@ export default function AgentProfile() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 py-16 relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
+      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 py-12 px-6 relative overflow-hidden">
+        <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-2 mb-8">
             <Button
               variant="ghost"
               size="sm"
-              className="hover:bg-primary/5 h-11 font-medium"
+              className="text-white hover:bg-white/20 h-11 font-medium border border-white/30"
               onClick={() => navigate('/agent-dashboard')}
               data-testid="button-back"
             >
@@ -99,7 +99,7 @@ export default function AgentProfile() {
               Dashboard
             </Button>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight">Profile Settings</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-white">Profile Settings</h1>
           <p className="text-white/80 mt-2 text-lg">Personalize your public profile and manage account details.</p>
         </div>
       </div>
@@ -110,13 +110,13 @@ export default function AgentProfile() {
             <Card className="p-8 rounded-xl border border-border/50 shadow-xl">
               <div className="text-center">
                 <div className="relative inline-block mb-6 group">
-                  <Avatar className="h-40 w-40 mx-auto border-4 border-background shadow-2xl transition-transform group-hover:scale-105" data-testid="avatar-profile">
+                  <Avatar className="h-14 w-14 mx-auto border-4 border-background shadow-2xl transition-transform group-hover:scale-105" data-testid="avatar-profile">
                     <AvatarImage src={user.profile_image || undefined} alt={user.full_name || ''} />
-                    <AvatarFallback className="text-3xl font-bold bg-primary/5">{initials}</AvatarFallback>
+                    <AvatarFallback className="text-xl font-bold bg-primary/5">{initials}</AvatarFallback>
                   </Avatar>
                   {user.license_verified && (
-                    <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-2.5 shadow-lg ring-4 ring-background">
-                      <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
+                    <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-1 shadow-lg ring-2 ring-background">
+                      <CheckCircle2 className="h-6 w-6" strokeWidth={1.5} />
                     </div>
                   )}
                 </div>
