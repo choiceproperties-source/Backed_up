@@ -217,7 +217,7 @@ export default function TenantPaymentsDashboard() {
             <div className="space-y-8">
               {/* Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="p-6 hover:shadow-md transition-shadow duration-300">
+                <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Outstanding</p>
@@ -228,7 +228,7 @@ export default function TenantPaymentsDashboard() {
                     )}
                   </div>
                 </Card>
-                <Card className="p-6 hover:shadow-md transition-shadow duration-300">
+                <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Paid</p>

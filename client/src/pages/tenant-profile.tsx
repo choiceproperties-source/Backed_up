@@ -90,7 +90,7 @@ export default function TenantProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
           <div className="lg:col-span-1 space-y-8">
             <Card className="p-8 rounded-xl border border-border/50 shadow-xl text-center">
-              <Avatar className="h-14 w-14 mx-auto mb-6 border-4 border-background shadow-2xl transition-transform hover:scale-105" data-testid="avatar-profile">
+              <Avatar className="h-20 w-20 mx-auto mb-6 border-4 border-background shadow-2xl transition-transform hover:scale-105" data-testid="avatar-profile">
                 <AvatarImage src={user.profile_image || undefined} alt={user.full_name || ''} />
                 <AvatarFallback className="text-xl font-bold bg-primary/5">{initials}</AvatarFallback>
               </Avatar>

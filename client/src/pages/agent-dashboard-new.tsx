@@ -136,7 +136,7 @@ export default function AgentDashboard() {
       <div className="container mx-auto px-4 flex-1 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Quick Actions */}
-          <Card className="p-8 rounded-xl border border-border/50" data-testid="section-quick-actions">
+          <Card className="p-8 rounded-xl border border-border/50 shadow-sm" data-testid="section-quick-actions">
             <h2 className="text-2xl font-bold text-foreground mb-6">Quick Actions</h2>
             <div className="grid gap-4">
               <Button
@@ -174,7 +174,7 @@ export default function AgentDashboard() {
           </Card>
 
           {/* Overview */}
-          <Card className="p-8 rounded-xl border border-border/50" data-testid="section-overview">
+          <Card className="p-8 rounded-xl border border-border/50 shadow-sm" data-testid="section-overview">
             <h2 className="text-2xl font-bold text-foreground mb-6">Overview</h2>
             <div className="space-y-4 text-sm text-muted-foreground">
               <div className="space-y-2">

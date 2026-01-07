@@ -489,7 +489,7 @@ export default function RenterDashboard() {
                 {(applications as ApplicationData[]).map((app) => (
                   <Card
                     key={app.id}
-                    className="p-8 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border-l-4 border-l-blue-500 hover:border-l-blue-600 border-t border-r border-b border-border/50"
+                    className="p-8 rounded-xl hover-elevate shadow-sm transition-all duration-300 border-l-4 border-l-blue-500 hover:border-l-blue-600 border-t border-r border-b border-border/50"
                     data-testid={`card-application-${app.id}`}
                   >
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">

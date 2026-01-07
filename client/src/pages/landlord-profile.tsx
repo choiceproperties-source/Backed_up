@@ -117,17 +117,17 @@ export default function LandlordProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
           <div className="lg:col-span-1 space-y-8">
             <Card className="p-8 rounded-xl border border-border/50 shadow-xl text-center">
-              <div className="relative inline-block mb-6 group">
-                <Avatar className="h-14 w-14 mx-auto border-4 border-background shadow-2xl transition-transform group-hover:scale-105">
-                  <AvatarImage src={user.profile_image || undefined} alt={user.full_name || ''} />
-                  <AvatarFallback className="text-xl font-bold bg-primary/5">{initials}</AvatarFallback>
-                </Avatar>
-                {user.license_verified && (
-                  <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-1 shadow-lg ring-2 ring-background">
-                    <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
-                  </div>
-                )}
-              </div>
+                <div className="relative inline-block mb-6 group">
+                  <Avatar className="h-20 w-20 mx-auto border-4 border-background shadow-2xl transition-transform group-hover:scale-105" data-testid="avatar-profile">
+                    <AvatarImage src={user.profile_image || undefined} alt={user.full_name || ''} />
+                    <AvatarFallback className="text-xl font-bold bg-primary/5">{initials}</AvatarFallback>
+                  </Avatar>
+                  {user.license_verified && (
+                    <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1 shadow-lg ring-2 ring-background">
+                      <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
+                    </div>
+                  )}
+                </div>
 
               <h2 className="text-3xl font-bold mb-2 tracking-tight">{user.full_name || 'Landlord'}</h2>
               <div className="flex justify-center gap-1 mb-4">
