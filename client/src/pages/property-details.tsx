@@ -182,12 +182,11 @@ export default function PropertyDetails() {
                       <p className="text-sm text-muted-foreground">{property.owner?.role === 'agent' ? 'Licensed Agent' : 'Property Owner'}</p>
                     </div>
                   </div>
-                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
-                      <MapPin className="h-5 w-5 mr-1 text-blue-600" />
-                      {property.address}, {property.city}, {property.state} {property.zip_code}
-                    </div>
+                  <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
+                    <MapPin className="h-5 w-5 mr-1 text-blue-600" />
+                    {property.address}, {property.city}, {property.state} {property.zip_code}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mt-4">
                     <Button 
                       variant="outline" 
                       className={`rounded-full h-10 w-10 p-0 ${isFavorited(property.id) ? 'text-red-500 border-red-500 bg-red-50' : ''}`}
@@ -205,7 +204,7 @@ export default function PropertyDetails() {
                       <Share2 className="h-5 w-5" />
                     </Button>
                   </div>
-                </div>
+                </Card>
 
                 <div className="flex flex-wrap items-center gap-8 py-4 border-y border-gray-100 dark:border-gray-800">
                   <div className="flex flex-col">
@@ -240,7 +239,6 @@ export default function PropertyDetails() {
                     {property.status === 'active' ? 'Available Now' : 'Off Market'}
                   </Badge>
                 </div>
-              </div>
 
               {/* Overview Section */}
               <section className="space-y-4">

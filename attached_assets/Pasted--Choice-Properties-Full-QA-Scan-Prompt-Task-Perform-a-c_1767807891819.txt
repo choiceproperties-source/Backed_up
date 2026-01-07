@@ -1,0 +1,41 @@
+/**
+ * Choice Properties Full QA Scan Prompt
+ *
+ * Task: Perform a comprehensive QA scan of all dashboards (Tenant, Landlord, Agent, Lease/Payments)
+ * and profile pages (Agent, Landlord, Tenant, Owner) for both data accuracy and visual polish.
+ *
+ * Requirements:
+ * 1. Data Verification
+ *    - Check all stats cards (Total Properties, Occupancy, Applications, Revenue, etc.) display the correct live data.
+ *    - Ensure API endpoints (/api/v2/*) are used correctly and returned data maps to the frontend fields.
+ *    - Verify owner/agent information is shown on property details pages (name, profile photo, email if available).
+ *    - Confirm role-based access: Tenant, Landlord, Agent dashboards show only relevant data.
+ *
+ * 2. Visual & UI Consistency
+ *    - Hero sections: verify gradient backgrounds, title/subtitle typography, and button sizing (h-11, font-medium).
+ *    - Cards: confirm rounded-xl, standardized padding (p-8 for main, p-6 for stats), hover-elevate applied, subtle borders.
+ *    - Avatars: size w-14 h-14, verified badge h-6 w-6 in -bottom-2 -right-2 position, strokeWidth=1.5.
+ *    - Icons: all Lucide icons use strokeWidth={1.5} and consistent sizing across dashboards/profiles.
+ *    - Empty States: verify standardized layout with h-20 w-20 icons, bold primary text, muted secondary text.
+ *    - Buttons: consistent height, font weight, hover states.
+ *
+ * 3. Interaction & Micro-Interactions
+ *    - Check hover, focus, active states for cards, buttons, tabs, and banners.
+ *    - Ensure smooth transitions (transition-all, duration-200) on interactive elements.
+ *    - Confirm mobile responsiveness: stat grids collapse correctly, tabs scroll horizontally, spacing consistent.
+ *
+ * 4. Accessibility & Professional Polish
+ *    - Verify proper aria-labels on icon-only buttons.
+ *    - Check color contrast for readability in both light/dark mode.
+ *    - Confirm consistency in typography hierarchy (uppercase tracking-widest for secondary labels, font-semibold for stats).
+ *
+ * 5. Output
+ *    - Generate a structured report with:
+ *      a) Dashboard/Profile name
+ *      b) Data issues (if any)
+ *      c) Visual inconsistencies (if any)
+ *      d) Interaction/UI glitches
+ *      e) Mobile responsiveness observations
+ *
+ * Goal: Ensure all dashboards and profiles fully align with the Choice Properties premium SaaS visual and functional standards.
+ */
