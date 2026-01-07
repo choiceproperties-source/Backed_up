@@ -1,0 +1,84 @@
+TASK TYPE: Read-only audit / scan (NO code changes)
+
+TARGET FILES:
+- client/src/pages/landlord-dashboard.tsx
+- client/src/pages/agent-dashboard-new.tsx
+
+OBJECTIVE:
+Perform a complete scan of the Landlord and Agent dashboards and report
+EXACTLY what exists before any visual polish or refactor is attempted.
+
+⚠️ VERY IMPORTANT RULES:
+- DO NOT modify any code
+- DO NOT suggest changes yet
+- DO NOT refactor, optimize, or clean anything
+- DO NOT assume missing features
+- DO NOT recommend Autonomous mode
+- This is a READ-ONLY inspection
+
+────────────────────────────
+1️⃣ STRUCTURE INVENTORY
+────────────────────────────
+For EACH dashboard, list:
+- Top-level layout structure (containers, sections, grids)
+- Header / hero sections
+- Stat cards (count, labels, icons used)
+- Tables, lists, or cards rendered
+- Tabs, filters, or navigation elements
+
+────────────────────────────
+2️⃣ DATA & STATE USAGE
+────────────────────────────
+Identify and list:
+- API endpoints being called
+- Hooks used (useEffect, useQuery, custom hooks)
+- Loading states and skeletons
+- Empty state conditions and their JSX blocks
+- Conditional rendering logic (if/ternary blocks)
+
+────────────────────────────
+3️⃣ VISUAL COMPONENTS IN USE
+────────────────────────────
+List all UI elements currently present:
+- Card variants
+- Buttons (types and hierarchy)
+- Badges (status types and conditions)
+- Icons (lucide-react icons used per section)
+- Dividers, separators, banners, alerts
+
+────────────────────────────
+4️⃣ STYLING SNAPSHOT
+────────────────────────────
+Document:
+- Tailwind utility patterns in use (padding, gaps, typography)
+- Inconsistent spacing or typography patterns (if observable)
+- Badge shapes and color usage
+- Hover / interaction states currently applied
+
+⚠️ DO NOT FIX OR COMMENT — JUST REPORT
+
+────────────────────────────
+5️⃣ ROLE-SPECIFIC CONTENT
+────────────────────────────
+Clarify:
+- What content is unique to Landlord dashboard
+- What content is unique to Agent dashboard
+- What components or layouts are shared or duplicated
+
+────────────────────────────
+6️⃣ OUTPUT FORMAT
+────────────────────────────
+Return the scan as:
+- LANDLORD DASHBOARD — FULL INVENTORY
+- AGENT DASHBOARD — FULL INVENTORY
+
+Each section must be:
+- Bullet-pointed
+- Factual
+- Based ONLY on the codebase
+- No opinions
+- No recommendations
+- No next steps
+
+END CONDITION:
+Stop after the scan. Wait for explicit approval before suggesting or applying changes.
