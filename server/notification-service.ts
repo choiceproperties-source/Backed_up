@@ -451,6 +451,7 @@ export async function sendPaymentReceivedNotification(
       <p>Best regards,<br>Choice Properties</p>
     `;
 
+    // Create notification record
     const notificationId = await createNotificationRecord({
       applicationId: "", // Payment notifications not tied to applications
       userId: landlord.id,
@@ -459,15 +460,21 @@ export async function sendPaymentReceivedNotification(
       content,
     });
 
-    // Send in-app notification only (email is optional)
+    // Send in-app + email notification for landlords
+    const result = await sendEmail({
+      to: landlord.email,
+      subject,
+      html: content
+    });
+
     if (notificationId) {
-      await getSupabase()
-        .from("application_notifications")
-        .update({ channel: "in_app" })
-        .eq("id", notificationId);
+      await updateNotificationStatus(
+        notificationId,
+        result.success ? "sent" : "failed"
+      );
     }
 
-    return true;
+    return result.success;
   } catch (err) {
     console.error("[NOTIFICATION] Failed to send payment received:", err);
     return false;
