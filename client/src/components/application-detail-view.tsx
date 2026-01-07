@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -827,29 +828,6 @@ export function ApplicationDetailView({
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground italic text-center py-4">No status history available.</p>
-              )}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-                        <p className="text-sm text-muted-foreground mt-1">{entry.reason}</p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary mt-2" />
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-                      <Badge className={statusColors[application.status]}>
-                        {formatStatusLabel(application.status)}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDate(application.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
               )}
             </div>
           </AccordionContent>
