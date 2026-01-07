@@ -1,5 +1,14 @@
 // Application notification service for sending automated emails
 import { supabase } from "./supabase";
+
+// Helper to ensure supabase is available
+function getSupabase() {
+  if (!supabase) {
+    throw new Error("Supabase client is not initialized");
+  }
+  return supabase;
+}
+
 import { 
   sendEmail, 
   getApplicationStatusEmailTemplate,
@@ -34,7 +43,7 @@ interface NotificationRecord {
 // Create notification record in database
 async function createNotificationRecord(record: NotificationRecord): Promise<string | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from("application_notifications")
       .insert([{
         application_id: record.applicationId,
@@ -68,7 +77,7 @@ async function updateNotificationStatus(
       updateData.sent_at = new Date().toISOString();
     }
     
-    await supabase
+    await getSupabase()
       .from("application_notifications")
       .update(updateData)
       .eq("id", notificationId);
@@ -88,7 +97,7 @@ export async function sendStatusChangeNotification(
 ): Promise<boolean> {
   try {
     // Get application with user and property info
-    const { data: application, error } = await supabase
+    const { data: application, error } = await getSupabase()
       .from("applications")
       .select(`
         id,
@@ -175,7 +184,7 @@ export async function sendExpirationWarningNotification(
   daysRemaining: number
 ): Promise<boolean> {
   try {
-    const { data: application, error } = await supabase
+    const { data: application, error } = await getSupabase()
       .from("applications")
       .select(`
         id,
@@ -227,7 +236,7 @@ export async function sendDocumentRequestNotification(
   requiredDocuments: string[]
 ): Promise<boolean> {
   try {
-    const { data: application, error } = await supabase
+    const { data: application, error } = await getSupabase()
       .from("applications")
       .select(`
         id,
@@ -278,7 +287,7 @@ export async function notifyOwnerOfNewApplication(
   applicationId: string
 ): Promise<boolean> {
   try {
-    const { data: application, error } = await supabase
+    const { data: application, error } = await getSupabase()
       .from("applications")
       .select(`
         id,
@@ -296,7 +305,7 @@ export async function notifyOwnerOfNewApplication(
     if (!property?.owner_id) return false;
 
     // Get owner info
-    const { data: owner } = await supabase
+    const { data: owner } = await getSupabase()
       .from("users")
       .select("id, email, full_name")
       .eq("id", property.owner_id)
@@ -340,7 +349,7 @@ export async function notifyOwnerOfScoringComplete(
   maxScore: number
 ): Promise<boolean> {
   try {
-    const { data: application, error } = await supabase
+    const { data: application, error } = await getSupabase()
       .from("applications")
       .select(`
         id,
@@ -357,7 +366,7 @@ export async function notifyOwnerOfScoringComplete(
 
     if (!property?.owner_id) return false;
 
-    const { data: owner } = await supabase
+    const { data: owner } = await getSupabase()
       .from("users")
       .select("id, email, full_name")
       .eq("id", property.owner_id)
@@ -403,7 +412,7 @@ export async function sendPaymentReceivedNotification(
   amount: string
 ): Promise<boolean> {
   try {
-    const { data: payment } = await supabase
+    const { data: payment } = await getSupabase()
       .from("payments")
       .select("id, lease_id, leases(landlord_id)")
       .eq("id", paymentId)
@@ -411,7 +420,7 @@ export async function sendPaymentReceivedNotification(
 
     if (!payment || !(payment as any).leases?.landlord_id) return false;
 
-    const { data: landlord } = await supabase
+    const { data: landlord } = await getSupabase()
       .from("users")
       .select("id, email, full_name")
       .eq("id", (payment as any).leases.landlord_id)
@@ -420,7 +429,7 @@ export async function sendPaymentReceivedNotification(
     if (!landlord?.email) return false;
 
     // Check for duplicate notification (prevent duplicates sent in last 1 hour)
-    const { data: existingNotif } = await supabase
+    const { data: existingNotif } = await getSupabase()
       .from("application_notifications")
       .select("id")
       .eq("user_id", landlord.id)
@@ -449,7 +458,7 @@ export async function sendPaymentReceivedNotification(
 
     // Send in-app notification only (email is optional)
     if (notificationId) {
-      await supabase
+      await getSupabase()
         .from("application_notifications")
         .update({ channel: "in_app" })
         .eq("id", notificationId);
@@ -470,7 +479,7 @@ export async function sendPaymentVerifiedNotification(
   amount: string
 ): Promise<boolean> {
   try {
-    const { data: tenant } = await supabase
+    const { data: tenant } = await getSupabase()
       .from("users")
       .select("id, email, full_name")
       .eq("id", tenantId)
@@ -479,7 +488,7 @@ export async function sendPaymentVerifiedNotification(
     if (!tenant?.email) return false;
 
     // Check for duplicate (prevent in last 1 hour)
-    const { data: existingNotif } = await supabase
+    const { data: existingNotif } = await getSupabase()
       .from("application_notifications")
       .select("id")
       .eq("user_id", tenant.id)
@@ -526,7 +535,7 @@ export async function sendDepositRequiredNotification(
   propertyTitle: string
 ): Promise<boolean> {
   try {
-    const { data: tenant } = await supabase
+    const { data: tenant } = await getSupabase()
       .from("users")
       .select("id, email, full_name")
       .eq("id", tenantId)
@@ -535,7 +544,7 @@ export async function sendDepositRequiredNotification(
     if (!tenant?.email) return false;
 
     // Check for duplicate
-    const { data: existingNotif } = await supabase
+    const { data: existingNotif } = await getSupabase()
       .from("application_notifications")
       .select("id")
       .eq("user_id", tenant.id)
@@ -583,7 +592,7 @@ export async function sendRentDueSoonNotification(
   daysUntilDue: number
 ): Promise<boolean> {
   try {
-    const { data: tenant } = await supabase
+    const { data: tenant } = await getSupabase()
       .from("users")
       .select("id, email, full_name")
       .eq("id", tenantId)
@@ -592,7 +601,7 @@ export async function sendRentDueSoonNotification(
     if (!tenant?.email) return false;
 
     // Check for duplicate (prevent multiple in same day)
-    const { data: existingNotif } = await supabase
+    const { data: existingNotif } = await getSupabase()
       .from("application_notifications")
       .select("id")
       .eq("user_id", tenant.id)
@@ -648,7 +657,7 @@ export async function checkAndSendExpirationWarnings(): Promise<number> {
       const endOfDay = new Date(targetDate);
       endOfDay.setHours(23, 59, 59, 999);
 
-      const { data: expiringApps } = await supabase
+      const { data: expiringApps } = await getSupabase()
         .from("applications")
         .select("id")
         .gte("expires_at", startOfDay.toISOString())
@@ -658,7 +667,7 @@ export async function checkAndSendExpirationWarnings(): Promise<number> {
       if (expiringApps) {
         for (const app of expiringApps) {
           // Check if we already sent a warning for this day
-          const { data: existingNotification } = await supabase
+          const { data: existingNotification } = await getSupabase()
             .from("application_notifications")
             .select("id")
             .eq("application_id", app.id)
@@ -680,3 +689,4 @@ export async function checkAndSendExpirationWarnings(): Promise<number> {
     return 0;
   }
 }
+

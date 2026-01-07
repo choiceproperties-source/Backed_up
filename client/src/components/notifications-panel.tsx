@@ -177,7 +177,14 @@ function NotificationItem({
               className="px-0 h-auto mt-2"
               onClick={(e) => {
                 e.stopPropagation();
-                window.location.href = notification.actionUrl!;
+                if (notification.actionUrl?.startsWith('/')) {
+                  // In a real scenario, we'd use wouter's navigate, but since we're inside a map 
+                  // and this is a display component, we'll use window.location.pathname for now 
+                  // or rely on the parent's onNotificationClick.
+                  window.location.pathname = notification.actionUrl;
+                } else {
+                  window.location.href = notification.actionUrl!;
+                }
               }}
               data-testid={`button-action-${notification.id}`}
             >

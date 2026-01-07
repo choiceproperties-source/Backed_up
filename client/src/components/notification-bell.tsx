@@ -74,6 +74,9 @@ export function NotificationBell() {
     if (notification.application_id) {
       setIsOpen(false);
       navigate(`/applications/${notification.application_id}`);
+    } else if (notification.notification_type === "payment_received" || notification.notification_type === "payment_verified") {
+      setIsOpen(false);
+      navigate("/payments");
     }
   };
 
@@ -89,6 +92,9 @@ export function NotificationBell() {
         return <AlertCircle className="h-4 w-4 text-destructive" />;
       case "message":
         return <MessageSquare className="h-4 w-4 text-primary" />;
+      case "payment_received":
+      case "payment_verified":
+        return <CreditCard className="h-4 w-4 text-green-500" />;
       default:
         return <Info className="h-4 w-4 text-muted-foreground" />;
     }
