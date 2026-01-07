@@ -187,31 +187,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     role: UserRole = "renter"
   ): Promise<UserRole> => {
     await initPromise;
-    if (!supabase) throw new Error("Supabase not configured");
     
-    const redirectTo =
-      import.meta.env.VITE_APP_URL || window.location.origin;
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${redirectTo}/auth/callback`,
-        data: { full_name: name, phone, role }
-      }
-    });
-
-    if (error) throw error;
-
-    if (data.user) {
-      await supabase.from("users").upsert({
-        id: data.user.id,
+    const response = await fetch("/api/v2/auth/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         email,
-        full_name: name,
+        password,
+        fullName: name,
         phone,
         role
-      });
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Signup failed");
     }
+
+    // After backend signup, log the user in to establish session
+    await login(email, password);
 
     return role;
   };
