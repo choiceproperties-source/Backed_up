@@ -51,7 +51,11 @@ The application is built with a React frontend, an Express.js backend, and a Pos
 - **Drizzle ORM:** Type-safe database queries.
 - **Helmet:** Security headers.
 
-## Recent Changes (December 17, 2025)
+## Recent Changes (January 07, 2026)
+- **Signup Polish:** Implemented SaaS-style signup form with role selection, password strength meter, hover elevations, and smooth transitions.
+- **Auth Security:** Migrated signup to atomic backend transactions with role validation and error handling.
+
+## Previous Changes (December 17, 2025)
 - **Email Verification Flow:** Implemented production-grade email verification with proper redirect URLs using `getAppUrl()` helper
 - **APP_URL Configuration:** Added `VITE_APP_URL` environment variable support for custom domains with automatic fallback to `window.location.origin` for Replit
 - **Resend Verification:** Email stored in localStorage (`pending_verification_email`) to allow resend even before auth state hydrates
