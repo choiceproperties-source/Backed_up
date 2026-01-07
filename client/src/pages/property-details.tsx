@@ -29,6 +29,8 @@ import { updateMetaTags, getPropertyStructuredData, addStructuredData, removeStr
 import { PropertyDetailsSkeleton } from "@/components/property-details-skeleton";
 import NotFound from "@/pages/not-found";
 
+import { PostedBy } from "@/components/property/posted-by";
+
 export default function PropertyDetails() {
   const [match, params] = useRoute("/property/:id");
   const id = params?.id;
@@ -172,6 +174,13 @@ export default function PropertyDetails() {
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
                       {property.title}
                     </h1>
+                    {propertyData?.property?.owner && (
+                      <PostedBy 
+                        fullName={propertyData.property.owner.full_name || "Property Owner"}
+                        profileImage={propertyData.property.owner.profile_image}
+                        role={propertyData.property.owner.role}
+                      />
+                    )}
                     <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
                       <MapPin className="h-5 w-5 mr-1 text-blue-600" />
                       {property.address}, {property.city}, {property.state} {property.zip_code}
