@@ -1,0 +1,59 @@
+/*
+PROMPT: Full Sign-Up Flow Audit for Choice Properties
+
+Objective:
+Scan and analyze the entire sign-up / registration flow in the Choice Properties project. Identify functional, visual, validation, and security issues, and generate a detailed report with actionable improvements.
+
+Scope:
+- Pages/Components: sign-up.tsx, auth-form.tsx, register.tsx, any multi-step registration components
+- Hooks/Services: useAuth, API calls to /api/v2/auth/signup or similar endpoints
+- Fields: Name, Email, Phone, Password, Role selection (Tenant, Landlord, Agent, Owner), optional fields (Bio, Location)
+
+Checklist:
+
+1. Data & Functional Integrity:
+   - Ensure all input fields are properly mapped to backend API payload.
+   - Confirm role selection works correctly and assigns proper default values in the database.
+   - Verify that the API responses are correctly handled (success, error, validation messages).
+   - Check if duplicate emails / usernames are prevented.
+   - Confirm that all required fields are enforced and optional fields are properly handled.
+
+2. Validation & Security:
+   - Frontend validation:
+       - Email format
+       - Password strength
+       - Required fields
+   - Backend validation:
+       - Confirm backend mirrors frontend rules
+       - Proper error codes/messages
+   - Password handling:
+       - Passwords are hashed and never returned
+   - Rate-limiting / brute-force protection checks
+   - Role-based restrictions: user cannot assign themselves a role they shouldn’t have
+
+3. UI/UX & Visual Design:
+   - Layout and spacing of the form: consistent with dashboards and profiles
+   - Buttons: size, hover effects, text, and alignment
+   - Error messages: clear, consistent, color-coded
+   - Responsive behavior: works on mobile and desktop
+   - Multi-step forms (if any): progress indicators, step validation, and user-friendly navigation
+
+4. Accessibility:
+   - Ensure all fields have labels, aria attributes, and keyboard navigation
+   - Proper color contrast for text and input borders
+   - Screen reader compatibility for error messages
+
+5. Interactions & Micro-Polish:
+   - Loading states on submit buttons
+   - Smooth transitions for input focus/blur
+   - Feedback for success or failure after submit
+
+6. Final Deliverable:
+   - Generate a detailed report in markdown with:
+       - Inventory of all sign-up pages and components
+       - High-impact functional issues
+       - Medium-impact visual/UX improvements
+       - Minor refinements / micro-interactions
+       - Security and accessibility observations
+       - Prioritized recommendations and code-level suggestions
+*/
