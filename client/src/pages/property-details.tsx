@@ -170,11 +170,10 @@ export default function PropertyDetails() {
               {/* Header Info */}
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
-                      {property.title}
-                    </h1>
-                    {propertyData?.property?.owner && (
+                    <div className="space-y-1">
+                      <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+                        {property.title}
+                      </h1>
                       <div className="space-y-4">
                         <div className="h-[1px] bg-border my-4" />
                         <div className="flex flex-col gap-1">
@@ -182,14 +181,13 @@ export default function PropertyDetails() {
                             Listed by
                           </span>
                           <PostedBy 
-                            fullName={propertyData.property.owner.full_name || "Property Owner"}
-                            profileImage={propertyData.property.owner.profile_image}
-                            role={propertyData.property.owner.role}
+                            fullName={propertyData?.property?.owner?.full_name || "Choice Properties Agent"}
+                            profileImage={propertyData?.property?.owner?.profile_image}
+                            role={propertyData?.property?.owner?.role || "Agent"}
                           />
                         </div>
                       </div>
-                    )}
-                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
+                      <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
                       <MapPin className="h-5 w-5 mr-1 text-blue-600" />
                       {property.address}, {property.city}, {property.state} {property.zip_code}
                     </div>
