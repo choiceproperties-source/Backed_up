@@ -177,20 +177,20 @@ export function NotificationItem({
   return (
     <div
       className={cn(
-        'p-3 rounded-lg border transition-all hover-elevate group',
+        'p-3 rounded-lg border transition-all hover-elevate group cursor-pointer',
         !isRead ? 'bg-accent/50 border-primary/20' : 'hover:bg-muted/50 border-transparent'
       )}
       onClick={() => onClick?.(notification)}
       data-testid={`notification-${notification.id}`}
     >
       <div className="flex gap-3">
-        <div className={cn('p-2 rounded-full flex-shrink-0 h-fit', config.bgClassName)}>
-          <Icon className={cn('h-4 w-4', config.className)} strokeWidth={1.5} />
+        <div className={cn('p-2 rounded-full flex-shrink-0 h-9 w-9 flex items-center justify-center', config.bgClassName)}>
+          <Icon className={cn('h-4 w-4', config.className)} strokeWidth={2} />
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 overflow-hidden">
               <p className={cn('font-medium text-sm truncate', !isRead && 'font-semibold')}>
                 {title}
               </p>
@@ -198,49 +198,49 @@ export function NotificationItem({
                 <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
               )}
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1 flex-shrink-0 transition-opacity">
               {onMarkAsRead && !isRead && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6"
+                  className="h-8 w-8"
                   onClick={(e) => {
                     e.stopPropagation();
                     onMarkAsRead(notification.id);
                   }}
                   data-testid={`button-mark-read-${notification.id}`}
                 >
-                  <Check className="h-3 w-3" />
+                  <Check className="h-4 w-4" />
                 </Button>
               )}
               {onDismiss && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6"
+                  className="h-8 w-8"
                   onClick={(e) => {
                     e.stopPropagation();
                     onDismiss(notification.id);
                   }}
                   data-testid={`button-dismiss-${notification.id}`}
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-4 w-4" />
                 </Button>
               )}
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+          <p className="text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
             {notification.content || notification.message}
           </p>
 
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/40">
             {notification.applications?.properties?.title && (
-              <p className="text-[10px] font-medium text-primary uppercase tracking-wider truncate mr-2">
+              <p className="text-[10px] font-bold text-primary uppercase tracking-wider truncate mr-2">
                 {notification.applications.properties.title}
               </p>
             )}
-            <span className="text-[10px] text-muted-foreground whitespace-nowrap ml-auto">
+            <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap ml-auto">
               {format(new Date(notification.created_at || notification.createdAt!), "MMM d, h:mm a")}
             </span>
           </div>
@@ -257,7 +257,8 @@ export function UnifiedNotificationsList({
   onMarkAllAsRead,
   onDismiss,
   onNotificationClick,
-  className
+  className,
+  isMobile = false
 }: {
   notifications: Notification[];
   isLoading?: boolean;
@@ -266,6 +267,7 @@ export function UnifiedNotificationsList({
   onDismiss?: (id: string) => void;
   onNotificationClick?: (notification: Notification) => void;
   className?: string;
+  isMobile?: boolean;
 }) {
   const unreadCount = notifications.filter(n => !n.read_at && !n.read).length;
 
@@ -287,30 +289,44 @@ export function UnifiedNotificationsList({
 
   return (
     <div className={cn("flex flex-col h-full", className)}>
-      <div className="flex items-center justify-between gap-4 p-4 border-b">
-        <div className="flex items-center gap-2">
-          <h4 className="font-semibold">Notifications</h4>
-          {unreadCount > 0 && (
-            <Badge variant="secondary" className="h-5 px-1.5 min-w-5 justify-center">
-              {unreadCount}
-            </Badge>
+      {!isMobile && (
+        <div className="flex items-center justify-between gap-4 p-4 border-b">
+          <div className="flex items-center gap-2">
+            <h4 className="font-semibold">Notifications</h4>
+            {unreadCount > 0 && (
+              <Badge variant="secondary" className="h-5 px-1.5 min-w-5 justify-center">
+                {unreadCount}
+              </Badge>
+            )}
+          </div>
+          {unreadCount > 0 && onMarkAllAsRead && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 text-xs"
+              onClick={onMarkAllAsRead}
+              data-testid="button-mark-all-read"
+            >
+              <CheckCheck className="h-3 w-3 mr-1" />
+              Mark all read
+            </Button>
           )}
         </div>
-        {unreadCount > 0 && onMarkAllAsRead && (
+      )}
+
+      <ScrollArea className="flex-1 px-4 py-2">
+        {unreadCount > 0 && onMarkAllAsRead && isMobile && (
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="h-8 px-2 text-xs"
+            className="w-full mb-4 h-10 text-sm font-medium"
             onClick={onMarkAllAsRead}
-            data-testid="button-mark-all-read"
+            data-testid="button-mark-all-read-mobile"
           >
-            <CheckCheck className="h-3 w-3 mr-1" />
-            Mark all read
+            <CheckCheck className="h-4 w-4 mr-2" />
+            Mark all as read
           </Button>
         )}
-      </div>
-
-      <ScrollArea className="flex-1">
         {notifications.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground">
             <Bell className="h-12 w-12 mx-auto mb-4 opacity-20" />
@@ -419,9 +435,17 @@ export function UnifiedNotificationBell() {
         <SheetTrigger asChild>
           {Trigger}
         </SheetTrigger>
-        <SheetContent side="bottom" className="h-[80vh] p-0 rounded-t-xl overflow-hidden">
-          <SheetHeader className="sr-only">
-            <SheetTitle>Notifications</SheetTitle>
+        <SheetContent side="bottom" className="h-[85vh] p-0 rounded-t-[20px] overflow-hidden border-t">
+          <SheetHeader className="p-4 border-b bg-background sticky top-0 z-10">
+            <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-4" />
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-xl font-bold">Notifications</SheetTitle>
+              {unreadCount > 0 && (
+                <Badge variant="destructive" className="h-6 px-2 text-xs font-bold rounded-full">
+                  {unreadCount} New
+                </Badge>
+              )}
+            </div>
           </SheetHeader>
           <UnifiedNotificationsList
             notifications={notifications}
@@ -429,7 +453,8 @@ export function UnifiedNotificationBell() {
             onMarkAsRead={(id) => markAsReadMutation.mutate(id)}
             onMarkAllAsRead={() => markAllAsReadMutation.mutate()}
             onNotificationClick={handleNotificationClick}
-            className="h-full"
+            className="h-full pb-safe"
+            isMobile={true}
           />
         </SheetContent>
       </Sheet>
