@@ -341,7 +341,7 @@ export default function RenterDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Applications Card */}
           <Card
-            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50 hover:border-blue-300 dark:hover:border-blue-700"
+            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50"
             data-testid="stat-applications"
           >
             <div className="flex items-start justify-between">
@@ -362,7 +362,7 @@ export default function RenterDashboard() {
 
           {/* Saved Properties Card */}
           <Card
-            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50 hover:border-red-300 dark:hover:border-red-700"
+            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50"
             data-testid="stat-favorites"
           >
             <div className="flex items-start justify-between">
@@ -383,7 +383,7 @@ export default function RenterDashboard() {
 
           {/* Saved Searches Card */}
           <Card
-            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50 hover:border-indigo-300 dark:hover:border-indigo-700"
+            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50"
             data-testid="stat-searches"
           >
             <div className="flex items-start justify-between">
@@ -404,7 +404,7 @@ export default function RenterDashboard() {
 
           {/* Member Since Card */}
           <Card
-            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50 hover:border-emerald-300 dark:hover:border-emerald-700"
+            className="p-6 rounded-xl hover-elevate hover:shadow-md transition-all duration-300 border border-border/50"
             data-testid="stat-member-since"
           >
             <div className="flex items-start justify-between">

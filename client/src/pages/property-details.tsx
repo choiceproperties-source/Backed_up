@@ -17,12 +17,13 @@ import {
   MapPin, Bed, Bath, Heart, Share2, 
   Home, Ruler, Calendar, Check, ExternalLink,
   MessageSquare, Phone, Mail, Info, TrendingUp, Eye, Bookmark,
-  X, ChevronLeft, ChevronRight
+  X, ChevronLeft, ChevronRight, CheckCircle2, Star, Building2, ArrowLeft
 } from "lucide-react";
 import { 
   Card, 
   CardContent, 
 } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useFavorites } from "@/hooks/use-favorites";
 import { InteractiveMap } from "@/components/interactive-map";
 import { updateMetaTags, getPropertyStructuredData, addStructuredData, removeStructuredData } from "@/lib/seo";
@@ -167,25 +168,20 @@ export default function PropertyDetails() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Details */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Header Info */}
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
-                      {property.title}
-                    </h1>
-                    {property.owner && (
-                      <div className="pt-2">
-                        <div className="h-[1px] bg-border/50 mb-4" />
-                        <PostedBy 
-                          fullName={property.owner.full_name || "Property Owner"}
-                          profileImage={property.owner.profile_image}
-                          role={property.owner.role}
-                          displayEmail={property.owner.display_email}
-                          isVerified={property.owner.license_verified}
-                        />
-                      </div>
-                    )}
+                <Card className="p-8 rounded-xl border border-border/50 shadow-xl" data-testid="section-posted-by">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Avatar className="h-14 w-14 border-2 border-primary/10">
+                      <AvatarImage src={property.owner?.profile_image || undefined} alt={property.owner?.full_name || ""} />
+                      <AvatarFallback className="text-xl font-bold bg-primary/5">
+                        {property.owner?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || "P"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-1">Listed By</p>
+                      <h3 className="font-bold text-lg">{property.owner?.full_name || "Property Owner"}</h3>
+                      <p className="text-sm text-muted-foreground">{property.owner?.role === 'agent' ? 'Licensed Agent' : 'Property Owner'}</p>
+                    </div>
+                  </div>
                     <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
                       <MapPin className="h-5 w-5 mr-1 text-blue-600" />
                       {property.address}, {property.city}, {property.state} {property.zip_code}
