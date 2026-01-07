@@ -63,7 +63,14 @@ export default function TenantPaymentsDashboard() {
   }
 
   const { data: applications, isLoading: appsLoading } = useQuery<Application[]>({
-    queryKey: ['/api/applications/tenant'],
+    queryKey: ['/api/v2/applications/user', user?.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/v2/applications/user/${user?.id}`);
+      if (!res.ok) throw new Error('Failed to fetch applications');
+      const json = await res.json();
+      return json.data || json;
+    },
+    enabled: !!user?.id,
   });
 
   const [allPayments, setAllPayments] = useState<Payment[]>([]);

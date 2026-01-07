@@ -1,0 +1,36 @@
+Scan the tenant dashboard code in the Choice Properties project. Focus on both the frontend and backend data flow for the tenant-specific interface. 
+
+Your objectives:
+
+1. **Data Consistency & API Usage**
+   - Check that all API calls correctly fetch tenant-related data.
+   - Verify that the frontend correctly maps backend fields (snake_case → camelCase).
+   - Identify missing or misused endpoints, e.g., ensure `/api/v2/applications/user/:userId` is used instead of any outdated routes.
+   - Ensure all tenant data displayed comes from the authenticated user's scope.
+
+2. **Functional Accuracy**
+   - Confirm that lease workflows, payment status, and application timelines are fully synchronized with database states.
+   - Check role enforcement: only renters can access this dashboard.
+   - Identify any missing or incomplete features that a tenant should see (e.g., pending applications, active leases).
+
+3. **UI/UX & Visual Design**
+   - Audit responsiveness on mobile and desktop (using Tailwind or other CSS frameworks).
+   - Check skeleton loaders, spacing, typography, and icon usage.
+   - Identify sections that could be visually improved without breaking existing functionality (e.g., status badges, dividers, property thumbnails, action buttons).
+
+4. **Security & Privacy**
+   - Verify that no sensitive tenant or property data is exposed incorrectly.
+   - Ensure display of data respects privacy rules (e.g., public vs. private fields in the tenant dashboard).
+
+5. **Suggestions for Improvement**
+   - Provide actionable recommendations for missing features, visual polish, or minor UX improvements.
+   - Prioritize changes that enhance clarity, usability, and trustworthiness for tenants.
+
+6. **Checklist**
+   - Generate a checklist of all findings: missing fields, API issues, visual/UX gaps, and potential enhancements.
+   - Include notes on which changes are critical vs optional.
+
+**Important Notes:**
+- Do not change or break any core authentication or backend logic.
+- Focus on mapping, UI/UX, and displaying accurate tenant information.
+- Provide clear, actionable suggestions, and flag any missing or misaligned data fields.
