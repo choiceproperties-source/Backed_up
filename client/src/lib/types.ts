@@ -3,7 +3,9 @@
 export interface Owner {
   id: string;
   full_name: string | null;
-  email: string;
+  email: string | null;
+  display_email: string | null;
+  display_phone: string | null;
   phone: string | null;
   role: string | null;
   profile_image: string | null;
