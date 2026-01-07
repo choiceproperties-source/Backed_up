@@ -1,0 +1,54 @@
+Scan the Choice Properties project and perform a full audit of the **Property Application System** and **Property Notification System**. Provide a detailed report in sections, including findings, gaps, and prioritized recommendations. Follow these instructions carefully:
+
+1. **Property Application System**
+   - Analyze the full lifecycle: from draft → submission → payment → approval/rejection.
+   - Inventory the backend logic:
+     • Modular services (server/modules/applications/)
+     • Legacy helper logic (server/application-service.ts)
+     • Identify duplicated or inconsistent status update logic.
+   - Review the data model:
+     • Multi-step JSONB objects (personalInfo, rentalHistory, employment, documents)
+     • status_history JSONB array
+     • Snapshots of property data
+   - Assess scoring logic:
+     • Income, Credit, Rental History, Employment, Documents
+     • Check for placeholders or missing integration (e.g., credit API)
+   - Evaluate workflow enforcement and role-based security:
+     • STATUS_TRANSITIONS state machine
+     • isPropertyOwner / isApplicant checks
+     • RLS usage
+   - Identify high, medium, and low-priority issues for backend logic, scoring, UI/UX, and security.
+
+2. **Property Notification System**
+   - Map all backend triggers to frontend display:
+     • New Application, Status Change, Payment Received, Lease Signed, Scoring Complete
+   - Review frontend components:
+     • NotificationBell / UnifiedNotificationBell
+     • NotificationsPanel / UnifiedNotificationsList
+     • Mobile behavior (Sheet vs Dropdown)
+   - Identify gaps:
+     • Latency due to polling
+     • Missing deep-linking to exact workflow steps
+     • Role-based filtering
+     • Visual hierarchy of alerts
+   - Recommend improvements with priority levels:
+     • High: real-time delivery, critical alerts
+     • Medium: deep-link routing, category filters
+     • Low: visual polish, animations
+
+3. **Combined Recommendations**
+   - Merge the Property Application and Notification findings into a single, actionable plan.
+   - Include visual refinement suggestions (animations, pulse indicators, context badges).
+   - Provide a clear **priority list**: High, Medium, Low.
+   - Include both backend, frontend, and UX/UI items.
+
+4. **Output Format**
+   - Provide results in clear sections:
+     1. Audit Findings
+     2. Gaps & Inconsistencies
+     3. Prioritized Recommendations (High / Medium / Low)
+     4. Visual / UX Refinements
+   - Use bullet points and tables where appropriate.
+   - Do NOT make any code changes; this is a full audit report only.
+
+Focus on **cohesive SaaS-grade analysis**. Assume all dashboards, profiles, and workflows are already visually polished.
