@@ -91,23 +91,23 @@ export default function AgentProfile() {
             <Button
               variant="ghost"
               size="sm"
-              className="hover:bg-primary/5"
+              className="hover:bg-primary/5 h-11 font-medium"
               onClick={() => navigate('/agent-dashboard')}
               data-testid="button-back"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" strokeWidth={1.5} />
               Dashboard
             </Button>
           </div>
           <h1 className="text-4xl font-bold tracking-tight">Profile Settings</h1>
-          <p className="text-muted-foreground mt-2 text-lg">Personalize your public profile and manage account details.</p>
+          <p className="text-white/80 mt-2 text-lg">Personalize your public profile and manage account details.</p>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-12 flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-1 space-y-8">
-            <Card className="p-8 shadow-xl border-primary/5">
+            <Card className="p-8 rounded-xl border border-border/50 shadow-xl">
               <div className="text-center">
                 <div className="relative inline-block mb-6 group">
                   <Avatar className="h-40 w-40 mx-auto border-4 border-background shadow-2xl transition-transform group-hover:scale-105" data-testid="avatar-profile">
@@ -116,11 +116,11 @@ export default function AgentProfile() {
                   </Avatar>
                   {user.license_verified && (
                     <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-2.5 shadow-lg ring-4 ring-background">
-                      <CheckCircle2 className="h-6 w-6" />
+                      <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
                     </div>
                   )}
                 </div>
-                <h2 className="text-3xl font-bold mb-2">{user.full_name || 'Agent'}</h2>
+                <h2 className="text-3xl font-bold mb-2 tracking-tight">{user.full_name || 'Agent'}</h2>
                 <div className="flex justify-center gap-1 mb-4">
                   {user.rating ? (
                     <div className="flex items-center gap-1 bg-yellow-400/10 text-yellow-600 px-3 py-1 rounded-full text-sm font-bold">
@@ -128,22 +128,22 @@ export default function AgentProfile() {
                       {user.rating} ({user.review_count || 0})
                     </div>
                   ) : (
-                    <Badge variant="outline" className="text-muted-foreground">New Agent</Badge>
+                    <Badge variant="outline" className="text-muted-foreground rounded-full px-2 py-0.5 font-semibold">New Agent</Badge>
                   )}
                 </div>
-                <Badge variant="secondary" className="px-4 py-1 text-sm font-medium" data-testid="badge-role">
+                <Badge variant="secondary" className="rounded-full px-4 py-1 text-sm font-medium" data-testid="badge-role">
                   {user.role === 'agent' ? 'Licensed Real Estate Agent' : user.role}
                 </Badge>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-10 p-4 bg-muted/50 rounded-2xl">
+              <div className="grid grid-cols-2 gap-4 mt-10 p-4 bg-muted/50 rounded-xl hover:shadow-md transition-shadow duration-300">
                 <div className="text-center p-2 border-r">
-                  <p className="text-2xl font-bold text-primary">{propertiesCount || 0}</p>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active</p>
+                  <p className="text-2xl font-bold text-primary tracking-tight">{propertiesCount || 0}</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active</p>
                 </div>
                 <div className="text-center p-2">
-                  <p className="text-2xl font-bold text-primary">{user.years_experience || 0}</p>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Years Exp.</p>
+                  <p className="text-2xl font-bold text-primary tracking-tight">{user.years_experience || 0}</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Years Exp.</p>
                 </div>
               </div>
 
@@ -151,10 +151,10 @@ export default function AgentProfile() {
                 <Button
                   onClick={logout}
                   variant="ghost"
-                  className="w-full justify-center text-destructive hover:text-destructive hover:bg-destructive/10 h-12 font-bold"
+                  className="w-full justify-center text-destructive hover:text-destructive hover:bg-destructive/10 h-11 font-medium"
                   data-testid="button-logout"
                 >
-                  <LogOut className="h-4 w-4 mr-2" />
+                  <LogOut className="h-4 w-4 mr-2" strokeWidth={1.5} />
                   Sign Out
                 </Button>
               </div>
@@ -162,24 +162,24 @@ export default function AgentProfile() {
           </div>
 
           <div className="lg:col-span-2 space-y-8">
-            <Card className="p-8 shadow-sm border-primary/5">
+            <Card className="p-8 rounded-xl border border-border/50 shadow-sm">
               <div className="flex justify-between items-center mb-8 pb-4 border-b">
-                <h2 className="text-2xl font-bold">Personal Information</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Personal Information</h2>
                 <Button
                   variant={isEditing ? "default" : "outline"}
                   size="sm"
                   onClick={() => setIsEditing(!isEditing)}
                   data-testid="button-edit-profile"
-                  className="font-bold"
+                  className="h-11 font-medium border-border/60"
                 >
                   {isEditing ? (
                     <>
-                      <Save className="h-4 w-4 mr-2" />
+                      <Save className="h-4 w-4 mr-2" strokeWidth={1.5} />
                       Save Profile
                     </>
                   ) : (
                     <>
-                      <Edit2 className="h-4 w-4 mr-2" />
+                      <Edit2 className="h-4 w-4 mr-2" strokeWidth={1.5} />
                       Edit Profile
                     </>
                   )}
@@ -195,7 +195,7 @@ export default function AgentProfile() {
                         name="fullName"
                         value={formData.fullName}
                         onChange={handleInputChange}
-                        className="h-12 bg-muted/30"
+                        className="h-11 bg-muted/30 border-border/50"
                         placeholder="John Doe"
                         data-testid="input-fullname"
                       />
@@ -211,13 +211,13 @@ export default function AgentProfile() {
                         name="location"
                         value={formData.location}
                         onChange={handleInputChange}
-                        className="h-12 bg-muted/30"
+                        className="h-11 bg-muted/30 border-border/50"
                         placeholder="e.g. New York, NY"
                         data-testid="input-location"
                       />
                     ) : (
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-primary" />
+                        <MapPin className="h-4 w-4 text-primary" strokeWidth={1.5} />
                         <p className="text-lg font-medium">{formData.location || 'Not specified'}</p>
                       </div>
                     )}
@@ -226,8 +226,8 @@ export default function AgentProfile() {
 
                 <div>
                   <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2 block">Public Contact Email</label>
-                  <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-primary/5 group">
-                    <Mail className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-border/50 group">
+                    <Mail className="h-5 w-5 text-primary" strokeWidth={1.5} />
                     <p className="flex-1 font-medium">{user.display_email || user.email}</p>
                     <Button 
                       size="icon" 
@@ -236,10 +236,10 @@ export default function AgentProfile() {
                       onClick={handleCopyEmail}
                       data-testid="button-copy-email"
                     >
-                      {copiedEmail ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                      {copiedEmail ? <Check className="h-4 w-4 text-green-500" strokeWidth={1.5} /> : <Copy className="h-4 w-4" strokeWidth={1.5} />}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 font-medium">This email is visible on your public property listings.</p>
+                  <p className="text-xs text-muted-foreground/60 mt-2 font-medium">This email is visible on your public property listings.</p>
                 </div>
 
                 <div>
@@ -251,7 +251,7 @@ export default function AgentProfile() {
                       onChange={handleInputChange}
                       placeholder="Share your experience and approach to real estate..."
                       maxLength={500}
-                      className="min-h-[160px] bg-muted/30 resize-none p-4"
+                      className="min-h-[160px] bg-muted/30 border-border/50 resize-none p-4"
                       data-testid="textarea-bio"
                     />
                   ) : (
@@ -264,12 +264,12 @@ export default function AgentProfile() {
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="p-8 shadow-sm border-primary/5 hover:border-primary/20 transition-colors">
+              <Card className="p-8 rounded-xl border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-600">
-                    <DollarSign className="h-5 w-5" />
+                    <DollarSign className="h-5 w-5" strokeWidth={1.5} />
                   </div>
-                  <h3 className="text-xl font-bold">Earnings</h3>
+                  <h3 className="text-xl font-bold tracking-tight">Earnings</h3>
                 </div>
                 <div className="space-y-4">
                   <div>
@@ -278,23 +278,23 @@ export default function AgentProfile() {
                       ${(user.total_sales || 0).toLocaleString()}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground font-medium">Sales volume tracked through Choice Properties.</p>
+                  <p className="text-xs text-muted-foreground/60 font-medium">Sales volume tracked through Choice Properties.</p>
                 </div>
               </Card>
 
-              <Card className="p-8 shadow-sm border-primary/5 hover:border-primary/20 transition-colors">
+              <Card className="p-8 rounded-xl border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600">
-                    <Award className="h-5 w-5" />
+                    <Award className="h-5 w-5" strokeWidth={1.5} />
                   </div>
-                  <h3 className="text-xl font-bold">Certification</h3>
+                  <h3 className="text-xl font-bold tracking-tight">Certification</h3>
                 </div>
                 <div className="space-y-4">
                   <div>
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">License Number</p>
                     <p className="text-lg font-bold mt-1 font-mono tracking-wider">{user.license_number || 'PENDING'}</p>
                   </div>
-                  <Badge variant={user.license_verified ? "default" : "secondary"} className="font-bold">
+                  <Badge variant={user.license_verified ? "default" : "secondary"} className="rounded-full px-3 py-1 font-bold">
                     {user.license_verified ? "License Verified" : "Verification Pending"}
                   </Badge>
                 </div>

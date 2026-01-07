@@ -1,0 +1,55 @@
+TASK: PROFILE PAGES — VISUAL POLISH (FRONTEND ONLY)
+
+Scope:
+- agent-profile.tsx
+- landlord-profile.tsx
+- tenant-profile.tsx
+- owner-profile.tsx (public)
+
+STRICT RULES:
+- This is a VISUAL POLISH task ONLY.
+- Do NOT touch backend, data fetching, or API logic.
+- Do NOT add new functionality.
+- Do NOT refactor authentication or role logic.
+- Keep all existing dynamic fields intact.
+- Use Tailwind CSS / Shadcn/UI utilities only.
+
+OBJECTIVE:
+Upgrade the visual styling of all profile pages to match the professional, high-polish standard of dashboards and property cards.
+
+FOCUS AREAS:
+1. Avatar & Verification Badge
+   - Standardize avatar size (48px) across all profiles.
+   - Standardize Verified badge appearance and hover interactions.
+
+2. Hero / Header
+   - Use consistent gradient backgrounds across all profiles.
+   - Standardize subtitle opacity (text-white/80 or text-muted-foreground).
+   - Refine typography: tracking-tight for titles, font-semibold where needed.
+
+3. Stat & Info Boxes
+   - Convert all stat cards (Active Properties, Years Experience, Sales, Ratings) to rounded-xl.
+   - Add hover:shadow-md and subtle transitions for interactivity.
+   - Standardize padding and spacing to match dashboards (p-6 / p-8, gap-6 / gap-8).
+
+4. Forms / Settings Sections
+   - Standardize input heights (h-11/12) and borders (border-border/50).
+   - Ensure labels use uppercase + tracking-wider for consistency.
+   - Match card shadows and rounded corners to dashboard style.
+
+5. Layout & Responsiveness
+   - Ensure consistent multi-column layouts (3-column for settings, 2/3 + 1/3 for public profiles).
+   - Confirm sticky sidebars have proper padding and spacing on mobile.
+
+6. Buttons & Actions
+   - Standardize button styles across all profiles (outline / ghost variants).
+   - Match heights (h-11) and spacing to dashboards.
+
+DELIVERABLE:
+- All profile pages visually upgraded to match Tenant, Landlord, Agent dashboards.
+- Only CSS / Tailwind / Shadcn/UI changes.
+- Maintain all dynamic data.
+- No backend, API, or logic changes.
+
+End response with:
+“Visual polish applied; ready for final verification.”

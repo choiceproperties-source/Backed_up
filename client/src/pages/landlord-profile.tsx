@@ -100,15 +100,15 @@ export default function LandlordProfile() {
             onClick={() => navigate('/landlord-dashboard')}
             variant="ghost"
             size="sm"
-            className="hover:bg-primary/5"
+            className="hover:bg-primary/5 h-11 font-medium"
             data-testid="button-back"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-2" strokeWidth={1.5} />
             Dashboard
           </Button>
           <div className="flex-1">
             <h1 className="text-4xl font-bold tracking-tight text-foreground">My Profile</h1>
-            <p className="text-muted-foreground mt-2 text-lg font-medium">Manage your professional identity and contact preferences.</p>
+            <p className="text-white/80 mt-2 text-lg font-medium">Manage your professional identity and contact preferences.</p>
           </div>
         </div>
       </div>
@@ -116,7 +116,7 @@ export default function LandlordProfile() {
       <div className="container mx-auto px-4 py-12 flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
           <div className="lg:col-span-1 space-y-8">
-            <Card className="p-8 shadow-xl border-primary/5 text-center">
+            <Card className="p-8 rounded-xl border border-border/50 shadow-xl text-center">
               <div className="relative inline-block mb-6 group">
                 <Avatar className="h-40 w-40 mx-auto border-4 border-background shadow-2xl transition-transform group-hover:scale-105">
                   <AvatarImage src={user.profile_image || undefined} alt={user.full_name || ''} />
@@ -124,7 +124,7 @@ export default function LandlordProfile() {
                 </Avatar>
                 {user.license_verified && (
                   <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-2.5 shadow-lg ring-4 ring-background">
-                    <CheckCircle2 className="h-6 w-6" />
+                    <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
                   </div>
                 )}
               </div>
@@ -140,23 +140,23 @@ export default function LandlordProfile() {
                   <span className="text-muted-foreground text-sm font-medium">New Partner</span>
                 )}
               </div>
-              <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-8">Verified Property Owner</p>
+              <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-8">Verified Property Owner</p>
               
-              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-2xl mb-8">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-xl hover:shadow-md transition-shadow duration-300 mb-8">
                 <div className="text-center p-2 border-r border-primary/10">
-                  <p className="text-2xl font-bold text-primary">{propertiesCount || 0}</p>
+                  <p className="text-2xl font-bold text-primary tracking-tight">{propertiesCount || 0}</p>
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Properties</p>
                 </div>
                 <div className="text-center p-2">
-                  <p className="text-2xl font-bold text-primary">{user.years_experience || 0}</p>
+                  <p className="text-2xl font-bold text-primary tracking-tight">{user.years_experience || 0}</p>
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Years Exp.</p>
                 </div>
               </div>
 
               <div className="space-y-4 pt-8 border-t border-primary/10">
-                <div className="flex items-center gap-4 text-sm font-medium p-3 rounded-xl bg-muted/30 group">
-                  <Mail className="h-4 w-4 text-primary" />
-                  <span className="truncate flex-1">{user.display_email || user.email}</span>
+                <div className="flex items-center gap-4 text-sm font-medium p-3 rounded-xl bg-muted/30 group border border-border/50">
+                  <Mail className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                  <span className="truncate flex-1 font-medium">{user.display_email || user.email}</span>
                   <Button 
                     size="icon" 
                     variant="ghost" 
@@ -164,13 +164,13 @@ export default function LandlordProfile() {
                     onClick={handleCopyEmail}
                     data-testid="button-copy-email"
                   >
-                    {copiedEmail ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                    {copiedEmail ? <Check className="h-4 w-4 text-green-500" strokeWidth={1.5} /> : <Copy className="h-4 w-4" strokeWidth={1.5} />}
                   </Button>
                 </div>
                 {user.display_phone && (
-                  <div className="flex items-center gap-4 text-sm font-medium p-3 rounded-xl bg-muted/30">
-                    <Phone className="h-4 w-4 text-primary" />
-                    <span className="flex-1">{user.display_phone}</span>
+                  <div className="flex items-center gap-4 text-sm font-medium p-3 rounded-xl bg-muted/30 border border-border/50">
+                    <Phone className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                    <span className="flex-1 font-medium">{user.display_phone}</span>
                   </div>
                 )}
               </div>
@@ -179,17 +179,17 @@ export default function LandlordProfile() {
             <Button
               onClick={logout}
               variant="outline"
-              className="w-full h-12 font-bold text-destructive hover:bg-destructive/10 border-primary/5 shadow-sm"
+              className="w-full h-11 font-medium text-destructive hover:bg-destructive/10 border-border/60 shadow-sm"
               data-testid="button-logout"
             >
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="h-4 w-4 mr-2" strokeWidth={1.5} />
               Sign Out
             </Button>
           </div>
 
           <div className="lg:col-span-2 space-y-8">
-            <Card className="p-8 shadow-sm border-primary/5">
-              <h3 className="text-2xl font-bold mb-8 pb-4 border-b">Profile Settings</h3>
+            <Card className="p-8 rounded-xl border border-border/50 shadow-sm">
+              <h3 className="text-2xl font-bold mb-8 pb-4 border-b tracking-tight">Profile Settings</h3>
 
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -204,7 +204,7 @@ export default function LandlordProfile() {
                             <Input
                               placeholder="John Smith"
                               disabled={isSaving}
-                              className="h-12 bg-muted/30"
+                              className="h-11 bg-muted/30 border-border/50"
                               data-testid="input-fullname"
                               {...field}
                             />
@@ -224,7 +224,7 @@ export default function LandlordProfile() {
                             <Input
                               placeholder="e.g. San Francisco, CA"
                               disabled={isSaving}
-                              className="h-12 bg-muted/30"
+                              className="h-11 bg-muted/30 border-border/50"
                               data-testid="input-location"
                               {...field}
                             />
@@ -245,13 +245,13 @@ export default function LandlordProfile() {
                           <Textarea
                             placeholder="Describe your property management experience or rental philosophy..."
                             disabled={isSaving}
-                            className="min-h-[160px] bg-muted/30 resize-none p-4"
+                            className="min-h-[160px] bg-muted/30 border-border/50 resize-none p-4"
                             data-testid="textarea-bio"
                             {...field}
                           />
                         </FormControl>
                         <div className="flex justify-between items-center mt-2">
-                          <p className="text-xs font-medium text-muted-foreground">
+                          <p className="text-xs font-medium text-muted-foreground/60">
                             {field.value?.length || 0}/500 characters
                           </p>
                         </div>
@@ -263,12 +263,12 @@ export default function LandlordProfile() {
                   <Button
                     type="submit"
                     disabled={isSaving}
-                    className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20"
+                    className="w-full h-11 text-base font-medium shadow-lg shadow-primary/20"
                     data-testid="button-save-profile"
                   >
                     {isSaving ? (
                       <>
-                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" strokeWidth={1.5} />
                         Saving Changes...
                       </>
                     ) : (
@@ -279,22 +279,22 @@ export default function LandlordProfile() {
               </Form>
             </Card>
 
-            <Card className="p-8 shadow-sm border-primary/5">
-              <h3 className="text-xl font-bold mb-6">Security & Security</h3>
+            <Card className="p-8 rounded-xl border border-border/50 shadow-sm">
+              <h3 className="text-xl font-bold mb-6 tracking-tight">Security & Settings</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-primary/5 group transition-colors hover:bg-muted/50">
+                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/50 group transition-colors hover:bg-muted/50">
                   <div className="flex-1">
-                    <p className="font-bold text-foreground mb-1">Account Password</p>
-                    <p className="text-xs text-muted-foreground font-medium">Last changed 3 months ago</p>
+                    <p className="font-bold text-foreground mb-1 tracking-tight">Account Password</p>
+                    <p className="text-xs text-muted-foreground/60 font-medium">Last changed 3 months ago</p>
                   </div>
-                  <Button variant="ghost" size="sm" className="font-bold text-primary" disabled>Update</Button>
+                  <Button variant="ghost" size="sm" className="font-bold text-primary h-9" disabled>Update</Button>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-primary/5 group transition-colors hover:bg-muted/50">
+                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/50 group transition-colors hover:bg-muted/50">
                   <div className="flex-1">
-                    <p className="font-bold text-foreground mb-1">Email Visibility</p>
-                    <p className="text-xs text-muted-foreground font-medium">Public profile active</p>
+                    <p className="font-bold text-foreground mb-1 tracking-tight">Email Visibility</p>
+                    <p className="text-xs text-muted-foreground/60 font-medium">Public profile active</p>
                   </div>
-                  <Button variant="ghost" size="sm" className="font-bold text-primary" disabled>Manage</Button>
+                  <Button variant="ghost" size="sm" className="font-bold text-primary h-9" disabled>Manage</Button>
                 </div>
               </div>
             </Card>
