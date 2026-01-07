@@ -129,66 +129,72 @@ export default function Signup() {
           transition={{ duration: 0.4 }}
           className="w-full max-w-md"
         >
-          <Card className="p-6 md:p-8 shadow-xl border-t-4 border-primary overflow-visible">
+          <Card className="p-6 md:p-8 shadow-2xl border border-border/50 hover-elevate transition-all duration-300 overflow-visible bg-card/95 backdrop-blur-sm">
             <div className="text-center mb-8">
-              <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <UserPlus className="h-8 w-8 text-primary" />
-              </div>
-              <h2 className="text-3xl font-bold tracking-tight">Create Account</h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                Join our community and find your perfect property.
+              <motion.div 
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="w-20 h-20 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-6 ring-8 ring-primary/5"
+              >
+                <UserPlus className="h-10 w-10 text-primary" />
+              </motion.div>
+              <h2 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Create Account</h2>
+              <p className="text-base text-muted-foreground mt-3 max-w-[280px] mx-auto">
+                Join Choice Properties and unlock the best real estate opportunities.
               </p>
             </div>
 
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-5"
+                className="space-y-6"
               >
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        Full Name
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="John Doe" 
-                          className="h-11"
-                          {...field} 
-                          disabled={loading} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
-                          Email
+                        <FormLabel className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground/70">
+                          <User className="h-3.5 w-3.5" />
+                          Full Name
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="john@example.com"
-                            autoComplete="email"
-                            className="h-11"
-                            {...field}
-                            disabled={loading}
+                          <Input 
+                            placeholder="John Doe" 
+                            className="h-12 bg-muted/30 border-border/50 focus:bg-background transition-colors text-base"
+                            {...field} 
+                            disabled={loading} 
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground/70">
+                            <Mail className="h-3.5 w-3.5" />
+                            Email Address
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder="john@example.com"
+                              autoComplete="email"
+                              className="h-12 bg-muted/30 border-border/50 focus:bg-background transition-colors text-base"
+                              {...field}
+                              disabled={loading}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
                     )}
                   />
 
@@ -197,14 +203,14 @@ export default function Signup() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Phone className="h-4 w-4" />
-                          Phone
+                        <FormLabel className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground/70">
+                          <Phone className="h-3.5 w-3.5" />
+                          Phone Number
                         </FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="+1 (555) 000-0000" 
-                            className="h-11"
+                            className="h-12 bg-muted/30 border-border/50 focus:bg-background transition-colors text-base"
                             {...field} 
                             disabled={loading} 
                           />
@@ -220,9 +226,9 @@ export default function Signup() {
                   name="role"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4" />
-                        I am a...
+                      <FormLabel className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground/70">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Professional Role
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
@@ -230,15 +236,15 @@ export default function Signup() {
                         disabled={loading}
                       >
                         <FormControl>
-                          <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Select your role" />
+                          <SelectTrigger className="h-12 bg-muted/30 border-border/50 focus:bg-background transition-colors text-base">
+                            <SelectValue placeholder="How will you use Choice?" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="renter">Renter</SelectItem>
-                          <SelectItem value="landlord">Landlord</SelectItem>
-                          <SelectItem value="agent">Real Estate Agent</SelectItem>
-                          <SelectItem value="property_manager">Property Manager</SelectItem>
+                        <SelectContent className="border-border/50 shadow-xl">
+                          <SelectItem value="renter" className="py-3">Searching for a Home (Renter)</SelectItem>
+                          <SelectItem value="landlord" className="py-3">Managing My Property (Landlord)</SelectItem>
+                          <SelectItem value="agent" className="py-3">Representing Clients (Agent)</SelectItem>
+                          <SelectItem value="property_manager" className="py-3">Full Service Management (Manager)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -251,96 +257,101 @@ export default function Signup() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Lock className="h-4 w-4" />
-                        Password
+                      <FormLabel className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground/70">
+                        <Lock className="h-3.5 w-3.5" />
+                        Secure Password
                       </FormLabel>
                       <FormControl>
-                        <div className="relative">
+                        <div className="relative group">
                           <Input
                             type={showPassword ? "text" : "password"}
                             placeholder="••••••••"
                             autoComplete="new-password"
-                            className="h-11 pr-10"
+                            className="h-12 bg-muted/30 border-border/50 focus:bg-background transition-all pr-12 text-base"
                             {...field}
                             disabled={loading}
                           />
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-primary transition-colors p-1"
                           >
                             {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
+                              <EyeOff className="h-5 w-5" />
                             ) : (
-                              <Eye className="h-4 w-4" />
+                              <Eye className="h-5 w-5" />
                             )}
                           </button>
                         </div>
                       </FormControl>
-                      <div className="mt-2 space-y-1">
-                        <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
-                          <span>Password Strength</span>
-                          <span className={passwordStrength.label === "Strong" ? "text-green-500" : ""}>
+                      <div className="mt-3 space-y-2 px-1">
+                        <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-widest text-muted-foreground/60">
+                          <span>Security Check</span>
+                          <span className={passwordStrength.label === "Strong" ? "text-green-500" : "text-muted-foreground"}>
                             {passwordStrength.label}
                           </span>
                         </div>
                         <Progress 
                           value={passwordStrength.score} 
-                          className="h-1" 
-                          indicatorClassName={passwordStrength.color}
+                          className="h-1.5 bg-muted/50 overflow-hidden" 
+                          indicatorClassName={`${passwordStrength.color} transition-all duration-500 ease-out`}
                         />
                       </div>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                </div>
 
-                <AnimatePresence>
+                <AnimatePresence mode="wait">
                   {form.formState.errors.root && (
                     <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive text-sm"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="flex items-start gap-3 p-4 rounded-xl bg-destructive/5 border border-destructive/10 text-destructive text-sm leading-relaxed"
                     >
-                      <AlertCircle className="h-4 w-4 shrink-0" />
-                      <p>{form.formState.errors.root.message}</p>
+                      <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold">Unable to proceed</p>
+                        <p className="opacity-90">{form.formState.errors.root.message}</p>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
                 <Button 
                   type="submit" 
-                  className="w-full h-11 text-base font-medium transition-all active:scale-[0.98]" 
+                  size="lg"
+                  className="w-full h-12 text-lg font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98] hover:shadow-xl hover:shadow-primary/30 active-elevate-2" 
                   disabled={loading}
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating account...
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Setting up your profile...
                     </>
                   ) : (
-                    "Create Account"
+                    "Get Started"
                   )}
                 </Button>
               </form>
             </Form>
 
-            <div className="relative my-8">
+            <div className="relative my-10">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+                <span className="w-full border-t border-border/30" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              <div className="relative flex justify-center text-xs uppercase tracking-widest font-bold">
+                <span className="bg-card px-4 text-muted-foreground/40">Secure verification required</span>
               </div>
             </div>
 
-            <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
+            <p className="text-center text-sm text-muted-foreground/60">
+              Already a member?{" "}
               <Link href="/login">
-                <span className="text-primary font-semibold hover:underline cursor-pointer">
-                  Sign in
+                <span className="text-primary font-bold hover:underline cursor-pointer underline-offset-4 decoration-2">
+                  Sign in to your account
                 </span>
               </Link>
             </p>
