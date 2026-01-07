@@ -1,0 +1,48 @@
+// PROMPT FOR REPLIT AI
+/*
+Project: Choice Properties
+Task: Refactor and polish the signup flow
+
+Requirements:
+1. Backend Refactor:
+   - Move all account creation logic to the backend endpoint (POST /api/signup).
+   - The backend should:
+     * Create a new Supabase user.
+     * Create a user profile in the database.
+     * Assign the role selected by the user (Tenant, Landlord, Agent, etc.).
+     * Validate the role to prevent unauthorized role assignments.
+     * Return success or failure as a single transaction.
+
+2. Frontend Signup Page (signup.tsx):
+   - Add a Role Selection dropdown (Tenant, Landlord, Agent).
+   - Show visual **loading indicator** (spinner) on form submission.
+   - Show **password strength meter** (Weak / Medium / Strong).
+   - Validate all inputs:
+     * Required fields
+     * Email format
+     * Password rules (min 8 characters, number, uppercase)
+   - Handle backend errors gracefully and display error messages.
+   - Redirect to a welcome/dashboard page on successful signup.
+
+3. UI/UX Polish:
+   - Make the form visually consistent with dashboards and profiles (TailwindCSS, rounded cards, proper spacing, p-6/p-8).
+   - Use consistent typography and button height (h-11, font-medium).
+   - Ensure mobile responsiveness for the signup form and role selector.
+
+4. Type Safety:
+   - Update types/interfaces for user profiles to include the role field.
+   - Ensure proper TypeScript type checking for all form inputs and backend responses.
+
+Constraints:
+- Do NOT bypass backend security; all critical operations must occur server-side.
+- Maintain current project structure and code conventions.
+- Avoid hardcoded roles; fetch allowed roles dynamically if possible.
+- Keep visual polish consistent with existing dashboards and profiles.
+
+Output Expected:
+- Fully functional signup.tsx page with role selection.
+- Backend API endpoint (/api/signup) handling account creation atomically.
+- Loading states, error handling, and password strength indicator integrated.
+- TypeScript-safe implementations for all new logic.
+- TailwindCSS polished design matching SaaS-grade visual style.
+*/
