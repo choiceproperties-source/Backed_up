@@ -122,23 +122,25 @@ export function ApplicationReviewWorkflow({
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border rounded-xl shadow-sm bg-card/50 backdrop-blur-sm overflow-visible">
+      <CardHeader className="border-b bg-muted/20 pb-4">
         <CardTitle className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Application Review
-          </span>
-          <Badge className={statusConfig.color}>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <FileText className="w-5 h-5" />
+            </div>
+            <span className="font-bold uppercase tracking-widest text-xs">Application Review</span>
+          </div>
+          <Badge className={cn(statusConfig.color, "text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full")}>
             <StatusIcon className="w-3 h-3 mr-1" />
             {statusConfig.label}
           </Badge>
         </CardTitle>
-        <CardDescription>
-          Review application from {applicantName} for {propertyTitle}
+        <CardDescription className="pt-2 text-[11px] font-medium uppercase tracking-wider opacity-70">
+          Reviewing application from <span className="text-foreground font-bold">{applicantName}</span> for <span className="text-foreground font-bold">{propertyTitle}</span>
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-6">
         {isFinalized ? (
           <div className="text-center py-4">
             <StatusIcon className={`w-12 h-12 mx-auto mb-2 ${currentStatus === 'approved' ? 'text-green-600' : currentStatus === 'rejected' ? 'text-red-600' : 'text-gray-600'}`} />

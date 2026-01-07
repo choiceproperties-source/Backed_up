@@ -633,158 +633,31 @@ export function ApplicationDetailView({
       )}
 
       {/* Accordion sections */}
-      <Accordion type="multiple" defaultValue={[defaultTab === "documents" ? "documents" : defaultTab === "review" ? "status-history" : "personal", "status-history"]} className="space-y-2">
-        <AccordionItem value="documents" data-testid="accordion-documents">
-          <AccordionTrigger className="px-4 hover:bg-muted/50 transition-colors rounded-t-lg">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-600" />
-              <span>Documents</span>
+      <Accordion type="multiple" defaultValue={[defaultTab === "documents" ? "documents" : defaultTab === "review" ? "status-history" : "personal", "status-history"]} className="space-y-4">
+        <AccordionItem value="documents" data-testid="accordion-documents" className="border rounded-xl px-2 shadow-sm bg-card/50 overflow-visible">
+          <AccordionTrigger className="px-4 py-6 hover:no-underline group">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 group-hover:scale-110 transition-transform">
+                <FileText className="h-5 w-5" />
+              </div>
+              <span className="font-bold uppercase tracking-widest text-xs">Documents</span>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="p-4 pt-0">
-            {/* Document list content */}
-            <p className="text-sm text-muted-foreground">Document verification details and file list.</p>
-          </AccordionContent>
-        </AccordionItem>
-        {/* Personal Info */}
-        <AccordionItem value="personal">
-          <AccordionTrigger className="hover:no-underline">
-            <span className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Personal Information
-            </span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-md">
-              {application.personalInfo ? (
-                <>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Full Name</p>
-                    <p className="font-medium">{application.personalInfo.fullName || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Date of Birth</p>
-                    <p className="font-medium">{application.personalInfo.dateOfBirth || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">SSN Provided</p>
-                    <p className="font-medium">{application.personalInfo.ssn ? 'Yes (Hidden)' : 'No'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Phone</p>
-                    <p className="font-medium">{application.personalInfo.phone || 'N/A'}</p>
-                  </div>
-                </>
-              ) : (
-                <p className="text-muted-foreground col-span-2">No personal information provided</p>
-              )}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* Employment Info */}
-        <AccordionItem value="employment">
-          <AccordionTrigger className="hover:no-underline">
-            <span className="flex items-center gap-2">
-              <Briefcase className="h-4 w-4" />
-              Employment
-            </span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-md">
-              {application.employment ? (
-                <>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Employer</p>
-                    <p className="font-medium">{application.employment.employer || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Position</p>
-                    <p className="font-medium">{application.employment.position || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Monthly Income</p>
-                    <p className="font-medium">
-                      ${(application.employment.monthlyIncome || 0).toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Years Employed</p>
-                    <p className="font-medium">{application.employment.yearsEmployed || 0} years</p>
-                  </div>
-                </>
-              ) : (
-                <p className="text-muted-foreground col-span-2">No employment information provided</p>
-              )}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* Rental History */}
-        <AccordionItem value="rental-history">
-          <AccordionTrigger className="hover:no-underline">
-            <span className="flex items-center gap-2">
-              <Home className="h-4 w-4" />
-              Rental History
-            </span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-md">
-              {application.rentalHistory ? (
-                <>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Current Address</p>
-                    <p className="font-medium">{application.rentalHistory.currentAddress || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Landlord Name</p>
-                    <p className="font-medium">{application.rentalHistory.landlordName || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Years Renting</p>
-                    <p className="font-medium">{application.rentalHistory.yearsRenting || 0} years</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Previous Eviction</p>
-                    <p className="font-medium">
-                      {application.rentalHistory.hasEviction ? (
-                        <span className="text-red-600">Yes</span>
-                      ) : (
-                        'No'
-                      )}
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <p className="text-muted-foreground col-span-2">No rental history provided</p>
-              )}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* Documents */}
-        <AccordionItem value="documents">
-          <AccordionTrigger className="hover:no-underline">
-            <span className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Documents
-            </span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-3 p-4 bg-muted/50 rounded-md">
+          <AccordionContent className="p-6 pt-0">
+            <div className="space-y-3 p-4 bg-muted/30 border border-dashed rounded-lg">
               {['id', 'proof_of_income', 'employment_verification', 'bank_statements'].map((docType) => {
                 const doc = application.documentStatus?.[docType] || application.documents?.[docType];
                 const uploaded = doc?.uploaded || !!doc;
                 const verified = doc?.verified || false;
                 return (
-                  <div key={docType} className="flex justify-between items-center">
-                    <span className="text-sm capitalize">{docType.replace(/_/g, ' ')}</span>
+                  <div key={docType} className="flex justify-between items-center p-2 hover:bg-muted/50 rounded-md transition-colors">
+                    <span className="text-sm font-medium capitalize">{docType.replace(/_/g, ' ')}</span>
                     <div className="flex gap-2">
-                      <Badge variant={uploaded ? 'default' : 'outline'}>
+                      <Badge variant={uploaded ? 'default' : 'outline'} className="text-[10px] uppercase tracking-widest font-bold">
                         {uploaded ? 'Uploaded' : 'Missing'}
                       </Badge>
                       {uploaded && (
-                        <Badge variant={verified ? 'default' : 'secondary'}>
+                        <Badge variant={verified ? 'default' : 'secondary'} className="text-[10px] uppercase tracking-widest font-bold">
                           {verified ? 'Verified' : 'Pending'}
                         </Badge>
                       )}
@@ -796,62 +669,168 @@ export function ApplicationDetailView({
           </AccordionContent>
         </AccordionItem>
 
-        {/* Co-Applicants */}
-        {application.coApplicants && application.coApplicants.length > 0 && (
-          <AccordionItem value="co-applicants">
-            <AccordionTrigger className="hover:no-underline">
-              <span className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Co-Applicants ({application.coApplicants.length})
-              </span>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-3 p-4 bg-muted/50 rounded-md">
-                {application.coApplicants.map((co) => (
-                  <div key={co.id} className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">{co.fullName}</p>
-                      <p className="text-sm text-muted-foreground">{co.email}</p>
-                    </div>
-                    <div className="text-right">
-                      <Badge variant="outline">{co.relationship}</Badge>
-                      {co.monthlyIncome && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          ${co.monthlyIncome.toLocaleString()}/mo
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+        {/* Personal Info */}
+        <AccordionItem value="personal" className="border rounded-xl px-2 shadow-sm bg-card/50 overflow-visible">
+          <AccordionTrigger className="px-4 py-6 hover:no-underline group">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                <User className="h-5 w-5" />
               </div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
+              <span className="font-bold uppercase tracking-widest text-xs">Personal Information</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="p-6 pt-0">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 bg-muted/30 rounded-xl border border-border/20">
+              {application.personalInfo ? (
+                <>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Full Name</p>
+                    <p className="font-semibold text-foreground">{application.personalInfo.fullName || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Date of Birth</p>
+                    <p className="font-semibold text-foreground">{application.personalInfo.dateOfBirth || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">SSN Provided</p>
+                    <p className="font-semibold text-foreground">{application.personalInfo.ssn ? 'Yes (Encrypted)' : 'No'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Phone</p>
+                    <p className="font-semibold text-foreground">{application.personalInfo.phone || 'N/A'}</p>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground col-span-4 italic text-center py-4">No personal information provided</p>
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Employment Info */}
+        <AccordionItem value="employment" className="border rounded-xl px-2 shadow-sm bg-card/50 overflow-visible">
+          <AccordionTrigger className="px-4 py-6 hover:no-underline group">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 group-hover:scale-110 transition-transform">
+                <Briefcase className="h-5 w-5" />
+              </div>
+              <span className="font-bold uppercase tracking-widest text-xs">Employment</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="p-6 pt-0">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 bg-muted/30 rounded-xl border border-border/20">
+              {application.employment ? (
+                <>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Employer</p>
+                    <p className="font-semibold text-foreground">{application.employment.employer || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Position</p>
+                    <p className="font-semibold text-foreground">{application.employment.position || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Monthly Income</p>
+                    <p className="font-bold text-emerald-600 dark:text-emerald-400">
+                      ${(application.employment.monthlyIncome || 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Years Employed</p>
+                    <p className="font-semibold text-foreground">{application.employment.yearsEmployed || 0} years</p>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground col-span-4 italic text-center py-4">No employment information provided</p>
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Rental History */}
+        <AccordionItem value="rental-history" className="border rounded-xl px-2 shadow-sm bg-card/50 overflow-visible">
+          <AccordionTrigger className="px-4 py-6 hover:no-underline group">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 group-hover:scale-110 transition-transform">
+                <Home className="h-5 w-5" />
+              </div>
+              <span className="font-bold uppercase tracking-widest text-xs">Rental History</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="p-6 pt-0">
+            <div className="grid grid-cols-2 gap-6 p-6 bg-muted/30 rounded-xl border border-border/20">
+              {application.rentalHistory ? (
+                <>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Current Address</p>
+                    <p className="font-semibold text-foreground">{application.rentalHistory.currentAddress || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Landlord Name</p>
+                    <p className="font-semibold text-foreground">{application.rentalHistory.landlordName || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Years Renting</p>
+                    <p className="font-semibold text-foreground">{application.rentalHistory.yearsRenting || 0} years</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Previous Eviction</p>
+                    <p className="font-bold">
+                      {application.rentalHistory.hasEviction ? (
+                        <span className="text-red-600 uppercase tracking-widest">Yes</span>
+                      ) : (
+                        <span className="text-emerald-600 uppercase tracking-widest">No</span>
+                      )}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground col-span-2 italic text-center py-4">No rental history provided</p>
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
         {/* Status History */}
-        <AccordionItem value="status-history">
-          <AccordionTrigger className="hover:no-underline">
-            <span className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Status History
-            </span>
+        <AccordionItem value="status-history" className="border rounded-xl px-2 shadow-sm bg-card/50 overflow-visible">
+          <AccordionTrigger className="px-4 py-6 hover:no-underline group">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-slate-500/10 text-slate-600 group-hover:scale-110 transition-transform">
+                <Clock className="h-5 w-5" />
+              </div>
+              <span className="font-bold uppercase tracking-widest text-xs">Status History</span>
+            </div>
           </AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-3 p-4">
+          <AccordionContent className="p-6 pt-0">
+            <div className="space-y-4 p-4">
               {application.statusHistory && application.statusHistory.length > 0 ? (
                 application.statusHistory.map((entry, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-primary mt-2" />
-                    <div className="flex-1">
+                  <div key={index} className="flex items-start gap-4 relative">
+                    {index !== application.statusHistory!.length - 1 && (
+                      <div className="absolute left-[7px] top-6 bottom-[-16px] w-[2px] bg-border/50" />
+                    )}
+                    <div className="w-4 h-4 rounded-full bg-primary border-4 border-background mt-1 z-10" />
+                    <div className="flex-1 space-y-1">
                       <div className="flex justify-between items-center">
-                        <Badge className={statusColors[entry.status]}>
+                        <Badge className={cn(statusColors[entry.status], "text-[9px] uppercase tracking-widest font-bold")}>
                           {formatStatusLabel(entry.status)}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
                           {formatDate(entry.changedAt)}
                         </span>
                       </div>
                       {entry.reason && (
+                        <p className="text-sm text-muted-foreground bg-muted/20 p-2 rounded-md border border-border/10">{entry.reason}</p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground italic text-center py-4">No status history available.</p>
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
                         <p className="text-sm text-muted-foreground mt-1">{entry.reason}</p>
                       )}
                     </div>
