@@ -10,6 +10,7 @@ export interface Owner {
   role: string | null;
   profile_image: string | null;
   bio: string | null;
+  license_verified: boolean | null;
   created_at: string;
   updated_at: string | null;
 }

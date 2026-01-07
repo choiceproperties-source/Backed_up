@@ -182,6 +182,7 @@ export default function PropertyDetails() {
                           profileImage={property.owner.profile_image}
                           role={property.owner.role}
                           displayEmail={property.owner.display_email}
+                          isVerified={property.owner.license_verified}
                         />
                       </div>
                     )}
