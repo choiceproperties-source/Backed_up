@@ -1,0 +1,66 @@
+You are a developer and auditor for the Choice Properties platform. The project uses TypeScript, React, Tailwind CSS, and Supabase. Focus only on **code, architecture, and UI improvements**.
+
+We want to implement improvements for the **Property Application and Notification systems** based on a recent audit.
+
+---
+
+### 1. Backend / Logic Improvements
+
+Tasks:
+1. Fully migrate all legacy logic in `server/application-service.ts` into `server/modules/applications/`.
+   - Centralize status transitions, scoring, and audit logging.
+   - Remove duplicate logic and ensure all functions use the modular service.
+
+2. Implement a **real-time notification system**:
+   - Replace 30-second polling in the frontend with WebSocket-based updates using Supabase Realtime.
+   - Notifications should update instantly for both Tenant and Landlord dashboards.
+
+3. Integrate **real credit scoring**:
+   - Replace placeholder SSN logic (25 points) with API integration (e.g., Plaid/TransUnion).
+   - Ensure scoring is accurate and updates the application record automatically.
+
+4. Strengthen **role enforcement and security**:
+   - Ensure only `isPropertyOwner` can approve applications.
+   - Ensure only `isApplicant` can modify their own applications.
+   - Verify RLS policies on the `applications` table fully enforce these roles.
+
+---
+
+### 2. Frontend / Functional Improvements
+
+Tasks:
+1. **Deep-Linking for Notifications**:
+   - Update `handleNotificationClick` in `UnifiedNotificationsList` and `NotificationBell`.
+   - Clicking a notification should route directly to the specific wizard step or document needing action.
+
+2. **Notification Filters**:
+   - Add “Action Required” vs. “All” filters for landlords in the NotificationsPanel.
+   - Ensure the UI updates immediately when toggling filters.
+
+3. **Application Wizard UX**:
+   - Show autosave or “step saved” toast when a step is completed.
+   - Ensure multi-step wizard persists progress if the user navigates away or reloads.
+
+---
+
+### 3. Visual / Motion Improvements
+
+Tasks:
+1. Add subtle **pulse animation** on the Notification Bell icon for high-priority alerts.
+2. Implement **Framer-motion slide-and-fade transitions** between ApplicationWizard steps.
+3. Add **contextual badges** in the Landlord review panel (e.g., “Top 5% Income”, “Low Risk”) with semantic colors.
+4. Align **input heights, card padding, and typography** with the dashboard style (rounded-xl, p-8 for main cards, h-11 for inputs/buttons).
+
+---
+
+### Instructions for AI
+
+- Only provide **code changes, file paths, and component updates**.
+- Do not explain concepts — just give the **code, imports, and any configuration needed**.
+- Group output by **Backend, Frontend, and Visual/UI**.
+- Make sure all code is **ready to paste and run in a Choice Properties Fast Mode Replit environment**.
+- Assume Tailwind, React, TypeScript, and Supabase are fully set up.
+
+---
+
+Output format example:
