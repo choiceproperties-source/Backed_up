@@ -175,15 +175,18 @@ export default function PropertyDetails() {
                       {property.title}
                     </h1>
                     {propertyData?.property?.owner && (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                          Listed by
-                        </span>
-                        <PostedBy 
-                          fullName={propertyData.property.owner.full_name || "Property Owner"}
-                          profileImage={propertyData.property.owner.profile_image}
-                          role={propertyData.property.owner.role}
-                        />
+                      <div className="space-y-4">
+                        <div className="h-[1px] bg-border my-4" />
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                            Listed by
+                          </span>
+                          <PostedBy 
+                            fullName={propertyData.property.owner.full_name || "Property Owner"}
+                            profileImage={propertyData.property.owner.profile_image}
+                            role={propertyData.property.owner.role}
+                          />
+                        </div>
                       </div>
                     )}
                     <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
