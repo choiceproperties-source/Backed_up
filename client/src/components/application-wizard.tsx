@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Check, ChevronLeft, ChevronRight, Loader2, AlertCircle, CheckCircle2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface WizardStep {
   id: string;
@@ -96,8 +97,8 @@ export function ApplicationWizard({
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto" data-testid="application-wizard">
-      <CardHeader className="space-y-4">
+    <Card className="w-full max-w-4xl mx-auto rounded-xl shadow-sm border-border/50" data-testid="application-wizard">
+      <CardHeader className="space-y-4 p-8 border-b bg-muted/30">
         <div className="space-y-2">
           <CardTitle data-testid="wizard-title">{title}</CardTitle>
           <CardDescription data-testid="wizard-description">{description}</CardDescription>
@@ -110,9 +111,10 @@ export function ApplicationWizard({
                 Step {currentStep + 1} of {steps.length}
               </span>
               {isSaving && (
-                <Badge variant="outline" className="h-5 px-1.5 gap-1 border-primary/20 bg-primary/5 text-primary animate-pulse">
+                <Badge variant="outline" className="h-5 px-2 gap-1.5 border-primary/20 bg-primary/5 text-primary animate-in fade-in zoom-in duration-300">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                   <Save className="h-3 w-3" />
-                  Saving...
+                  <span className="uppercase tracking-widest text-[10px] font-bold">Autosaved</span>
                 </Badge>
               )}
             </div>
@@ -184,8 +186,19 @@ export function ApplicationWizard({
         </div>
       </CardHeader>
 
-      <CardContent className="min-h-[300px]" data-testid="wizard-content">
-        {children}
+      <CardContent className="min-h-[400px] overflow-hidden p-8" data-testid="wizard-content">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="h-full"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </CardContent>
 
       <CardFooter className="flex justify-between gap-4 border-t pt-6">

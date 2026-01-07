@@ -61,10 +61,7 @@ export function ApplicationReviewWorkflow({
 
   const reviewActionMutation = useMutation({
     mutationFn: async (actionData: { action: string; reason?: string; conditionalRequirements?: string; dueDate?: string }) => {
-      return apiRequest(`/api/applications/${applicationId}/review-action`, {
-        method: "POST",
-        body: JSON.stringify(actionData),
-      });
+      return apiRequest("POST", `/api/applications/${applicationId}/review-action`, actionData);
     },
     onSuccess: (data: any, variables) => {
       const actionLabels: Record<string, string> = {
@@ -320,7 +317,8 @@ export function ApplicationAuditTrail({ applicationId, isLandlord = false }: App
     );
   }
 
-  const { statusHistory = [], paymentAttempts = [], paymentVerifications = [], comments = [] } = data?.data || {};
+  const auditData = data as any;
+  const { statusHistory = [], paymentAttempts = [], paymentVerifications = [], comments = [] } = auditData || {};
 
   const allEvents = [
     ...statusHistory.map((h: any) => ({
@@ -367,7 +365,7 @@ export function ApplicationAuditTrail({ applicationId, isLandlord = false }: App
         return (
           <div>
             <span className="font-medium">Status changed to </span>
-            <Badge className={statusConfig.color} size="sm">{statusConfig.label}</Badge>
+            <Badge className={statusConfig.color}>{statusConfig.label}</Badge>
             {event.data.reason && (
               <p className="text-sm text-muted-foreground mt-1">{event.data.reason}</p>
             )}
@@ -377,7 +375,7 @@ export function ApplicationAuditTrail({ applicationId, isLandlord = false }: App
         return (
           <div>
             <span className="font-medium">Payment attempt: </span>
-            <Badge variant={event.data.status === "success" ? "default" : "destructive"} size="sm">
+            <Badge variant={event.data.status === "success" ? "default" : "destructive"}>
               {event.data.status}
             </Badge>
             <span className="text-muted-foreground"> - ${event.data.amount}</span>

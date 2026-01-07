@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -488,13 +489,26 @@ export function UnifiedNotificationBell() {
     >
       <Bell className="h-5 w-5" />
       {unreadCount > 0 && (
-        <Badge 
-          variant="destructive" 
-          className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] rounded-full border-2 border-background"
-          data-testid="badge-notification-count"
+        <motion.div
+          animate={unreadCount > 0 ? {
+            scale: [1, 1.2, 1],
+            opacity: [1, 0.8, 1],
+          } : {}}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute -top-1 -right-1"
         >
-          {unreadCount > 9 ? "9+" : unreadCount}
-        </Badge>
+          <Badge 
+            variant="destructive" 
+            className="h-4 w-4 p-0 flex items-center justify-center text-[10px] rounded-full border-2 border-background shadow-sm"
+            data-testid="badge-notification-count"
+          >
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </Badge>
+        </motion.div>
       )}
     </Button>
   );

@@ -305,25 +305,28 @@ export function ApplicationDetailView({
     ? Math.round((scoreBreakdown.totalScore / scoreBreakdown.maxScore) * 100)
     : 0;
 
+  const auditData = application as any;
+  const { statusHistory = [] } = auditData || {};
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start gap-4 flex-wrap">
+      <div className="flex justify-between items-start gap-4 flex-wrap mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-foreground" data-testid="text-applicant-name">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground mb-1" data-testid="text-applicant-name">
             {application.users?.fullName || 'Applicant'}
           </h2>
-          <p className="text-muted-foreground" data-testid="text-applicant-email">
+          <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs" data-testid="text-applicant-email">
             {application.users?.email}
           </p>
           {application.users?.phone && (
-            <p className="text-muted-foreground text-sm">{application.users.phone}</p>
+            <p className="text-muted-foreground text-sm mt-1">{application.users.phone}</p>
           )}
         </div>
         <div className="flex items-center gap-3">
-          <Badge className={statusColors[application.status]} data-testid="badge-application-status">
-            {formatStatusLabel(application.status)}
-          </Badge>
+            <Badge className={cn(statusColors[application.status], "font-bold uppercase tracking-widest text-[10px]")} data-testid="badge-application-status">
+              {formatStatusLabel(application.status)}
+            </Badge>
           {application.expiresAt && (
             <Badge variant="outline" className="text-orange-600 border-orange-300">
               <Clock className="h-3 w-3 mr-1" />
@@ -335,17 +338,17 @@ export function ApplicationDetailView({
 
       {/* Score Card */}
       {scoreBreakdown ? (
-        <Card className="p-6" data-testid="card-score-breakdown">
+        <Card className="p-8 rounded-xl shadow-sm border-border/50" data-testid="card-score-breakdown">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold text-lg flex items-center gap-2">
               <Star className="h-5 w-5 text-yellow-500" />
               Application Score
             </h3>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 uppercase tracking-widest text-[10px] font-bold">
                 Market Average: 72
               </Badge>
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 uppercase tracking-widest text-[10px] font-bold">
                 Top 15%
               </Badge>
             </div>
@@ -374,19 +377,20 @@ export function ApplicationDetailView({
 
           <Progress value={scorePercentage} className="h-3 mb-6" />
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             {[
-              { label: 'Income', value: scoreBreakdown.incomeScore, max: 25, icon: DollarSign },
-              { label: 'Credit', value: scoreBreakdown.creditScore, max: 25, icon: TrendingUp },
-              { label: 'Rental History', value: scoreBreakdown.rentalHistoryScore, max: 20, icon: Home },
-              { label: 'Employment', value: scoreBreakdown.employmentScore, max: 15, icon: Briefcase },
-              { label: 'Documents', value: scoreBreakdown.documentsScore, max: 15, icon: FileText },
+              { label: 'Income', value: scoreBreakdown.incomeScore, max: 25, icon: DollarSign, color: 'text-emerald-500' },
+              { label: 'Credit', value: scoreBreakdown.creditScore, max: 25, icon: TrendingUp, color: 'text-blue-500' },
+              { label: 'Rental History', value: scoreBreakdown.rentalHistoryScore, max: 20, icon: Home, color: 'text-amber-500' },
+              { label: 'Employment', value: scoreBreakdown.employmentScore, max: 15, icon: Briefcase, color: 'text-purple-500' },
+              { label: 'Documents', value: scoreBreakdown.documentsScore, max: 15, icon: FileText, color: 'text-indigo-500' },
             ].map((item) => (
-              <div key={item.label} className="text-center">
-                <item.icon className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">{item.label}</p>
-                <p className="font-semibold text-foreground">
-                  {item.value}/{item.max}
+              <div key={item.label} className="text-center p-4 rounded-xl bg-muted/30 border border-border/20 transition-all hover:bg-muted/50">
+                <item.icon className={cn("h-6 w-6 mx-auto mb-2 opacity-80", item.color)} />
+                <p className="uppercase tracking-widest text-[9px] font-bold text-muted-foreground mb-1">{item.label}</p>
+                <p className="text-xl font-bold text-foreground">
+                  {item.value}
+                  <span className="text-[10px] text-muted-foreground font-medium ml-0.5">/ {item.max}</span>
                 </p>
               </div>
             ))}

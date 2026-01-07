@@ -119,69 +119,77 @@ export default function LandlordDashboard() {
       {/* Stats Cards */}
       <div className="container mx-auto px-4 -mt-10 relative z-10 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-properties">
+          <Card className="p-6 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300 bg-card/50 backdrop-blur-sm" data-testid="stat-properties">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Total Properties</p>
-                <p className="text-2xl font-bold text-primary mt-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-70">Total Properties</p>
+                <p className="text-3xl font-bold text-primary mt-2">
                   {stats.properties}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1 font-medium">
+                <p className="text-[9px] text-muted-foreground mt-1 font-bold uppercase tracking-wider opacity-60">
                   {stats.activeListings} active • {stats.rentedProperties} rented
                 </p>
               </div>
-              <Building2 className="h-5 w-5 text-primary opacity-20" strokeWidth={1.5} />
+              <div className="p-2 rounded-lg bg-primary/5">
+                <Building2 className="h-5 w-5 text-primary" strokeWidth={1.5} />
+              </div>
             </div>
           </Card>
 
-          <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-occupancy">
+          <Card className="p-6 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300 bg-card/50 backdrop-blur-sm" data-testid="stat-occupancy">
             <div className="flex items-start justify-between">
               <div className="w-full">
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Occupancy Rate</p>
-                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-70">Occupancy Rate</p>
+                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">
                   {stats.properties > 0 ? `${stats.occupancyRate}%` : '--'}
                 </p>
                 {stats.properties > 0 ? (
-                  <Progress value={stats.occupancyRate} className="h-1.5 mt-2 rounded-full bg-muted" />
+                  <Progress value={stats.occupancyRate} className="h-1.5 mt-3 rounded-full bg-muted shadow-inner" />
                 ) : (
-                  <p className="text-xs text-muted-foreground mt-2 font-medium">Add properties to track</p>
+                  <p className="text-[9px] text-muted-foreground mt-2 font-bold uppercase tracking-wider opacity-60">Add properties to track</p>
                 )}
               </div>
-              <TrendingUp className="h-5 w-5 text-emerald-500 opacity-20 flex-shrink-0 ml-2" strokeWidth={1.5} />
+              <div className="p-2 rounded-lg bg-emerald-500/5 ml-2">
+                <TrendingUp className="h-5 w-5 text-emerald-500" strokeWidth={1.5} />
+              </div>
             </div>
           </Card>
 
-          <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-revenue">
+          <Card className="p-6 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300 bg-card/50 backdrop-blur-sm" data-testid="stat-revenue">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Monthly Revenue</p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-70">Monthly Revenue</p>
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
                   ${stats.monthlyRevenue.toLocaleString()}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1 font-medium">
+                <p className="text-[9px] text-muted-foreground mt-1 font-bold uppercase tracking-wider opacity-60">
                   ${stats.potentialRevenue.toLocaleString()} potential
                 </p>
               </div>
-              <DollarSign className="h-5 w-5 text-green-500 opacity-20" strokeWidth={1.5} />
+              <div className="p-2 rounded-lg bg-green-500/5">
+                <DollarSign className="h-5 w-5 text-green-500" strokeWidth={1.5} />
+              </div>
             </div>
           </Card>
 
-          <Card className="p-8 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300" data-testid="stat-applications">
+          <Card className="p-6 rounded-xl border border-border/50 hover-elevate shadow-sm transition-all duration-300 bg-card/50 backdrop-blur-sm" data-testid="stat-applications">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Applications</p>
-                <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-70">Applications</p>
+                <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mt-2">
                   {stats.applications}
                 </p>
                 <div className="flex gap-2 mt-1">
                   {stats.pendingApps > 0 && (
-                    <Badge variant="outline" className="text-xs bg-yellow-50/50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800 rounded-full px-2 py-0.5 font-bold">
+                    <Badge variant="outline" className="text-[9px] bg-yellow-50/50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800 rounded-full px-2 py-0.5 font-bold uppercase tracking-widest">
                       {stats.pendingApps} pending
                     </Badge>
                   )}
                 </div>
               </div>
-              <FileText className="h-5 w-5 text-indigo-500 opacity-20" strokeWidth={1.5} />
+              <div className="p-2 rounded-lg bg-indigo-500/5">
+                <FileText className="h-5 w-5 text-indigo-500" strokeWidth={1.5} />
+              </div>
             </div>
           </Card>
         </div>
