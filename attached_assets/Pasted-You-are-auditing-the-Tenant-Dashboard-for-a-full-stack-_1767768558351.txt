@@ -1,0 +1,59 @@
+You are auditing the Tenant Dashboard for a full-stack real estate platform. Your task is to perform a **complete front-end and back-end scan** to produce a professional, production-ready audit report. Do not implement any changes yet—just analyze and suggest improvements. Focus on correctness, usability, and security.
+
+Scope:
+1. Frontend Components:
+   - tenant-dashboard.tsx
+   - tenant-profile.tsx
+   - applications.tsx
+   - favorites.tsx
+   - notifications.tsx
+   - Any other tenant-specific components
+
+2. Backend Data & API Endpoints:
+   - /api/v2/users/:id
+   - /api/v2/applications
+   - /api/v2/favorites
+   - /api/v2/notifications
+   - Any other tenant-specific endpoints
+
+Tasks:
+1. **Field Mapping**
+   - List all backend fields fetched for tenant views.
+   - Identify which fields are currently rendered in the frontend.
+   - Highlight missing or unused fields.
+   - Note any fields that are hardcoded instead of dynamic.
+
+2. **Layout & UI/UX**
+   - Evaluate visual hierarchy, spacing, and typography.
+   - Identify overcrowded sections or poor information density.
+   - Assess responsiveness on desktop and mobile.
+   - Highlight confusing or poorly organized interactions.
+
+3. **Functionality Check**
+   - Verify actions: applying to properties, viewing applications, favoriting properties, updating profile info, receiving notifications.
+   - Identify broken, missing, or placeholder features.
+
+4. **Privacy & Security**
+   - Check usage of sensitive fields (email, phone, 2FA secrets, password hashes).
+   - Ensure public-facing fields (displayEmail, displayPhone) are used appropriately.
+   - Flag any exposed sensitive data.
+
+5. **Performance & UX**
+   - Note loading states, spinners, empty states.
+   - Identify performance bottlenecks or redundant API calls.
+
+6. **Trust Signals & Suggestions**
+   - Suggest improvements: adding stats, summaries, badges, verification, or other signals to improve the professional quality of the tenant dashboard.
+   - Highlight any backend gaps that limit frontend display.
+
+Output:
+- Provide a structured audit report:
+  1. **Field Mapping**
+  2. **Frontend Issues**
+  3. **Backend Issues**
+  4. **Privacy & Security Risks**
+  5. **UI/UX Suggestions**
+  6. **Functionality Suggestions**
+- Include specific component/file references and API endpoints in your audit.
+
+Do not modify any code yet. Focus solely on **scanning, analyzing, and reporting**.
