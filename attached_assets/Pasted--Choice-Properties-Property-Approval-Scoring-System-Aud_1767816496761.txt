@@ -1,0 +1,49 @@
+# Choice Properties: Property Approval & Scoring System Audit Prompt
+
+You are analyzing the Choice Properties full-stack project. Focus on the **Property Approval Workflow** and **Scoring Logic**. Split your audit into the following sections and provide detailed findings in each. Keep it frontend/backend-aware, without changing code.
+
+---
+
+## Section 1: Backend Architecture & Data Flow
+- Inspect `server/modules/applications` and `application.service.ts`.
+- Check how the **approval workflow** is implemented:
+  - Draft → Submitted → Under Review → Conditional Approval → Approved → Rejected
+- Identify **legacy vs modular code** handling status transitions.
+- Verify **role-based permission checks** for property owners and tenants.
+- Map which **backend events trigger notifications**.
+
+---
+
+## Section 2: Scoring Logic & Validation
+- Review any scoring system applied to applications (credit, rental history, employment).
+- Identify if scoring calculations are **centralized in the service layer** or spread across multiple files.
+- Highlight any **potential inconsistencies** between scoring rules and frontend display.
+- Note areas where **validation could fail** or produce incorrect results.
+
+---
+
+## Section 3: Frontend Integration
+- Inspect step-based application forms in `tenant-lease-dashboard.tsx` and related components.
+- Check **status visualization** for applicants (progress bars, step indicators, conditional messages).
+- Verify **optimistic UI updates** and error handling when backend status updates fail.
+- Map which UI components reflect scoring and approval results.
+
+---
+
+## Section 4: Security & Role Enforcement
+- Confirm **Supabase RLS** or other row-level access controls are properly applied.
+- Identify **any security gaps** where unauthorized users could change status or access scoring data.
+- Check if **audit logs** are capturing critical events consistently.
+
+---
+
+## Section 5: Recommendations & Improvements
+- Provide a **prioritized list** of suggested improvements, categorized as:
+  - High-priority: could cause functional or security issues
+  - Medium-priority: UI/UX inconsistencies or minor backend gaps
+  - Low-priority: visual polish or micro-interactions
+- Highlight opportunities to **unify legacy and modular code**, improve scoring reliability, and enhance frontend consistency.
+
+---
+
+Output your audit in **clear sections** with bullet points and sub-bullets. Include references to **file paths** wherever possible. Focus on **analysis, not implementation**, so we can decide next steps.
