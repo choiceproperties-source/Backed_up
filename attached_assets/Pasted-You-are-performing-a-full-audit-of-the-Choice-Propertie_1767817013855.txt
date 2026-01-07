@@ -1,0 +1,48 @@
+You are performing a full audit of the Choice Properties project. Please follow these instructions carefully and output your results clearly in markdown format. Split your analysis into the sections below and prioritize clarity, structure, and actionable recommendations. Do not make any code changes. 
+
+# SECTION 1 — Property Application System Audit
+1. Scan all relevant backend files:
+   - server/modules/applications/application.service.ts
+   - server/application-service.ts
+   - server/routes.ts (legacy application routes)
+2. Scan all relevant frontend files:
+   - client/src/components/application-wizard.tsx
+   - client/src/components/application-review-workflow.tsx
+3. Report the following:
+   - **Data Architecture:** Describe the applications table, data types, multi-step fields, and status tracking.
+   - **Backend Logic:** How modular and legacy services interact; any duplicated logic.
+   - **Workflow Enforcement:** How STATUS_TRANSITIONS or other state machines manage draft → approved/rejected.
+   - **Scoring Logic:** Explain the scoring system, point allocations, and validation rules.
+   - **Frontend Integration:** Multi-step wizard, progress tracking, and review workflow features.
+   - **Security & Roles:** Permission checks, RLS usage, and audit logging.
+4. Provide **Key Recommendations** divided into High, Medium, and Low priority.
+
+# SECTION 2 — Property Notification System Audit
+1. Scan all notification-related frontend and backend files:
+   - client/src/components/notification-bell.tsx
+   - client/src/components/notifications-panel.tsx
+   - client/src/lib/notifications.ts
+   - server/notification-service.ts
+2. Map backend notification triggers:
+   - Identify event source, notification channel (DB/Email), and recipient for each event.
+3. Analyze frontend behavior:
+   - Component integration (NotificationBell, NotificationsPanel, UnifiedNotificationsList)
+   - Mobile behavior (Sheet, responsive handling)
+   - Loading states and interaction feedback
+4. Identify **Gaps and Inconsistencies**:
+   - Real-time latency
+   - Role-based filtering
+   - Navigation/deep-link issues
+   - UI inconsistencies (icons, colors, layout)
+5. Provide **Key Recommendations** divided into High, Medium, and Low priority, including suggested UX improvements.
+
+# SECTION 3 — Combined Actionable Summary
+1. Merge insights from Sections 1 and 2 into a single **action plan** for next steps.
+2. Highlight the **most critical backend, frontend, and UX/UI improvements**.
+3. Suggest refinements that align the Property Application and Notification systems with the **premium SaaS style already applied to dashboards and profiles**.
+
+# OUTPUT REQUIREMENTS
+- Use markdown format with headings, tables, and bullet points.
+- Prioritize clarity for developers and designers.
+- Clearly mark **High / Medium / Low Priority** items.
+- Do not attempt to make code changes or refactor anything; this is strictly an **audit and recommendations report**.
