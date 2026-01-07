@@ -1,0 +1,46 @@
+/*
+PROMPT: Full UI & Dashboard Audit for Choice Properties
+
+Objective:
+Scan and analyze the entire frontend codebase for Choice Properties, including all dashboards and profile pages. Identify visual, functional, and responsive issues, and generate a detailed report with suggestions for improvement.
+
+Scope:
+- Dashboards: renter-dashboard.tsx, landlord-dashboard.tsx, agent-dashboard-new.tsx, tenant-lease-dashboard.tsx, tenant-payments-dashboard.tsx
+- Profiles: agent-profile.tsx, landlord-profile.tsx, tenant-profile.tsx, owner-profile.tsx
+- Components: Cards, Buttons, Icons, Badges, Hero sections, Empty States, Stats, Tabs
+
+Checklist:
+1. Data & Functional Integrity:
+   - Verify all dynamic fields are correctly mapped (names, emails, stats, properties).
+   - Check that role-based access is enforced and conditional rendering works.
+   - Confirm empty states display correctly when no data is available.
+   - Ensure all API hooks (useProperties, useOwnedProperties, useApplications) return consistent data.
+
+2. Visual Consistency:
+   - Hero Sections: Standardized gradients, typography, spacing, and button heights.
+   - Cards: Consistent padding (p-8 major, p-6 stat cards), rounded-xl corners, subtle borders.
+   - Avatars & Verified Badges: Unified size, positioning, stroke width, fallback behavior.
+   - Status Badges: Rounded-full with subtle backgrounds, consistent font weight.
+   - Icons: Lucide-react icons with strokeWidth={1.5}, consistent sizing.
+   - Buttons: Uniform heights (h-11) and font-medium weight.
+   - Typography Hierarchy: Proper font weights, text sizes, spacing, uppercase tracking where needed.
+   - Hover / Micro-interactions: Hover-elevate and shadow transitions applied consistently.
+
+3. Responsive Design:
+   - Ensure dashboards collapse correctly on mobile (1-2 column grids).
+   - Tabs and horizontal scrolls function correctly (-mx-4 px-4, overflow-x-auto).
+   - Sidebars, empty states, and hero sections maintain spacing on smaller screens.
+
+4. Empty / Loading States:
+   - Standardized empty layouts (icon size h-20 w-20, primary bold text, secondary muted text).
+   - Skeleton loaders align with final card layouts to prevent layout shift.
+
+5. Final Deliverable:
+   - Generate a detailed report in markdown with:
+     - Inventory of all dashboards and profiles
+     - High-impact issues (functional/visual)
+     - Medium refinements (polish/UX)
+     - Minor improvements / micro-interactions
+     - Mobile-specific observations
+     - Suggestions with code-level recommendations where applicable
+*/

@@ -95,11 +95,11 @@ export default function LandlordDashboard() {
       <Navbar />
 
       {/* Hero Header */}
-      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 text-white py-12 px-6 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 text-white py-12 px-6 relative overflow-hidden mb-12">
         <div className="container mx-auto flex justify-between items-center relative z-10">
           <div>
             <h1 className="text-4xl font-bold tracking-tight">Landlord Dashboard</h1>
-            <p className="text-white/80 mt-2">Manage your properties and applications</p>
+            <p className="text-white/80 mt-2 text-lg font-medium">Manage your properties and applications</p>
           </div>
           <Button
             onClick={() => {

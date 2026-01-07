@@ -257,12 +257,12 @@ export default function RenterDashboard() {
       <Navbar />
 
       {/* Hero Header */}
-      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 text-white py-12 px-6 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 text-white py-12 px-6 relative overflow-hidden mb-12">
         <div className="container mx-auto relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">Renter Dashboard</h1>
-              <p className="text-white/80 text-lg">
+              <p className="text-white/80 text-lg font-medium">
                 Welcome back, <span className="font-semibold">{user?.email?.split('@')[0]}</span>!
               </p>
             </div>

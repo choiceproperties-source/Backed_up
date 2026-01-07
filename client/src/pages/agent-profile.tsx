@@ -85,7 +85,7 @@ export default function AgentProfile() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 py-12 px-6 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary via-primary/90 to-secondary/80 py-12 px-6 relative overflow-hidden mb-12">
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-2 mb-8">
             <Button
@@ -100,7 +100,7 @@ export default function AgentProfile() {
             </Button>
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-white">Profile Settings</h1>
-          <p className="text-white/80 mt-2 text-lg">Personalize your public profile and manage account details.</p>
+          <p className="text-white/80 mt-2 text-lg font-medium">Personalize your public profile and manage account details.</p>
         </div>
       </div>
 
