@@ -1,0 +1,99 @@
+ROLE:
+You are acting strictly as a senior full-stack engineer and security auditor.
+
+MODE CONSTRAINTS:
+- DO NOT use autonomous mode
+- DO NOT refactor large sections of the codebase
+- DO NOT add new features unless explicitly instructed
+- You MAY read files, trace execution paths, and suggest minimal, targeted fixes
+- Focus ONLY on the sign-up and email confirmation flow
+
+TASK:
+Perform a complete, code-level audit of the SIGN-UP, EMAIL CONFIRMATION, and PASSWORD RESET flows for the Choice Properties application.
+
+SCOPE (DO NOT GO BEYOND THIS):
+1. User Sign-Up Flow
+2. Email Confirmation Delivery
+3. Password Reset Email Delivery
+4. Supabase Auth + SendGrid integration
+5. Frontend → Backend → Supabase execution path
+
+WHAT TO SCAN (REQUIRED):
+Backend:
+- auth.service.ts
+- any /api/auth/* or /api/v2/auth/* routes
+- SendGrid email configuration
+- Supabase auth configuration usage
+- Environment variables related to auth & email
+- Email sender name, sender email, and template logic
+
+Frontend:
+- signup.tsx
+- login.tsx
+- forgot-password.tsx / reset-password.tsx
+- Any Supabase client auth calls
+- Any redirect or confirmation handling logic
+
+DATABASE / AUTH:
+- Supabase email confirmation settings
+- Whether email confirmation is REQUIRED or OPTIONAL
+- Redirect URLs used in confirmation links
+- Token handling and expiry
+- Any silent failures or swallowed errors
+
+AUDIT QUESTIONS YOU MUST ANSWER:
+1. Is the confirmation email actually being triggered on sign-up?
+2. If triggered, which system is responsible?
+   - Supabase native email
+   - SendGrid custom email
+3. What sender name and email SHOULD be used?
+   - Supabase default
+   - Choice Properties branded sender
+4. Why users are NOT receiving confirmation emails (check ALL):
+   - Missing or incorrect SMTP config
+   - Unverified SendGrid sender
+   - Supabase email disabled
+   - Wrong redirect URL
+   - Frontend not awaiting auth response
+   - Email sent but failing silently
+5. Is the password reset email using the same or a different pipeline?
+6. Are there any race conditions or missing awaits that prevent email dispatch?
+
+DELIVERABLES:
+Produce ONLY the following (no extra work):
+
+1. A clear STEP-BY-STEP execution trace:
+   User clicks “Sign Up” → frontend → backend → Supabase → email provider
+
+2. A BUG / MISCONFIGURATION LIST:
+   - Exact file
+   - Exact line or function
+   - What is broken
+   - Why it breaks email delivery
+
+3. A MINIMAL FIX PLAN:
+   - Exact change required
+   - No refactors
+   - No architectural redesign
+   - Only what is necessary to make confirmation + reset emails work
+
+4. EMAIL BRANDING RECOMMENDATION:
+   - Should emails come from Supabase or Choice Properties?
+   - Sender name
+   - Sender email
+   - Whether SendGrid Free Tier supports this setup
+
+IMPORTANT RULES:
+- Do NOT implement fixes unless explicitly asked
+- Do NOT generalize or speculate
+- Everything must be based on the actual codebase
+- If something is missing, explicitly say: “This is missing”
+
+OUTPUT FORMAT:
+- Clear headings
+- Bullet points
+- File paths included
+- No fluff
+- No marketing language
+
+BEGIN THE AUDIT.
