@@ -244,6 +244,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthRedirect(getDefaultRedirectForRole(role));
   };
 
+  const sendMagicLink = async (email: string) => {
+    await initPromise;
+    if (!supabase) throw new Error("Supabase not configured");
+    await supabase.auth.signInWithOtp({ email });
+  };
+
   const logout = async () => {
     await initPromise;
     if (!supabase) throw new Error("Supabase not configured");
@@ -293,10 +299,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updateUserRole,
         resetPassword,
         resendVerificationEmail,
+        sendMagicLink,
         isLoggedIn: !!user,
         isLoading: !authReady,
-        needs_role_selection: !role,
-        email_verified: !!authUser.email_confirmed_at
+        isEmailVerified: !!user?.email_verified,
+        authRedirect,
+        clearAuthRedirect: () => setAuthRedirect(null)
       }}
     >
       {children}
