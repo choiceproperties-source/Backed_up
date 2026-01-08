@@ -1,0 +1,106 @@
+TASK: Fix and unify post-authentication behavior for BOTH sign-up and sign-in flows.
+
+GOAL:
+After a user successfully signs up AND confirms their email, or successfully signs in, they must be:
+1. Automatically logged in
+2. Redirected to the correct destination based on role and intent
+3. Blocked from dashboards if email is not verified
+
+SCOPE:
+Frontend: client/src/lib/auth-context.tsx
+Frontend: client/src/pages/login.tsx
+Frontend: client/src/pages/signup.tsx
+Backend: Supabase auth state (no backend refactor required)
+
+DO NOT:
+- Introduce new data models
+- Break existing auth flows
+- Require Autonomous Mode
+
+--------------------------------
+REQUIRED BEHAVIOR
+--------------------------------
+
+1️⃣ EMAIL VERIFICATION GATE
+- If user.email_confirmed_at is NULL:
+  → Redirect to `/verify-email`
+  → Prevent dashboard access
+  → Show clear message: “Please verify your email to continue”
+
+This must apply to BOTH:
+- sign-up
+- sign-in
+
+--------------------------------
+
+2️⃣ AUTO LOGIN AFTER VERIFIED SIGN-UP
+- After sign-up:
+  - DO NOT auto-login immediately
+  - Wait for email confirmation
+- After user confirms email and logs in:
+  → Treat them the SAME as normal login
+  → Apply redirect logic below
+
+--------------------------------
+
+3️⃣ ROLE-BASED REDIRECT (CORE LOGIC)
+
+After successful login AND verified email:
+
+IF a `redirectTo` value exists (saved intent):
+→ Redirect user to redirectTo
+→ Clear redirectTo after navigation
+
+ELSE IF user.role === "landlord":
+→ Redirect to `/dashboard/landlord`
+
+ELSE IF user.role === "tenant":
+→ Redirect to `/dashboard/tenant`
+
+ELSE:
+→ Redirect to `/dashboard`
+
+--------------------------------
+
+4️⃣ SAVE & RESTORE USER INTENT
+- When an unauthenticated user attempts a protected action:
+  - Save the intended URL (redirectTo) in localStorage or auth context
+- After login/signup verification:
+  - Redirect to redirectTo FIRST before role-based fallback
+
+--------------------------------
+
+5️⃣ IMPLEMENTATION DETAILS
+
+- Centralize redirect logic inside auth-context.tsx
+- Expose a single function:
+  handlePostAuthRedirect(user)
+
+- Ensure BOTH:
+  - login()
+  - signup() (after verification + login)
+  use this same logic
+
+- Prevent duplicate redirect logic across components
+
+--------------------------------
+
+6️⃣ UX REQUIREMENTS
+- No blank screens
+- No redirect loops
+- No forced re-login after verification
+- Navigation must feel instant and predictable
+
+--------------------------------
+
+DELIVERABLE:
+- Clean, readable implementation
+- Comment the redirect decision tree
+- Confirm behavior works for:
+  ✅ sign-up → verify → login → redirect
+  ✅ sign-in → redirect
+  ✅ blocked access when unverified
+  ✅ intent-based redirect
+
+FINAL CHECK:
+The user experience should feel like a modern SaaS app.
