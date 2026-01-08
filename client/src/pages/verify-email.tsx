@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth, buildUserFromAuthHelper } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
@@ -19,7 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { updateMetaTags } from "@/lib/seo";
 
 export default function VerifyEmail() {
-  const { user, resendVerificationEmail, logout, isEmailVerified } = useAuth();
+  const { user, resendVerificationEmail, logout, isEmailVerified, handlePostAuthRedirect } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -89,7 +89,10 @@ export default function VerifyEmail() {
           title: "Email verified",
           description: "You can now continue.",
         });
-        setTimeout(() => setLocation("/"), 800);
+        
+        // Use central redirect logic after verification
+        const builtUser = await buildUserFromAuthHelper(data.session.user);
+        handlePostAuthRedirect(builtUser);
       } else {
         toast({
           title: "Not verified yet",

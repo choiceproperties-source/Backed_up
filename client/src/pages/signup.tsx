@@ -104,6 +104,7 @@ export default function Signup() {
         description: "Welcome to Choice Properties. Check your email to verify your account."
       });
 
+      // No immediate redirect or login, stay on verify-email or redirect there
       setLocation("/verify-email");
     } catch (err: any) {
       console.error("[Signup] Error:", err);

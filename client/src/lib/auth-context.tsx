@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { User, AuthContextType, UserRole } from "./types";
 import { supabase, initPromise } from "./supabase";
+import { useLocation } from "wouter";
 
 /* ------------------------------------------------ */
 /* Context */
@@ -101,6 +102,8 @@ const getDefaultRedirectForRole = (role: UserRole | null) => {
   };
 };
 
+export const buildUserFromAuthHelper = buildUserFromAuth;
+
 /* ------------------------------------------------ */
 /* Provider */
 /* ------------------------------------------------ */
@@ -110,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authReady, setAuthReady] = useState(false);
   const [authRedirect, setAuthRedirect] = useState<string | null>(null);
   const initializing = useRef(true);
+  const [, setLocation] = useLocation();
 
   /* ---------- INITIAL SESSION LOAD ---------- */
   useEffect(() => {
@@ -182,6 +186,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /* Actions */
   /* ------------------------------------------------ */
 
+  const handlePostAuthRedirect = (builtUser: User) => {
+    // 1. Email Verification Gate
+    if (!builtUser.email_verified) {
+      setLocation("/verify-email");
+      return;
+    }
+
+    // 2. Intent-based Redirect
+    const redirectTo = localStorage.getItem("auth_redirect_to");
+    if (redirectTo) {
+      localStorage.removeItem("auth_redirect_to");
+      setLocation(redirectTo);
+      return;
+    }
+
+    // 3. Role-based Redirect
+    const redirect = getDefaultRedirectForRole(builtUser.role as UserRole);
+    setLocation(redirect);
+  };
+
   const login = async (email: string, password: string): Promise<UserRole> => {
     await initPromise;
     if (!supabase) throw new Error("Supabase not configured");
@@ -201,8 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const role = builtUser.role as UserRole;
       if (!role) throw new Error("User role not found");
       
-      const redirect = getDefaultRedirectForRole(role);
-      setAuthRedirect(redirect);
+      handlePostAuthRedirect(builtUser);
       return role;
     } finally {
       setAuthReady(true);
@@ -327,6 +350,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: !authReady,
         isEmailVerified: !!user?.email_verified,
         authRedirect,
+        handlePostAuthRedirect,
         clearAuthRedirect: () => setAuthRedirect(null)
       }}
     >

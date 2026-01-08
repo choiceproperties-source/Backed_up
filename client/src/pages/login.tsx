@@ -71,7 +71,6 @@ export default function Login() {
         description: "You are now signed in."
       });
       
-      // Navigation is now handled by authRedirect in auth-context + ProtectedRoute/App logic
     } catch (err: any) {
       console.error("[Login] Error:", err);
       
