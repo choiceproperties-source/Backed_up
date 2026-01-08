@@ -97,6 +97,8 @@ export default function Signup() {
         data.role
       );
 
+      localStorage.setItem("pending_verification_email", data.email);
+
       toast({
         title: "Account created!",
         description: "Welcome to Choice Properties. Check your email to verify your account."

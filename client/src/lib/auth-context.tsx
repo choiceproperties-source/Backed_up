@@ -265,9 +265,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const redirectTo =
       import.meta.env.VITE_APP_URL || window.location.origin;
 
-    await supabase.auth.resend({
+    const { error } = await supabase.auth.resend({
       type: "signup",
-      email: user.email,
+      email,
       options: { emailRedirectTo: `${redirectTo}/auth/callback` }
     });
   };

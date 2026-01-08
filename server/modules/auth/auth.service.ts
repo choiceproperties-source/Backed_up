@@ -31,6 +31,9 @@ export class AuthService {
         throw { status: 500, message: "Failed to create user account. Please try again." };
       }
 
+      // Explicitly send verification email after admin user creation
+      await this.repository.resendVerificationEmail(normalizedEmail);
+
       try {
         await this.repository.storeUserProfile(authData.user.id, normalizedEmail, fullName, phone, role);
       } catch (profileError: any) {
