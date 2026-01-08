@@ -154,7 +154,9 @@ export function useOwnedProperties() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to create property');
+        const err = new Error(errorData.error || 'Failed to create property');
+        (err as any).errors = errorData.errors;
+        throw err;
       }
 
       const data = await response.json();

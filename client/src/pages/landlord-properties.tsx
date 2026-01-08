@@ -99,6 +99,7 @@ export default function LandlordProperties() {
     reset,
     formState: { errors },
     setValue,
+    setError,
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertyFormSchema),
     defaultValues: {
@@ -213,7 +214,7 @@ export default function LandlordProperties() {
     const updated = current.includes(amenity)
       ? current.filter((a) => a !== amenity)
       : [...current, amenity];
-    setValue('amenities', updated);
+    setValue('amenities', updated, { shouldValidate: true });
   };
 
   const toggleUtility = (utility: string) => {
@@ -221,20 +222,40 @@ export default function LandlordProperties() {
     const updated = current.includes(utility)
       ? current.filter((u) => u !== utility)
       : [...current, utility];
-    setValue('utilitiesIncluded', updated);
+    setValue('utilitiesIncluded', updated, { shouldValidate: true });
   };
 
   const onSubmit = async (data: PropertyFormData) => {
     try {
       if (editingId) {
-        await updateProperty(editingId, data);
+        const result = await updateProperty(editingId, data);
+        if (!result) return;
       } else {
-        await createProperty(data);
+        const result = await createProperty(data);
+        if (!result) return;
       }
       resetForm();
       setShowNewPropertyForm(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving property:', error);
+      if (error.errors && Array.isArray(error.errors)) {
+        error.errors.forEach((err: any) => {
+          // Map backend field names to form field names if they differ
+          const fieldMap: Record<string, keyof PropertyFormData> = {
+            'zip_code': 'zipCode',
+            'property_type': 'propertyType',
+            'pets_allowed': 'petsAllowed',
+            'lease_term': 'leaseTerm',
+            'utilities_included': 'utilitiesIncluded',
+            'square_feet': 'squareFeet',
+          };
+          const field = fieldMap[err.field] || err.field;
+          setError(field as any, {
+            type: 'manual',
+            message: err.message,
+          });
+        });
+      }
     }
   };
 
@@ -374,11 +395,22 @@ export default function LandlordProperties() {
                     </div>
                   </div>
 
-                  <Input
-                    placeholder="Zip Code"
-                    {...register('zipCode')}
-                    data-testid="input-property-zip"
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Input
+                        placeholder="Zip Code"
+                        {...register('zipCode')}
+                        data-testid="input-property-zip"
+                        className={errors.zipCode ? 'border-destructive' : ''}
+                      />
+                      {errors.zipCode && (
+                        <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          {errors.zipCode.message}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -388,8 +420,14 @@ export default function LandlordProperties() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Select onValueChange={(value) => setValue('propertyType', value)}>
-                        <SelectTrigger data-testid="select-property-type">
+                      <Select
+                        onValueChange={(value) => setValue('propertyType', value, { shouldValidate: true })}
+                        value={watch('propertyType')}
+                      >
+                        <SelectTrigger
+                          data-testid="select-property-type"
+                          className={errors.propertyType ? 'border-destructive' : ''}
+                        >
                           <SelectValue placeholder="Property Type" />
                         </SelectTrigger>
                         <SelectContent>
@@ -400,11 +438,23 @@ export default function LandlordProperties() {
                           ))}
                         </SelectContent>
                       </Select>
+                      {errors.propertyType && (
+                        <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          {errors.propertyType.message}
+                        </div>
+                      )}
                     </div>
 
                     <div>
-                      <Select onValueChange={(value) => setValue('leaseTerm', value)}>
-                        <SelectTrigger data-testid="select-lease-term">
+                      <Select
+                        onValueChange={(value) => setValue('leaseTerm', value, { shouldValidate: true })}
+                        value={watch('leaseTerm')}
+                      >
+                        <SelectTrigger
+                          data-testid="select-lease-term"
+                          className={errors.leaseTerm ? 'border-destructive' : ''}
+                        >
                           <SelectValue placeholder="Lease Term" />
                         </SelectTrigger>
                         <SelectContent>
@@ -415,6 +465,12 @@ export default function LandlordProperties() {
                           ))}
                         </SelectContent>
                       </Select>
+                      {errors.leaseTerm && (
+                        <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          {errors.leaseTerm.message}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -547,7 +603,8 @@ export default function LandlordProperties() {
                       Active Listing
                     </Label>
                     <Select
-                      onValueChange={(value) => setValue('status', value as 'active' | 'inactive')}
+                      onValueChange={(value) => setValue('status', value as 'active' | 'inactive', { shouldValidate: true })}
+                      value={watch('status')}
                     >
                       <SelectTrigger className="w-32" data-testid="select-property-status">
                         <SelectValue />
