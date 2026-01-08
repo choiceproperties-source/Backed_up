@@ -40,7 +40,8 @@ const getDefaultRedirectForRole = (role: UserRole | null) => {
 };
 
   const buildUserFromAuth = async (authUser: any): Promise<User> => {
-  const { data } = await supabase
+    if (!supabase) throw new Error("Supabase not configured");
+    const { data } = await supabase
     .from("users")
     .select(`
       role, 
@@ -126,7 +127,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.session?.user) {
         const builtUser = await buildUserFromAuth(data.session.user);
         setUser(builtUser);
-        setAuthRedirect(getDefaultRedirectForRole(builtUser.role));
+        if (builtUser.role) {
+          setAuthRedirect(getDefaultRedirectForRole(builtUser.role as UserRole));
+        }
       }
 
       setAuthReady(true);
@@ -146,7 +149,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (session?.user) {
             const builtUser = await buildUserFromAuth(session.user);
             setUser(builtUser);
-            setAuthRedirect(getDefaultRedirectForRole(builtUser.role));
+            if (builtUser.role) {
+              setAuthRedirect(getDefaultRedirectForRole(builtUser.role as UserRole));
+            }
           }
         }
       );
@@ -167,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /* Actions */
   /* ------------------------------------------------ */
 
-  const login = async (email: string, password: string): Promise<UserRole | null> => {
+  const login = async (email: string, password: string): Promise<UserRole> => {
     await initPromise;
     if (!supabase) throw new Error("Supabase not configured");
     
@@ -176,7 +181,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (error) throw error;
 
-    return normalizeRole(data.user?.user_metadata?.role);
+    const role = normalizeRole(data.user?.user_metadata?.role);
+    if (!role) throw new Error("User role not found");
+    return role;
   };
 
   const signup = async (
@@ -257,19 +264,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const resendVerificationEmail = async () => {
+  const resendVerificationEmail = async (email?: string) => {
     await initPromise;
     if (!supabase) throw new Error("Supabase not configured");
-    if (!user?.email) throw new Error("No email");
+    
+    const targetEmail = email || user?.email;
+    if (!targetEmail) throw new Error("No email provided for verification");
 
     const redirectTo =
       import.meta.env.VITE_APP_URL || window.location.origin;
 
     const { error } = await supabase.auth.resend({
       type: "signup",
-      email,
+      email: targetEmail,
       options: { emailRedirectTo: `${redirectTo}/auth/callback` }
     });
+
+    if (error) throw error;
   };
 
   return (
@@ -284,9 +295,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         resendVerificationEmail,
         isLoggedIn: !!user,
         isLoading: !authReady,
-        isEmailVerified: !!user?.email_verified,
-        authRedirect,
-        clearAuthRedirect: () => setAuthRedirect(null)
+        needs_role_selection: !role,
+        email_verified: !!authUser.email_confirmed_at
       }}
     >
       {children}
@@ -305,6 +315,7 @@ export function useAuth(): AuthContextType {
 }
 
 export async function getAuthToken(): Promise<string | null> {
+  if (!supabase) return null;
   const { data } = await supabase.auth.getSession();
   return data.session?.access_token ?? null;
 }

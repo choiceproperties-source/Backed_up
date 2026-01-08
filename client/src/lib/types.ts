@@ -188,11 +188,13 @@ export interface AuthContextType {
   sendMagicLink: (email: string) => Promise<void>;
   logout: () => void;
   resetPassword: (email: string) => Promise<void>;
-  resendVerificationEmail: () => Promise<void>;
+  resendVerificationEmail: (email?: string) => Promise<void>;
   updateUserRole: (role: UserRole) => Promise<void>;
   isLoggedIn: boolean;
   isLoading: boolean;
   isEmailVerified: boolean;
+  authRedirect: string | null;
+  clearAuthRedirect: () => void;
 }
 
 // Application types aligned with database

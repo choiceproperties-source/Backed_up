@@ -50,11 +50,7 @@ export default function VerifyEmail() {
 
     setResending(true);
     try {
-      await fetch("/api/v2/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
+      await resendVerificationEmail(email);
       
       setCooldown(60);
       toast({

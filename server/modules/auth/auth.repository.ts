@@ -88,11 +88,12 @@ export class AuthRepository {
     const sb = this.ensureSupabase();
     const publicUrl = process.env.VITE_APP_URL || process.env.PUBLIC_URL || 'http://localhost:5000';
     
+    // Use the auth callback route which is configured in Supabase for redirection
     const { error } = await sb.auth.resend({
       type: 'signup',
       email: email,
       options: {
-        emailRedirectTo: `${publicUrl}/login`
+        emailRedirectTo: `${publicUrl}/auth/callback`
       }
     });
 
