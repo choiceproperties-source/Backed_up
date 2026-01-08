@@ -208,9 +208,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(result.error || "Signup failed");
     }
 
-    // After backend signup, log the user in to establish session
-    await login(email, password);
-
+    // After backend signup, the user must verify their email before logging in.
+    // We do NOT call login() here anymore to avoid establishing an unverified session.
     return role;
   };
 

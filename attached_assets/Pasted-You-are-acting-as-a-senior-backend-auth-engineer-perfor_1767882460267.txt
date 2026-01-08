@@ -1,0 +1,104 @@
+You are acting as a senior backend/auth engineer performing a PRODUCTION FIX (not a refactor).
+
+SCOPE (DO NOT GO BEYOND THIS):
+- Sign-up flow
+- Email confirmation flow
+- Login flow
+- Password reset flow
+- Supabase Auth configuration
+- Email delivery correctness
+
+DO NOT:
+- Redesign UI
+- Add new features
+- Touch unrelated services
+- Ask for Autonomous Mode
+- Assume emails are working unless verified in code
+
+=====================================
+TASK 1 — FULL AUTH FLOW AUDIT
+=====================================
+Trace the FULL execution path for:
+1. User sign-up
+2. Email confirmation
+3. Login
+4. Password reset
+
+Files to inspect:
+- server/modules/auth/auth.routes.ts
+- server/modules/auth/auth.service.ts
+- server/modules/auth/auth.repository.ts
+- client/src/context/auth-context.tsx
+- client/src/pages/signup.tsx
+- client/src/pages/login.tsx
+- client/src/pages/forgot-password.tsx
+- client/src/pages/reset-password.tsx
+- Supabase Auth usage
+
+Explicitly verify:
+- Whether email confirmation is actually triggered
+- Whether Supabase is marking users as confirmed automatically
+- Whether frontend logic matches backend auth state
+- Whether password reset links contain valid redirect URLs
+
+=====================================
+TASK 2 — FIX EMAIL CONFIRMATION BUG
+=====================================
+If you find email_confirm: true or any logic that auto-confirms users:
+- REMOVE IT
+- Restore Supabase’s default email confirmation behavior
+- Ensure new users are created UNCONFIRMED
+- Ensure Supabase sends a verification email
+
+This fix is REQUIRED.
+
+=====================================
+TASK 3 — ALIGN FRONTEND LOGIC
+=====================================
+Ensure frontend behavior matches auth reality:
+- Do NOT log users in immediately after signup
+- Do NOT redirect to /verify-email if the user is already confirmed
+- Ensure login is blocked until email is verified
+- Show clear feedback when confirmation is required
+
+=====================================
+TASK 4 — PASSWORD RESET VALIDATION
+=====================================
+Verify that:
+- supabase.auth.resetPasswordForEmail is used correctly
+- redirectTo uses a valid production URL
+- No hardcoded localhost or missing env variables
+- Reset links are not broken
+
+=====================================
+TASK 5 — EMAIL DELIVERY SANITY CHECK
+=====================================
+Confirm:
+- Auth emails are sent via Supabase Auth (not server/email.ts)
+- No mock / fake email success paths exist
+- No dependency on REPLIT_CONNECTORS_HOSTNAME for auth emails
+- SendGrid is NOT assumed unless configured in Supabase SMTP
+
+=====================================
+TASK 6 — SAFE, MINIMAL CODE FIXES
+=====================================
+Apply ONLY necessary fixes to:
+- Restore email confirmation
+- Fix incorrect redirects
+- Remove misleading UX
+- Ensure production-safe behavior
+
+Do NOT introduce breaking changes.
+
+=====================================
+TASK 7 — FINAL OUTPUT
+=====================================
+After fixes:
+1. Summarize what was broken
+2. List exact code changes made (file + reason)
+3. Confirm whether sign-up and password reset emails WILL now send
+4. State any REQUIRED Supabase dashboard settings (if applicable)
+
+Do NOT claim success unless email confirmation is truly enabled.
+
+This is a PRODUCTION READINESS FIX, not a theoretical audit.

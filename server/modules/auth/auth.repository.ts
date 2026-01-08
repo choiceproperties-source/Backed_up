@@ -31,7 +31,7 @@ export class AuthRepository {
       password,
       phone: phone || undefined,
       user_metadata: { full_name: fullName, phone: phone || null, role },
-      email_confirm: true,
+      email_confirm: false,
     });
 
     if (error) {
@@ -110,8 +110,9 @@ export class AuthRepository {
 
   async resetPasswordForEmail(email: string): Promise<void> {
     const sb = this.ensureSupabase();
+    const publicUrl = process.env.VITE_APP_URL || process.env.PUBLIC_URL || 'http://localhost:5000';
     const { error } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.PUBLIC_URL || 'http://localhost:5000'}/reset-password`,
+      redirectTo: `${publicUrl}/reset-password`,
     });
 
     if (error) {
