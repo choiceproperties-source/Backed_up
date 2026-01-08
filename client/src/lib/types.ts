@@ -161,7 +161,7 @@ export interface User {
   needs_role_selection?: boolean;
 }
 
-export type UserRole = 'renter' | 'buyer' | 'landlord' | 'property_manager' | 'agent' | 'admin';
+export type UserRole = 'renter' | 'buyer' | 'landlord' | 'property_manager' | 'agent' | 'admin' | 'tenant';
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
   renter: 'Renter',
@@ -170,6 +170,7 @@ export const USER_ROLE_LABELS: Record<UserRole, string> = {
   property_manager: 'Property Manager',
   agent: 'Real Estate Agent',
   admin: 'Administrator',
+  tenant: 'Tenant',
 };
 
 export const USER_ROLE_DESCRIPTIONS: Record<UserRole, string> = {
@@ -179,6 +180,7 @@ export const USER_ROLE_DESCRIPTIONS: Record<UserRole, string> = {
   property_manager: 'Manages multiple properties',
   agent: 'Licensed real estate agent',
   admin: 'System administrator',
+  tenant: 'Tenant of a property',
 };
 
 export interface AuthContextType {

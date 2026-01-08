@@ -198,11 +198,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const builtUser = await buildUserFromAuth(data.user);
       setUser(builtUser);
       
-      const role = builtUser.role;
+      const role = builtUser.role as UserRole;
       if (!role) throw new Error("User role not found");
       
-      setAuthRedirect(getDefaultRedirectForRole(role as UserRole));
-      return role as UserRole;
+      const redirect = getDefaultRedirectForRole(role);
+      setAuthRedirect(redirect);
+      return role;
     } finally {
       setAuthReady(true);
     }
