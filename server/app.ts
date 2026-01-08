@@ -132,6 +132,8 @@ export default async function runApp(
   setup: (app: Express, server: Server) => Promise<void>,
 ) {
   const server = await registerRoutes(app);
+  // trust proxy must be set for express-rate-limit to work correctly behind proxies (like Replit)
+  app.set('trust proxy', 1);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

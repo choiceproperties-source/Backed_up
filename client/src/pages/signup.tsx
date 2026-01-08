@@ -205,7 +205,7 @@ export default function Signup() {
                       <FormItem>
                         <FormLabel className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground/70">
                           <Phone className="h-3.5 w-3.5" />
-                          Phone Number
+                          Phone Number (Optional)
                         </FormLabel>
                         <FormControl>
                           <Input 
