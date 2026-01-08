@@ -85,6 +85,7 @@ export default function VerifyEmail() {
 
       if (data.session?.user?.email_confirmed_at) {
         localStorage.removeItem("pending_verification_email");
+        localStorage.removeItem("auth_redirect_to"); // Ensure redirect is handled cleanly
         toast({
           title: "Email verified",
           description: "You can now continue.",

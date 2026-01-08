@@ -153,19 +153,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (session?.user) {
-            // Check if we already have a user with a role to avoid double fetch/redirect
+            // Check if we already have a user with a role to avoid double fetch
             if (user && user.id === session.user.id && user.role) {
               return;
             }
 
             const builtUser = await buildUserFromAuth(session.user);
             setUser(builtUser);
-            if (builtUser.role) {
-              const redirect = getDefaultRedirectForRole(builtUser.role as UserRole);
-              if (window.location.pathname !== redirect) {
-                setAuthRedirect(redirect);
-              }
-            }
+            // We removed the automatic setAuthRedirect here to avoid unexpected redirects
+            // during background token refreshes or state restores.
           }
         }
       );
@@ -202,8 +198,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // 3. Role-based Redirect
-    const redirect = getDefaultRedirectForRole(builtUser.role as UserRole);
-    setLocation(redirect);
+    // Landlord -> /dashboard/landlord
+    // Tenant -> /dashboard/tenant
+    // Others -> /dashboard
+    if (builtUser.role === "landlord") {
+      setLocation("/dashboard/landlord");
+    } else if (builtUser.role === "tenant") {
+      setLocation("/dashboard/tenant");
+    } else {
+      setLocation("/dashboard");
+    }
   };
 
   const login = async (email: string, password: string): Promise<UserRole> => {
