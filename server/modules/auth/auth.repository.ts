@@ -31,7 +31,7 @@ export class AuthRepository {
       password,
       phone: phone || undefined,
       user_metadata: { full_name: fullName, phone: phone || null, role },
-      email_confirm: false,
+      email_confirm: true,
     });
 
     if (error) {
