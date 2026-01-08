@@ -34,6 +34,8 @@ const getDefaultRedirectForRole = (role: UserRole | null) => {
       return "/landlord-dashboard";
     case "renter":
       return "/renter-dashboard";
+    case "tenant":
+      return "/tenant-dashboard";
     default:
       return "/select-role";
   }
@@ -135,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthReady(true);
       initializing.current = false;
 
-      /* ---------- AUTH STATE CHANGES ---------- */
+  /* ---------- AUTH STATE CHANGES ---------- */
       const { data: listener } = supabase.auth.onAuthStateChange(
         async (event, session) => {
           if (initializing.current) return;
@@ -147,10 +149,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (session?.user) {
+            // Check if we already have a user with a role to avoid double fetch/redirect
+            if (user && user.id === session.user.id && user.role) {
+              return;
+            }
+
             const builtUser = await buildUserFromAuth(session.user);
             setUser(builtUser);
             if (builtUser.role) {
-              setAuthRedirect(getDefaultRedirectForRole(builtUser.role as UserRole));
+              const redirect = getDefaultRedirectForRole(builtUser.role as UserRole);
+              if (window.location.pathname !== redirect) {
+                setAuthRedirect(redirect);
+              }
             }
           }
         }
@@ -176,14 +186,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await initPromise;
     if (!supabase) throw new Error("Supabase not configured");
     
-    const { data, error } =
-      await supabase.auth.signInWithPassword({ email, password });
+    setAuthReady(false); // Show loading state during role resolution
+    try {
+      const { data, error } =
+        await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    const role = normalizeRole(data.user?.user_metadata?.role);
-    if (!role) throw new Error("User role not found");
-    return role;
+      if (!data.user) throw new Error("User not found");
+
+      const builtUser = await buildUserFromAuth(data.user);
+      setUser(builtUser);
+      
+      const role = builtUser.role;
+      if (!role) throw new Error("User role not found");
+      
+      setAuthRedirect(getDefaultRedirectForRole(role as UserRole));
+      return role as UserRole;
+    } finally {
+      setAuthReady(true);
+    }
   };
 
   const signup = async (

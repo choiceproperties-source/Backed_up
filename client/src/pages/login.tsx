@@ -64,29 +64,14 @@ export default function Login() {
     setLoading(true);
     setNeedsVerification(false);
     try {
-      const role = await login(data.email, data.password);
+      await login(data.email, data.password);
 
       toast({
         title: "Welcome back!",
         description: "You are now signed in."
       });
-
-      // Role-based redirection is also handled in auth-context, 
-      // but we keep this for immediate feedback
-      switch (role) {
-        case "admin":
-          setLocation("/admin");
-          break;
-        case "agent":
-          setLocation("/agent-dashboard");
-          break;
-        case "landlord":
-        case "property_manager":
-          setLocation("/landlord-dashboard");
-          break;
-        default:
-          setLocation("/renter-dashboard");
-      }
+      
+      // Navigation is now handled by authRedirect in auth-context + ProtectedRoute/App logic
     } catch (err: any) {
       console.error("[Login] Error:", err);
       

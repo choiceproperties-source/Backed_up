@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
+import { Loader2 } from "lucide-react";
 
 export default function AuthCallback() {
   const [, setLocation] = useLocation();
   const [error, setError] = useState<string | null>(null);
+  const { authRedirect, clearAuthRedirect, user, isLoading } = useAuth();
 
   useEffect(() => {
     const run = async () => {
@@ -27,34 +30,53 @@ export default function AuthCallback() {
           setError(error.message);
           return;
         }
-
-        setLocation("/");
-        return;
       }
-
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        setLocation("/");
-        return;
-      }
-
-      setError("Authentication failed");
     };
 
     run();
   }, []);
 
+  useEffect(() => {
+    if (!isLoading && user) {
+      if (authRedirect) {
+        const target = authRedirect;
+        clearAuthRedirect();
+        setLocation(target);
+      } else if (user.needs_role_selection) {
+        setLocation("/select-role");
+      } else {
+        setLocation("/");
+      }
+    } else if (!isLoading && !user && !window.location.hash) {
+      setLocation("/login");
+    }
+  }, [user, isLoading, authRedirect, clearAuthRedirect, setLocation]);
+
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-500">{error}</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center p-6 max-w-sm mx-auto">
+          <p className="text-destructive font-bold mb-2">Authentication Error</p>
+          <p className="text-muted-foreground text-sm">{error}</p>
+          <button 
+            onClick={() => setLocation("/login")}
+            className="mt-4 text-primary font-bold hover:underline"
+          >
+            Back to login
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-center space-y-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+        <p className="text-muted-foreground font-medium animate-pulse">
+          Completing authentication...
+        </p>
+      </div>
     </div>
   );
 }
