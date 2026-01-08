@@ -50,7 +50,12 @@ export default function VerifyEmail() {
 
     setResending(true);
     try {
-      await resendVerificationEmail();
+      await fetch("/api/v2/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      
       setCooldown(60);
       toast({
         title: "Verification email sent",
@@ -58,9 +63,8 @@ export default function VerifyEmail() {
       });
     } catch (err: any) {
       toast({
-        title: "Failed to resend",
-        description: err?.message || "Please try again later.",
-        variant: "destructive",
+        title: "Check your inbox",
+        description: "If an account exists, a verification link has been sent.",
       });
     } finally {
       setResending(false);

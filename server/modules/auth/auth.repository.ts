@@ -86,9 +86,14 @@ export class AuthRepository {
 
   async resendVerificationEmail(email: string) {
     const sb = this.ensureSupabase();
+    const publicUrl = process.env.VITE_APP_URL || process.env.PUBLIC_URL || 'http://localhost:5000';
+    
     const { error } = await sb.auth.resend({
       type: 'signup',
       email: email,
+      options: {
+        emailRedirectTo: `${publicUrl}/login`
+      }
     });
 
     if (error) {

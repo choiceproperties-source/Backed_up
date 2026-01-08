@@ -1,0 +1,107 @@
+TASK: Add a production-ready "Resend Verification Email" flow to the Choice Properties authentication system.
+
+CONSTRAINTS:
+- Do NOT use Autonomous Mode
+- Do NOT refactor unrelated auth logic
+- Use existing Supabase auth setup
+- Follow current API v2 patterns
+- Maintain security and rate limiting
+
+---
+
+PART 1 — BACKEND: Resend Verification Endpoint
+
+1. Create a new POST endpoint:
+   /api/v2/auth/resend-verification
+
+2. In server/modules/auth/auth.routes.ts:
+   - Register a new route:
+     POST /resend-verification
+   - Validate request body:
+     { email: string }
+   - Reject empty or invalid emails
+
+3. In server/modules/auth/auth.service.ts:
+   - Add resendVerificationEmail(email)
+   - Call repository method
+   - Return success message without exposing user existence
+
+4. In server/modules/auth/auth.repository.ts:
+   - Implement resendVerificationEmail(email)
+   - Use Supabase admin API:
+     supabase.auth.admin.generateLink({
+       type: "signup",
+       email,
+       options: {
+         redirectTo: `${process.env.VITE_APP_URL}/login`
+       }
+     })
+   - Send the generated confirmation link via Supabase email system
+   - DO NOT auto-confirm users
+
+5. Security:
+   - Always return generic success message
+   - Do not leak whether email exists
+   - Add simple rate limit (e.g. 1 request per 60 seconds per IP)
+
+---
+
+PART 2 — FRONTEND: Verify Email Page UX
+
+1. In client/src/pages/verify-email.tsx:
+   - Add a "Resend verification email" button
+   - Button should:
+     - Be disabled while loading
+     - Show spinner during request
+     - Be disabled for 60 seconds after success
+
+2. On click:
+   - Call POST /api/v2/auth/resend-verification
+   - Payload: { email }
+   - Email should come from signup state or URL query
+
+3. Success UI:
+   - Toast: "Verification email sent. Check your inbox."
+   - Show countdown before enabling resend again
+
+4. Error UI:
+   - Toast: "If the email exists, a verification link has been sent."
+   - Do not reveal backend errors
+
+---
+
+PART 3 — UX & POLISH
+
+1. Button text states:
+   - Default: "Resend verification email"
+   - Loading: "Sending..."
+   - Disabled: "Resend available in 60s"
+
+2. Accessibility:
+   - Use aria-disabled
+   - Ensure keyboard accessibility
+
+3. Styling:
+   - Match existing SaaS button styles
+   - Use h-11 button height
+   - Secondary button variant
+
+---
+
+PART 4 — FINAL VERIFICATION CHECKLIST
+
+Confirm the following:
+- Signup creates UNCONFIRMED users
+- Resend email sends Supabase confirmation email
+- No auto-login occurs
+- Rate limiting prevents abuse
+- Works in production with SendGrid SMTP via Supabase
+- Redirect after confirmation lands on /login
+
+DO NOT:
+- Add new auth providers
+- Modify password reset flow
+- Auto-confirm users
+- Expose user existence
+
+Deliver clean, minimal code changes only.

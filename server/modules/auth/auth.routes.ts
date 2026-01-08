@@ -61,18 +61,18 @@ export function registerAuthRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/v2/auth/resend-verification", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/v2/auth/resend-verification", authLimiter, async (req, res) => {
     try {
-      if (!req.user?.email) {
-        return res.status(400).json(apiError("No email address found"));
+      const { email } = req.body;
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json(apiError("Email is required"));
       }
 
-      await authService.resendVerificationEmail(req.user.email);
-      return res.json(apiSuccess(undefined, "Verification email sent"));
+      await authService.resendVerificationEmail(email);
+      return res.json(apiSuccess(undefined, "If an account exists, a verification email has been sent."));
     } catch (err: any) {
-      const status = err.status || 500;
-      const message = err.message || "Failed to resend verification email";
-      return res.status(status).json(apiError(message));
+      // Always return success to avoid leaking user existence
+      return res.json(apiSuccess(undefined, "If an account exists, a verification email has been sent."));
     }
   });
 
