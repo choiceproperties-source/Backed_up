@@ -110,9 +110,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileName = `${timestamp}-${randomId}-${file.name}`;
       const filePath = `${folder}/${fileName}`;
 
+      // Map folders to buckets
+      const bucketName = folder === 'avatars' ? 'avatars' : 'property-images';
+
       // Upload using service role key (has admin permissions)
       const { data, error } = await supabase.storage
-        .from('property-images')
+        .from(bucketName)
         .upload(filePath, buffer, {
           contentType: file.type,
           cacheControl: '3600',
@@ -126,7 +129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get public URL
       const { data: publicUrlData } = supabase.storage
-        .from('property-images')
+        .from(bucketName)
         .getPublicUrl(filePath);
 
       res.json({

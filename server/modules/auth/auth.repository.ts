@@ -136,4 +136,26 @@ export class AuthRepository {
       throw error;
     }
   }
+
+  async updateUserProfile(userId: string, data: { fullName?: string; displayEmail?: string; displayPhone?: string; profileImage?: string }) {
+    const sb = this.ensureSupabase();
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    };
+    
+    if (data.fullName !== undefined) updateData.full_name = data.fullName;
+    if (data.displayEmail !== undefined) updateData.display_email = data.displayEmail;
+    if (data.displayPhone !== undefined) updateData.display_phone = data.displayPhone;
+    if (data.profileImage !== undefined) updateData.profile_image = data.profileImage;
+
+    const { data: updated, error } = await sb
+      .from('users')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return updated;
+  }
 }

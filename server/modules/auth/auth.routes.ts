@@ -110,4 +110,21 @@ export function registerAuthRoutes(app: Express): void {
       return res.status(status).json(apiError(message));
     }
   });
+
+  app.patch("/api/v2/auth/profile", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { fullName, displayEmail, displayPhone, profileImage } = req.body;
+      const result = await authService.updateProfile(req.user!.id, {
+        fullName,
+        displayEmail,
+        displayPhone,
+        profileImage
+      });
+      return res.json(apiSuccess(result.user, "Profile updated successfully"));
+    } catch (err: any) {
+      const status = err.status || 500;
+      const message = err.message || "Failed to update profile";
+      return res.status(status).json(apiError(message));
+    }
+  });
 }

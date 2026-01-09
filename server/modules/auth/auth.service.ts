@@ -129,4 +129,18 @@ export class AuthService {
       throw { status: 400, message: err.message || "Failed to update password" };
     }
   }
+
+  async updateProfile(userId: string, data: { fullName?: string; displayEmail?: string; displayPhone?: string; profileImage?: string }) {
+    if (!userId) {
+      throw { status: 400, message: "User ID is required" };
+    }
+
+    try {
+      const updatedUser = await this.repository.updateUserProfile(userId, data);
+      return { success: true, user: updatedUser };
+    } catch (err: any) {
+      console.error("[AUTH] Update profile error:", err);
+      throw { status: 500, message: "Failed to update profile" };
+    }
+  }
 }
