@@ -126,11 +126,7 @@ export async function findPropertyById(id: string) {
 
   const { data, error } = await supabase
     .from("properties")
-    .select(`
-      *,
-      owner:users!properties_owner_id_fkey(*),
-      organization:agencies(*)
-    `)
+    .select("*")
     .eq("id", id)
     .single();
 
@@ -196,7 +192,7 @@ export async function createProperty(propertyData: PropertyCreateData) {
     'title', 'description', 'address', 'city', 'state', 'zip_code',
     'price', 'bedrooms', 'bathrooms', 'square_feet', 'property_type',
     'amenities', 'images', 'latitude', 'longitude', 'furnished',
-    'pets_allowed', 'utilities_included', 'status', 'owner_id', 'agency_id',
+    'pets_allowed', 'utilities_included', 'status', 'owner_id',
     'created_at', 'updated_at', 'view_count', 'deposit', 'hoa_fee',
     'year_built', 'expires_at', 'publish_at'
   ];
@@ -342,10 +338,6 @@ export async function updateProperty(
     'status': 'status',
     'viewCount': 'view_count',
     'view_count': 'view_count',
-    'organizationId': 'agency_id',
-    'organization_id': 'agency_id',
-    'agencyId': 'agency_id',
-    'agency_id': 'agency_id',
     'deposit': 'deposit',
     'hoaFee': 'hoa_fee',
     'hoa_fee': 'hoa_fee',
