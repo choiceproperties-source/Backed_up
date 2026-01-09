@@ -17,9 +17,38 @@ interface PostedByProps {
     email?: string | null;
     is_verified?: boolean | null;
   } | null;
+  organization?: {
+    name: string;
+    logo: string | null;
+  } | null;
 }
 
-export function PostedBy({ owner }: PostedByProps) {
+export function PostedBy({ owner, organization }: PostedByProps) {
+  if (organization) {
+    return (
+      <div className="flex items-center justify-between gap-4 py-3 group rounded-xl">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Avatar className="h-12 w-12 border-2 border-background shadow-sm rounded-full">
+              <AvatarImage src={organization.logo || undefined} alt={organization.name} />
+              <AvatarFallback className="bg-blue-50 text-blue-600 text-base font-bold">
+                {organization.name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-base font-bold text-foreground leading-tight">
+              {organization.name}
+            </span>
+            <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">
+              Managed by
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!owner) return null;
 
   const fullName = owner.full_name || "Property Owner";
@@ -35,7 +64,7 @@ export function PostedBy({ owner }: PostedByProps) {
     .toUpperCase()
     .substring(0, 2);
 
-  const roleLabel = role === 'agent' ? 'Listing Agent' : role === 'landlord' ? 'Landlord' : 'Property Owner';
+  const roleLabel = role === 'landlord' ? 'Posted by Property Owner' : role === 'manager' ? 'Posted by Property Manager' : 'Property Owner';
   const verificationLabel = role === 'agent' ? 'Verified Agent' : 'Verified Owner';
 
   return (

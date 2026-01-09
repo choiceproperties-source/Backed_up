@@ -43,7 +43,7 @@ export default function PropertyDetails() {
   const [submittingInquiry, setSubmittingInquiry] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
-  const { data: propertyData, isLoading } = useQuery<{ property: Property; owner: Owner | null }>({
+  const { data: propertyData, isLoading } = useQuery<{ property: Property; owner: Owner | null; organization: any | null }>({
     queryKey: ['/api/v2/properties', id],
     enabled: !!id && !!match,
     queryFn: async () => {
@@ -52,7 +52,8 @@ export default function PropertyDetails() {
       const propertyInfo = json?.data || json;
       return {
         property: propertyInfo,
-        owner: propertyInfo?.owner || null
+        owner: propertyInfo?.owner || null,
+        organization: propertyInfo?.organization || null
       };
     },
   });
@@ -170,8 +171,10 @@ export default function PropertyDetails() {
             <div className="lg:col-span-2 space-y-8">
                 <Card className="p-8 rounded-xl border border-border/50 shadow-xl" data-testid="section-posted-by">
                   <div className="mb-6">
-                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-4">Listing Representative</p>
-                    <PostedBy owner={property.owner} />
+                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-4">
+                      {propertyData?.organization ? "Management Team" : "Listing Representative"}
+                    </p>
+                    <PostedBy owner={property.owner || null} organization={propertyData?.organization} />
                   </div>
                   <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
                     <MapPin className="h-5 w-5 mr-1 text-blue-600" />
@@ -395,7 +398,7 @@ export default function PropertyDetails() {
                     <p className="text-white font-bold uppercase tracking-widest text-xs">Interested? Contact Agent</p>
                   </div>
                     <CardContent className="p-6 space-y-6">
-                      <PostedBy owner={property.owner} />
+                      <PostedBy owner={property.owner || null} organization={propertyData?.organization} />
                     <div className="space-y-4">
                       <Input 
                         placeholder="Full Name" 
