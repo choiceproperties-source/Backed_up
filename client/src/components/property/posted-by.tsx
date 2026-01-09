@@ -9,14 +9,25 @@ import {
 } from "@/components/ui/tooltip";
 
 interface PostedByProps {
-  fullName: string;
-  profileImage: string | null;
-  role: string | null;
-  displayEmail?: string | null;
-  isVerified?: boolean | null;
+  owner: {
+    full_name: string;
+    profile_image: string | null;
+    role: string | null;
+    display_email?: string | null;
+    email?: string | null;
+    is_verified?: boolean | null;
+  } | null;
 }
 
-export function PostedBy({ fullName, profileImage, role, displayEmail, isVerified }: PostedByProps) {
+export function PostedBy({ owner }: PostedByProps) {
+  if (!owner) return null;
+
+  const fullName = owner.full_name || "Property Owner";
+  const profileImage = owner.profile_image;
+  const role = owner.role;
+  const displayEmail = owner.display_email || owner.email;
+  const isVerified = owner.is_verified;
+
   const initials = fullName
     .split(" ")
     .map((n) => n[0])
