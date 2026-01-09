@@ -390,7 +390,7 @@ export default function PropertyDetails() {
                     <p className="text-white font-bold uppercase tracking-widest text-xs">Interested? Contact Agent</p>
                   </div>
                     <CardContent className="p-6 space-y-6">
-                      <PostedBy owner={property.owner} />
+                      <PostedBy owner={property.owner as any} />
                     <div className="space-y-4">
                       <Input 
                         placeholder="Full Name" 
