@@ -9,85 +9,38 @@ function getSupabase() {
   return getSupabaseOrThrow();
 }
 
+import * as propertyService from "../modules/properties/property.service";
+
 export function registerPropertyRoutes(app: Express): void {
   app.get("/api/properties", async (req, res) => {
     try {
-      const { propertyType, city, minPrice, maxPrice, status, page = "1", limit = "20" } = req.query;
-
-      const pageNum = Math.max(1, parseInt(page as string) || 1);
-      const limitNum = Math.min(100, Math.max(1, parseInt(limit as string) || 20));
-      const offset = (pageNum - 1) * limitNum;
-
-      const cacheKey = `properties:${propertyType || ''}:${city || ''}:${minPrice || ''}:${maxPrice || ''}:${status || 'active'}:${pageNum}:${limitNum}`;
-      const cached = cache.get<{ properties: any; pagination: any }>(cacheKey);
-      if (cached) {
-        return res.json(success(cached, "Properties fetched successfully"));
-      }
-
-      let query = getSupabase().from("properties").select("*", { count: "exact" });
-
-      if (propertyType) query = query.eq("property_type", propertyType);
-      if (city) query = query.ilike("city", `%${city}%`);
-      if (minPrice) query = query.gte("price", minPrice);
-      if (maxPrice) query = query.lte("price", maxPrice);
-      if (status) {
-        query = query.eq("status", status);
-      } else {
-        query = query.eq("status", "active");
-      }
-
-      query = query.order("created_at", { ascending: false })
-        .range(offset, offset + limitNum - 1);
-
-      const { data, error, count } = await query;
-
-      if (error) throw error;
-      
-      const totalPages = Math.ceil((count || 0) / limitNum);
-      
-      const result = {
-        properties: data,
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total: count || 0,
-          totalPages,
-          hasNextPage: pageNum < totalPages,
-          hasPrevPage: pageNum > 1,
-        }
+      const params = {
+        propertyType: req.query.propertyType as string,
+        city: req.query.city as string,
+        minPrice: req.query.minPrice as string,
+        maxPrice: req.query.maxPrice as string,
+        status: req.query.status as string,
+        page: req.query.page as string,
+        limit: req.query.limit as string
       };
 
-      cache.set(cacheKey, result, CACHE_TTL.PROPERTIES_LIST);
-
+      const result = await propertyService.getProperties(params);
       return res.json(success(result, "Properties fetched successfully"));
     } catch (err: any) {
+      console.error("[ROUTES] GET /api/properties error:", err);
       return res.status(500).json(errorResponse("Failed to fetch properties"));
     }
   });
 
   app.get("/api/properties/:id", async (req, res) => {
     try {
-      const cacheKey = `property:${req.params.id}`;
-      const cached = cache.get(cacheKey);
-      if (cached) {
-        return res.json(success(cached, "Property fetched successfully"));
+      const data = await propertyService.getPropertyById(req.params.id);
+      if (!data) {
+        return res.status(404).json(errorResponse("Property not found"));
       }
-
-      const { data, error } = await getSupabase()
-        .from("properties")
-        .select(`
-          *,
-          owner:users!owner_id(id, full_name, profile_image, role, display_email, display_phone)
-        `)
-        .eq("id", req.params.id)
-        .single();
-
-      if (error) throw error;
-      
-      cache.set(cacheKey, data, CACHE_TTL.PROPERTY_DETAIL);
-      
       return res.json(success(data, "Property fetched successfully"));
     } catch (err: any) {
+      console.error("[ROUTES] GET /api/properties/:id error:", err);
       return res.status(500).json(errorResponse("Failed to fetch property"));
     }
   });

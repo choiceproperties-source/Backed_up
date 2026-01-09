@@ -84,6 +84,11 @@ export async function findAllProperties(filters: PropertyFilters) {
   }
 
   const { data, error, count } = await query
+    .select(`
+      *,
+      owner:users!owner_id(id, full_name, profile_image, role, display_email, display_phone, license_verified),
+      agency:agencies!agency_id(id, name, logo, website)
+    `)
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -126,7 +131,11 @@ export async function findPropertyById(id: string) {
 
   const { data, error } = await supabase
     .from("properties")
-    .select("*")
+    .select(`
+      *,
+      owner:users!owner_id(id, full_name, profile_image, role, display_email, display_phone, license_verified),
+      agency:agencies!agency_id(id, name, logo, website)
+    `)
     .eq("id", id)
     .single();
 

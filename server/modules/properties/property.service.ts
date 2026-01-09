@@ -177,6 +177,44 @@ function normalizePropertyInput(body: Record<string, any>): Record<string, any> 
 /* Queries */
 /* ------------------------------------------------ */
 
+/**
+ * Format poster information with role mapping and privacy rules
+ */
+function formatPosterInfo(property: any) {
+  const owner = property.owner;
+  const agency = property.agency;
+  
+  if (!owner) return null;
+
+  const showContact = property.show_contact_info !== false;
+  
+  // Role mapping
+  let roleLabel = "Property Owner";
+  if (owner.role === "agent") roleLabel = "Listing Agent";
+  else if (owner.role === "property_manager") roleLabel = "Property Manager";
+  
+  if (agency) {
+    roleLabel = `${roleLabel} / ${agency.name}`;
+  }
+
+  return {
+    id: owner.id,
+    name: owner.full_name || "Property Owner",
+    avatar: owner.profile_image,
+    role: owner.role,
+    role_label: roleLabel,
+    is_verified: owner.license_verified || false,
+    agency: agency ? {
+      name: agency.name,
+      logo: agency.logo,
+    } : null,
+    contact: {
+      email: showContact ? (owner.display_email || null) : null,
+      phone: showContact ? (owner.display_phone || null) : null,
+    }
+  };
+}
+
 export async function getProperties(
   params: GetPropertiesParams
 ): Promise<GetPropertiesResult> {
@@ -210,10 +248,15 @@ export async function getProperties(
       limit,
     });
 
+  const propertiesWithPoster = data.map(property => ({
+    ...property,
+    poster: formatPosterInfo(property)
+  }));
+
   const totalPages = Math.ceil(count / limit);
 
   const result: GetPropertiesResult = {
-    properties: data,
+    properties: propertiesWithPoster,
     pagination: {
       page,
       limit,
@@ -236,8 +279,13 @@ export async function getPropertyById(id: string): Promise<any> {
   const property = await propertyRepository.findPropertyById(id);
   if (!property) return null;
 
-  cache.set(cacheKey, property, CACHE_TTL.PROPERTY_DETAIL);
-  return property;
+  const hydratedProperty = {
+    ...property,
+    poster: formatPosterInfo(property)
+  };
+
+  cache.set(cacheKey, hydratedProperty, CACHE_TTL.PROPERTY_DETAIL);
+  return hydratedProperty;
 }
 
 /* ------------------------------------------------ */
