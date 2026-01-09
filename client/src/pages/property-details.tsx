@@ -169,18 +169,9 @@ export default function PropertyDetails() {
             {/* Left Column: Details */}
             <div className="lg:col-span-2 space-y-8">
                 <Card className="p-8 rounded-xl border border-border/50 shadow-xl" data-testid="section-posted-by">
-                  <div className="flex items-center gap-4 mb-6">
-                    <Avatar className="h-14 w-14 border-2 border-primary/10">
-                      <AvatarImage src={property.owner?.profile_image || undefined} alt={property.owner?.full_name || ""} />
-                      <AvatarFallback className="text-xl font-bold bg-primary/5">
-                        {property.owner?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || "P"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-1">Listed By</p>
-                      <h3 className="font-bold text-lg">{property.owner?.full_name || "Property Owner"}</h3>
-                      <p className="text-sm text-muted-foreground">{property.owner?.role === 'agent' ? 'Licensed Agent' : 'Property Owner'}</p>
-                    </div>
+                  <div className="mb-6">
+                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-4">Listing Representative</p>
+                    <PostedBy owner={property.owner} />
                   </div>
                   <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
                     <MapPin className="h-5 w-5 mr-1 text-blue-600" />
@@ -404,33 +395,7 @@ export default function PropertyDetails() {
                     <p className="text-white font-bold uppercase tracking-widest text-xs">Interested? Contact Agent</p>
                   </div>
                     <CardContent className="p-6 space-y-6">
-                      <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
-                        <div className="h-12 w-12 rounded-full overflow-hidden border border-gray-200 dark:border-gray-800">
-                          {property.owner?.profile_image ? (
-                            <img 
-                              src={property.owner.profile_image} 
-                              alt={property.owner.full_name || "Owner"} 
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="h-full w-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold text-lg">
-                              {(property.owner?.full_name || "Choice Properties Agent")[0]}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900 dark:text-white">{property.owner?.full_name || "Choice Properties Agent"}</p>
-                          <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">
-                            {property.owner?.role === 'agent' ? 'Listing Agent' : 'Property Owner'}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                            <Phone className="h-3 w-3" /> {property.owner?.display_phone || "Not listed"}
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                            <Mail className="h-3 w-3" /> {property.owner?.display_email || property.owner?.email || "Not listed"}
-                          </div>
-                        </div>
-                      </div>
+                      <PostedBy owner={property.owner} />
                     <div className="space-y-4">
                       <Input 
                         placeholder="Full Name" 
