@@ -171,7 +171,7 @@ export default function PropertyDetails() {
                 <Card className="p-8 rounded-xl border border-border/50 shadow-xl" data-testid="section-posted-by">
                   <div className="mb-6">
                     <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-4">Listing Representative</p>
-                    <PostedBy owner={property.owner} />
+                    <PostedBy owner={property.owner} poster={property.poster} />
                   </div>
                   <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
                     <MapPin className="h-5 w-5 mr-1 text-blue-600" />
@@ -395,7 +395,7 @@ export default function PropertyDetails() {
                     <p className="text-white font-bold uppercase tracking-widest text-xs">Interested? Contact Agent</p>
                   </div>
                     <CardContent className="p-6 space-y-6">
-                      <PostedBy owner={property.owner} />
+                      <PostedBy owner={property.owner} poster={property.poster} />
                     <div className="space-y-4">
                       <Input 
                         placeholder="Full Name" 
