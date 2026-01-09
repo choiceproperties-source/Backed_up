@@ -86,7 +86,7 @@ export function ProfileSettings() {
             type: file.type,
             data: base64Data,
           },
-          folder: "avatars",
+          folder: "profile-images",
         });
         const uploadResult = await uploadRes.json();
         
