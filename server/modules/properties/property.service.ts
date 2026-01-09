@@ -180,9 +180,34 @@ function normalizePropertyInput(body: Record<string, any>): Record<string, any> 
 /**
  * Format poster information with role mapping and privacy rules
  */
-function formatPosterInfo(property: any) {
-  const owner = property.owner;
-  const agency = property.agency;
+async function formatPosterInfo(property: any) {
+  // If owner isn't joined, we need to fetch it
+  let owner = property.owner;
+  if (!owner && property.owner_id) {
+    try {
+      const { getSupabaseOrThrow } = require("../../supabase");
+      const supabase = getSupabaseOrThrow();
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, full_name, profile_image, role, display_email, display_phone, license_verified")
+        .eq("id", property.owner_id)
+        .maybeSingle();
+      
+      if (!error && data) {
+        owner = {
+          id: data.id,
+          full_name: data.full_name,
+          profile_image: data.profile_image,
+          role: data.role,
+          display_email: data.display_email,
+          display_phone: data.display_phone,
+          license_verified: data.license_verified
+        };
+      }
+    } catch (err) {
+      console.error("[PROPERTY_SERVICE] Error fetching owner info:", err);
+    }
+  }
   
   if (!owner) return null;
 
@@ -193,10 +218,6 @@ function formatPosterInfo(property: any) {
   if (owner.role === "agent") roleLabel = "Listing Agent";
   else if (owner.role === "property_manager") roleLabel = "Property Manager";
   
-  if (agency) {
-    roleLabel = `${roleLabel} / ${agency.name}`;
-  }
-
   return {
     id: owner.id,
     name: owner.full_name || "Property Owner",
@@ -204,10 +225,7 @@ function formatPosterInfo(property: any) {
     role: owner.role,
     role_label: roleLabel,
     is_verified: owner.license_verified || false,
-    agency: agency ? {
-      name: agency.name,
-      logo: agency.logo,
-    } : null,
+    agency: null,
     contact: {
       email: showContact ? (owner.display_email || null) : null,
       phone: showContact ? (owner.display_phone || null) : null,
@@ -248,10 +266,10 @@ export async function getProperties(
       limit,
     });
 
-  const propertiesWithPoster = data.map(property => ({
+  const propertiesWithPoster = await Promise.all(data.map(async property => ({
     ...property,
-    poster: formatPosterInfo(property)
-  }));
+    poster: await formatPosterInfo(property)
+  })));
 
   const totalPages = Math.ceil(count / limit);
 
@@ -281,7 +299,7 @@ export async function getPropertyById(id: string): Promise<any> {
 
   const hydratedProperty = {
     ...property,
-    poster: formatPosterInfo(property)
+    poster: await formatPosterInfo(property)
   };
 
   cache.set(cacheKey, hydratedProperty, CACHE_TTL.PROPERTY_DETAIL);
