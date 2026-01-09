@@ -3,6 +3,7 @@ import { insertPropertySchema } from "@shared/schema";
 import { cache, CACHE_TTL } from "../../cache";
 import { invalidateOwnershipCache } from "../../auth-middleware";
 import * as propertyRepository from "./property.repository";
+import { getSupabaseOrThrow } from "../../supabase";
 
 /* ------------------------------------------------ */
 /* Types */
@@ -185,7 +186,6 @@ async function formatPosterInfo(property: any) {
   let owner = property.owner;
   if (!owner && property.owner_id) {
     try {
-      const { getSupabaseOrThrow } = require("../../supabase");
       const supabase = getSupabaseOrThrow();
       const { data, error } = await supabase
         .from("users")
