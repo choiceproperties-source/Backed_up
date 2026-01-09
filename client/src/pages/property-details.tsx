@@ -50,9 +50,10 @@ export default function PropertyDetails() {
       const res = await fetch(`/api/v2/properties/${id}`);
       const json = await res.json();
       const propertyInfo = json?.data || json;
+      console.log("Fetched property info:", propertyInfo);
       return {
         property: propertyInfo,
-        owner: propertyInfo?.owner || null
+        owner: propertyInfo?.poster || propertyInfo?.owner || null
       };
     },
   });
@@ -390,7 +391,7 @@ export default function PropertyDetails() {
                     <p className="text-white font-bold uppercase tracking-widest text-xs">Interested? Contact Agent</p>
                   </div>
                     <CardContent className="p-6 space-y-6">
-                      <PostedBy owner={property.owner as any} />
+                      <PostedBy owner={propertyData?.owner as any} />
                     <div className="space-y-4">
                       <Input 
                         placeholder="Full Name" 
