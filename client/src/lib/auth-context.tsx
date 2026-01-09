@@ -201,12 +201,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Landlord -> /dashboard/landlord
     // Tenant -> /dashboard/tenant
     // Others -> /dashboard
-    if (builtUser.role === "landlord") {
-      setLocation("/dashboard/landlord");
-    } else if (builtUser.role === "tenant") {
-      setLocation("/dashboard/tenant");
+    if (builtUser.role === "landlord" || builtUser.role === "property_manager") {
+      setLocation("/landlord-dashboard");
+    } else if (builtUser.role === "renter") {
+      setLocation("/renter-dashboard");
+    } else if (builtUser.role === "agent") {
+      setLocation("/agent-dashboard");
+    } else if (builtUser.role === "admin") {
+      setLocation("/admin");
     } else {
-      setLocation("/dashboard");
+      setLocation("/select-role");
     }
   };
 

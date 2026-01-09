@@ -34,7 +34,7 @@ export default function AgentDashboard() {
 
   // Filter properties assigned to this agent
   const assignedProperties = properties.filter(
-    (p: any) => p.listingAgentId === user?.id
+    (p: any) => p.listing_agent_id === user?.id
   );
 
   // Calculate stats
