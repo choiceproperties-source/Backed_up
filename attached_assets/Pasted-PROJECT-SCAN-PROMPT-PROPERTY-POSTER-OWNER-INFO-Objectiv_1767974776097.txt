@@ -1,0 +1,49 @@
+PROJECT SCAN PROMPT: PROPERTY POSTER / OWNER INFO
+
+Objective:
+Scan the entire Choice Properties project to audit how property poster/owner information is currently fetched, stored, and displayed. The goal is to identify existing logic, components, APIs, database relationships, and any gaps, so we can later implement a professional and dynamic system.
+
+Tasks for AI:
+
+1. DATABASE SCHEMA ANALYSIS
+   - Inspect the `properties` table/schema. Identify how `owner_id`, `organization_id`, or any user/poster references are stored.
+   - Inspect the `users` table/schema. Identify fields: full_name, role, avatar, organization_id, etc.
+   - Inspect any `organizations` or `management_team` tables.
+
+2. BACKEND LOGIC
+   - Locate all backend services, modules, or routes handling property creation and fetching:
+     - Check `server/modules/properties/` or similar modules.
+     - Check `application-service.ts` or any legacy services.
+   - Identify logic fetching the poster info:
+     - Are `owner_id` or `organization_id` being joined or populated?
+     - How is the role determined and returned to the frontend?
+   - Note any conditional logic for role-based display (landlord vs manager vs team).
+
+3. FRONTEND COMPONENTS
+   - Identify components rendering property details, e.g., `PropertyDetails.tsx`, `PropertyCard.tsx`.
+   - Check how poster info is displayed:
+     - Are names, roles, or avatars being fetched dynamically?
+     - Are any placeholders or hardcoded values used?
+   - Identify components or utilities that fetch poster info separately (e.g., from API calls).
+
+4. NOTIFICATION & DASHBOARD RELATION
+   - Identify if poster info is reused anywhere else: dashboards, notifications, or other pages.
+   - Check if updates to user profiles reflect dynamically on property pages.
+
+5. ISSUES & GAPS
+   - Note any inconsistencies: e.g., missing avatars, roles not displayed correctly, legacy logic in multiple places.
+   - Note if multi-manager or organization scenarios are unsupported or partially supported.
+
+6. OUTPUT
+   - Produce a full audit report including:
+     - Tables and fields used
+     - Backend modules/routes handling poster info
+     - Frontend components rendering poster info
+     - Gaps or inconsistencies
+     - Recommendations for a unified, professional approach
+   - Output the report in a Markdown file named `PROPERTY_POSTER_AUDIT.md` in the project root.
+
+Instructions:
+- Be thorough; list every place poster/owner info is stored, fetched, or displayed.
+- Note all legacy logic, duplicated code, and areas needing modernization.
+- Ensure findings are actionable for implementing a dynamic, role-aware, SaaS-grade system.
