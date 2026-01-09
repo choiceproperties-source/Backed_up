@@ -152,26 +152,6 @@ export const PropertyCard = memo(function PropertyCard({ property, onShare }: Pr
               </div>
             </div>
 
-            {/* Poster Info */}
-            {property.poster && (
-              <div className="flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 mt-2">
-                <Avatar className="h-6 w-6 rounded-full overflow-hidden">
-                  <AvatarImage src={property.poster.avatar || undefined} />
-                  <AvatarFallback className="text-[8px] bg-blue-50 text-blue-600">
-                    {property.poster.name.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[11px] font-bold text-slate-900 dark:text-slate-100 truncate">
-                    {property.poster.name}
-                  </span>
-                  <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-tight font-medium truncate">
-                    {property.poster.role_label}
-                  </span>
-                </div>
-              </div>
-            )}
-
             {/* Optional Badges (Pets, Furnished) */}
             <div className="flex flex-wrap gap-1.5 pt-1">
               {property.pets_allowed && (
