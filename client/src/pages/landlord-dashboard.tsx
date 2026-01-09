@@ -44,15 +44,15 @@ export default function LandlordDashboard() {
 
   // Calculate stats - MUST be before any early returns to comply with React hooks rules
   const stats = useMemo(() => {
-    const propList = properties || [];
-    const appList = applications || [];
+    const propList = Array.isArray(properties) ? properties : [];
+    const appList = Array.isArray(applications) ? applications : [];
     const activeProperties = propList.filter((p: any) => p.status === 'active');
     const rentedProperties = propList.filter((p: any) => p.status === 'rented');
     const totalProperties = propList.length;
     const occupancyRate = totalProperties > 0 ? Math.round((rentedProperties.length / totalProperties) * 100) : 0;
     
-    const monthlyRevenue = rentedProperties.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
-    const potentialRevenue = propList.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
+    const monthlyRevenue = rentedProperties.reduce((sum: number, p: any) => sum + (Number(p.price) || 0), 0);
+    const potentialRevenue = propList.reduce((sum: number, p: any) => sum + (Number(p.price) || 0), 0);
     
     return {
       properties: totalProperties,

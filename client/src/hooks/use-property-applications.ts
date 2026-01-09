@@ -89,7 +89,7 @@ export function usePropertyApplications(propertyId?: string) {
       
       return res.json();
     },
-    enabled: !!user && (user.role === 'owner' || user.role === 'agent' || user.role === 'admin' || !!propertyId),
+    enabled: !!user && (user.role === 'landlord' || user.role === 'property_manager' || user.role === 'owner' || user.role === 'agent' || user.role === 'admin' || !!propertyId),
   });
 
   const applications = response?.success ? response.data : [];
@@ -176,7 +176,7 @@ export function useOwnerApplications() {
       
       return res.json();
     },
-    enabled: !!user && (user.role === 'owner' || user.role === 'agent' || user.role === 'admin'),
+    enabled: !!user && (user.role === 'landlord' || user.role === 'property_manager' || user.role === 'owner' || user.role === 'agent' || user.role === 'admin'),
   });
 
   const applications = response?.success ? response.data : [];
