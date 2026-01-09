@@ -45,7 +45,22 @@ export default function AuthCallback() {
       } else if (user.needs_role_selection) {
         setLocation("/select-role");
       } else {
-        setLocation("/");
+        // Redirect to role-specific dashboard
+        switch (user.role) {
+          case "renter":
+            setLocation("/renter-dashboard");
+            break;
+          case "landlord":
+          case "property_manager":
+          case "admin":
+            setLocation("/landlord-dashboard");
+            break;
+          case "agent":
+            setLocation("/agent-dashboard");
+            break;
+          default:
+            setLocation("/");
+        }
       }
     } else if (!isLoading && !user && !window.location.hash) {
       setLocation("/login");
