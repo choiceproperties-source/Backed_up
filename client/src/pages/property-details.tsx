@@ -50,10 +50,9 @@ export default function PropertyDetails() {
       const res = await fetch(`/api/v2/properties/${id}`);
       const json = await res.json();
       const propertyInfo = json?.data || json;
-      console.log("Fetched property info:", propertyInfo);
       return {
         property: propertyInfo,
-        owner: propertyInfo?.poster || propertyInfo?.owner || null
+        owner: propertyInfo?.owner || null
       };
     },
   });
@@ -169,6 +168,35 @@ export default function PropertyDetails() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Details */}
             <div className="lg:col-span-2 space-y-8">
+                <Card className="p-8 rounded-xl border border-border/50 shadow-xl" data-testid="section-posted-by">
+                  <div className="mb-6">
+                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-4">Listing Representative</p>
+                    <PostedBy owner={property.owner} />
+                  </div>
+                  <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
+                    <MapPin className="h-5 w-5 mr-1 text-blue-600" />
+                    {property.address}, {property.city}, {property.state} {property.zip_code}
+                  </div>
+                  <div className="flex items-center gap-2 mt-4">
+                    <Button 
+                      variant="outline" 
+                      className={`rounded-full h-10 w-10 p-0 ${isFavorited(property.id) ? 'text-red-500 border-red-500 bg-red-50' : ''}`}
+                      onClick={() => toggleFavorite(property.id)}
+                      data-testid="button-save-property"
+                    >
+                      <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="rounded-full h-10 w-10 p-0"
+                      onClick={handleShare}
+                      data-testid="button-share-property"
+                    >
+                      <Share2 className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </Card>
+
                 <div className="flex flex-wrap items-center gap-8 py-4 border-y border-gray-100 dark:border-gray-800">
                   <div className="flex flex-col">
                     <span className="text-3xl font-black text-gray-900 dark:text-white">
@@ -205,31 +233,7 @@ export default function PropertyDetails() {
 
               {/* Overview Section */}
               <section className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold border-b-2 border-blue-600 w-fit pb-1">Overview</h3>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      className={`rounded-full h-10 w-10 p-0 ${isFavorited(property.id) ? 'text-red-500 border-red-500 bg-red-50' : ''}`}
-                      onClick={() => toggleFavorite(property.id)}
-                      data-testid="button-save-property"
-                    >
-                      <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="rounded-full h-10 w-10 p-0"
-                      onClick={handleShare}
-                      data-testid="button-share-property"
-                    >
-                      <Share2 className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mb-4">
-                  <MapPin className="h-4 w-4 mr-1 text-blue-600" />
-                  {property.address}, {property.city}, {property.state} {property.zip_code}
-                </div>
+                <h3 className="text-xl font-bold border-b-2 border-blue-600 w-fit pb-1">Overview</h3>
                 <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed whitespace-pre-wrap" data-testid="text-property-description">
                   {property.description || "No description provided"}
                 </p>
@@ -391,7 +395,7 @@ export default function PropertyDetails() {
                     <p className="text-white font-bold uppercase tracking-widest text-xs">Interested? Contact Agent</p>
                   </div>
                     <CardContent className="p-6 space-y-6">
-                      <PostedBy owner={propertyData?.owner as any} />
+                      <PostedBy owner={property.owner} />
                     <div className="space-y-4">
                       <Input 
                         placeholder="Full Name" 
