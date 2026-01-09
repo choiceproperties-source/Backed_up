@@ -1,0 +1,105 @@
+You are acting as a senior full-stack engineer.
+
+TASK TYPE:
+Audit → Targeted Fix (NO refactors, NO redesigns, NO new features)
+
+GOAL:
+Fix the "Edit Property" experience so that when a user edits an existing property,
+all previously saved information is automatically pre-filled in the form instead
+of showing an empty form or losing progress.
+
+IMPORTANT CONSTRAINTS (READ CAREFULLY):
+- Do NOT change backend logic
+- Do NOT modify validation rules
+- Do NOT affect the "Create Property" flow
+- Do NOT refactor unrelated files
+- Do NOT introduce new APIs or database changes
+- ONLY fix data hydration and form state handling for editing an existing property
+
+---
+
+### SECTION 1 — AUDIT ONLY (DO NOT IMPLEMENT YET)
+
+Scan the project and identify:
+
+1. The page or route used to edit an existing property  
+   (example: /dashboard/properties/:id/edit)
+
+2. The React component responsible for the property form  
+   (confirm whether Create and Edit share the same form component)
+
+3. Where the property data is fetched during edit mode  
+   (API call, hook, loader, or service)
+
+4. How the form state is initialized
+   - Identify if default values are empty
+   - Identify if fetched property data is ignored or overwritten
+
+5. Any logic that resets or clears the form on:
+   - validation errors
+   - submit failures
+   - ZIP code errors
+   - API errors
+
+OUTPUT:
+Briefly list:
+- The exact file(s) causing the form not to prefill
+- The exact reason the form loses existing data
+
+STOP AFTER AUDIT.
+DO NOT APPLY FIXES YET.
+
+---
+
+### SECTION 2 — FORM HYDRATION FIX (TARGETED IMPLEMENTATION)
+
+After confirming the audit findings, apply the following fix:
+
+GOAL:
+When editing an existing property, the form must be pre-populated with the
+existing property data fetched from the backend.
+
+REQUIREMENTS:
+- Use the already-fetched property data
+- Initialize the form state from this data ONCE when it becomes available
+- Preserve all existing form behavior
+- Preserve all existing validation logic
+- Preserve image previews and existing images
+- Do NOT reset the form on validation errors
+
+IMPLEMENTATION RULES:
+- If the form uses React state, hydrate it using useEffect
+- Ensure hydration runs only in "edit mode"
+- Ensure Create Property mode remains unchanged
+- Keep unchanged fields intact when submitting edits
+
+Example logic (conceptual only):
+- If propertyId exists AND property data is loaded:
+  → populate form state from property data
+
+---
+
+### SECTION 3 — UX SAFETY CHECKS
+
+Ensure the following behaviors are true after the fix:
+
+- Editing a property shows all existing values
+- A ZIP code error does NOT clear the form
+- A failed submit keeps all user-entered data
+- Images remain visible unless explicitly removed
+- User can modify only one field and re-submit
+
+---
+
+### SECTION 4 — VERIFICATION
+
+After implementation, confirm:
+
+- Edit Property works correctly
+- Create Property flow is unaffected
+- No new errors introduced
+- No regression in posting properties
+
+DO NOT add new features.
+DO NOT refactor unrelated logic.
+ONLY fix edit-form prefill behavior.

@@ -137,27 +137,29 @@ export default function LandlordProperties() {
   };
 
   const handleEditProperty = (property: any) => {
-    reset({
-      title: property.title,
-      address: property.address,
+    const formData = {
+      title: property.title || '',
+      address: property.address || '',
       city: property.city || '',
       state: property.state || '',
       zipCode: property.zipCode || '',
-      price: property.price || 0,
-      bedrooms: property.bedrooms || 1,
-      bathrooms: property.bathrooms || 1,
+      price: typeof property.price === 'string' ? parseFloat(property.price) : (property.price || 0),
+      bedrooms: property.bedrooms || 0,
+      bathrooms: typeof property.bathrooms === 'string' ? parseFloat(property.bathrooms) : (property.bathrooms || 0),
       squareFeet: property.squareFeet || 0,
       propertyType: property.propertyType || '',
       description: property.description || '',
-      furnished: property.furnished || false,
-      petsAllowed: property.petsAllowed || false,
+      furnished: !!property.furnished,
+      petsAllowed: !!property.petsAllowed,
       leaseTerm: property.leaseTerm || '',
       status: property.status || 'active',
-      amenities: property.amenities || [],
-      utilitiesIncluded: property.utilitiesIncluded || [],
-      images: property.images || [],
-    });
-    setPreviewImages(property.images || []);
+      amenities: Array.isArray(property.amenities) ? property.amenities : [],
+      utilitiesIncluded: Array.isArray(property.utilitiesIncluded) ? property.utilitiesIncluded : [],
+      images: Array.isArray(property.images) ? property.images : [],
+    };
+    
+    reset(formData);
+    setPreviewImages(formData.images);
     setEditingId(property.id);
     setShowNewPropertyForm(true);
   };
