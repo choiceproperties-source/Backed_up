@@ -1,0 +1,62 @@
+Project Task: Implement Dynamic Property Poster Display System
+
+Objective:
+Update the Choice Properties project to dynamically fetch and display poster information for all properties, ensuring the system is professional, role-aware, privacy-conscious, and consistent across the platform.
+
+Requirements:
+
+1. Backend Improvements:
+   - Ensure property API endpoints (e.g., `GET /properties/:id`, `GET /properties`) hydrate full poster profiles:
+     • Include name, avatar, role, and organization (if any).
+     • For landlords: return `name`, `avatar`, role = "Property Owner".
+     • For property managers or agencies: return `name` or team names, role = "Property Manager/Agency", organization logo/avatar if available.
+   - Consolidate legacy routes (`server/routes/properties.ts`) to use modern module-based logic (`server/modules/properties/`) for consistent profile hydration.
+   - Maintain security: never expose private emails or phone numbers; use `display_email` and `display_phone` fields only if explicitly allowed.
+
+2. Database Considerations:
+   - Confirm the relationships:
+     • Individual Owner → owner_id
+     • Listing Agent → listing_agent_id
+     • Organization/Agency → agency_id
+   - Backend queries must join these tables correctly to return full profile objects instead of just IDs.
+
+3. Frontend Improvements:
+   - Update `PostedBy` component:
+     • Dynamically display poster name as registered in dashboard.
+     • Display role-specific title:
+       - Landlord → "Posted by Property Owner"
+       - Property Manager / Agency → "Posted by Property Manager / Management Team"
+     • Show avatar or organization logo if available.
+     • Optionally display phone/email using `display_email`/`display_phone` only when privacy rules allow.
+   - Update `PropertyCard` (search results) to include poster info (name, role, avatar) for transparency.
+   - Update `PropertyDetails` page to reflect full poster info in a professional layout.
+
+4. UI/UX Standards:
+   - Ensure consistency across dashboards (Tenant, Landlord, Manager).
+   - Include role badges or small labels to clearly indicate poster type.
+   - Use subtle hover or click effects on poster info (optional).
+   - Ensure mobile responsiveness and clean layouts.
+
+5. Legacy System Handling:
+   - Detect and update any old code paths that bypass modern hydration logic.
+   - Ensure all endpoints return consistent full profile objects.
+
+6. Testing & Verification:
+   - Verify properties posted by landlords show "Property Owner" with correct name/avatar.
+   - Verify properties posted by managers/agencies show proper titles and organization branding.
+   - Ensure no private data leaks (emails/phone numbers).
+   - Test PropertyCard, PropertyDetails, and PostedBy components for dynamic display.
+   - Confirm both new and legacy routes return consistent data.
+
+Deliverables:
+- Fully updated backend endpoints with proper profile hydration.
+- Updated `PostedBy` component.
+- Updated `PropertyCard` and `PropertyDetails` components.
+- Documentation/comments for future developers on how poster info is fetched and displayed.
+- Verified privacy and security rules for all displayed fields.
+
+Instructions for Replit AI:
+- Scan the project to locate all existing `PropertyCard`, `PostedBy`, `PropertyDetails` components and backend property routes.
+- Identify any legacy code that bypasses modern hydration logic.
+- Implement the above improvements end-to-end, ensuring professional, consistent, and dynamic display of poster information across all user roles.
+- Keep the implementation modular, reusable, and compliant with privacy/security standards.
