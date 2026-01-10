@@ -80,8 +80,15 @@ export default function PropertyDetails() {
       });
       
       const structuredData = getPropertyStructuredData(property);
-      if (isOffMarket && structuredData.offers) {
+      if (isOffMarket) {
         // Mark availability as Discontinued for off-market properties
+        if (!structuredData.offers) {
+          structuredData.offers = {
+            '@type': 'Offer',
+            priceCurrency: 'USD',
+            price: property.price ? property.price.toString() : '0',
+          };
+        }
         structuredData.offers.availability = "https://schema.org/Discontinued";
       }
       

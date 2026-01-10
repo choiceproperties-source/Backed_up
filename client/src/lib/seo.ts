@@ -94,6 +94,12 @@ export function getPropertyStructuredData(property: any) {
       priceCurrency: 'USD',
       price: property.price ? property.price.toString() : '0'
     },
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'USD',
+      price: property.price ? property.price.toString() : '0',
+      availability: 'https://schema.org/InStock'
+    },
     numberOfRooms: property.bedrooms ? property.bedrooms.toString() : '0',
     floorSize: {
       '@type': 'QuantitativeValue',
