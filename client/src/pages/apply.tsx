@@ -85,6 +85,7 @@ export default function Apply() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [lastSavedStep, setLastSavedStep] = useState<number>(1);
   const lastSavedData = useRef<string>("");
 
   const propertyId = params?.id;
@@ -96,74 +97,88 @@ export default function Apply() {
   
   const property = propertyResponse?.data;
 
-  const form = useForm<ApplyFormValues>({
-    resolver: zodResolver(applyFormSchema),
-    mode: "onBlur",
-    defaultValues: {
-      propertyId: propertyId || "",
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      dateOfBirth: "",
-      currentAddress: "",
-      ssn: "",
-      employerName: "",
-      jobTitle: "",
-      monthlyIncome: "",
-      employmentDuration: "",
-      emergencyContactName: "",
-      emergencyContactPhone: "",
-      emergencyContactRelationship: "",
-      acknowledgePetPolicy: false,
-      acknowledgeSmokingPolicy: false,
-      acknowledgeOccupancyLimit: false,
-      acknowledgeUtilities: false,
-      agreeToBackgroundCheck: false,
-      agreeToTerms: false,
-      signature: "",
-    },
+  // Resume logic
+  const { data: userAppsResponse } = useQuery<ApiResponse<any[]>>({
+    queryKey: ["/api/v2/applications/user/me"],
   });
+
+  useEffect(() => {
+    if (userAppsResponse?.data && propertyId) {
+      const existingDraft = userAppsResponse.data.find(
+        app => app.property_id === propertyId && app.status === "draft"
+      );
+      if (existingDraft) {
+        setApplicationId(existingDraft.id);
+        const savedStep = existingDraft.last_saved_step || 1;
+        setLastSavedStep(savedStep);
+        setCurrentStep(savedStep);
+        
+        // Populate form with saved data
+        if (existingDraft.personal_info) {
+          form.reset({
+            ...form.getValues(),
+            firstName: existingDraft.personal_info.firstName || "",
+            lastName: existingDraft.personal_info.lastName || "",
+            email: existingDraft.personal_info.email || "",
+            phone: existingDraft.personal_info.phone || "",
+            dateOfBirth: existingDraft.personal_info.dateOfBirth || "",
+            currentAddress: existingDraft.personal_info.currentAddress || "",
+            ssn: existingDraft.personal_info.ssn || "",
+          });
+        }
+        if (existingDraft.employment) {
+          form.setValue("employerName", existingDraft.employment.employerName || "");
+          form.setValue("jobTitle", existingDraft.employment.jobTitle || "");
+          form.setValue("monthlyIncome", existingDraft.employment.monthlyIncome || "");
+          form.setValue("employmentDuration", existingDraft.employment.employmentDuration || "");
+        }
+      }
+    }
+  }, [userAppsResponse, propertyId, form]);
 
   const formValues = useWatch({ control: form.control });
 
-  const performAutosave = useCallback(async (values: Partial<ApplyFormValues>) => {
+  const performAutosave = useCallback(async (values: Partial<ApplyFormValues>, step: number) => {
     if (isSubmitted || !propertyId) return;
     
+    const payload = {
+      property_id: propertyId,
+      last_saved_step: step,
+      personal_info: {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        phone: values.phone,
+        dateOfBirth: values.dateOfBirth,
+        currentAddress: values.currentAddress,
+        ssn: values.ssn
+      },
+      employment: {
+        employerName: values.employerName,
+        jobTitle: values.jobTitle,
+        monthlyIncome: values.monthlyIncome,
+        employmentDuration: values.employmentDuration
+      },
+      rental_history: {},
+      references: {},
+      disclosures: {},
+      pets: {},
+      vehicles: {}
+    };
+
     // Only save if data actually changed
-    const currentDataStr = JSON.stringify(values);
+    const currentDataStr = JSON.stringify(payload);
     if (currentDataStr === lastSavedData.current) return;
 
     setSaveStatus('saving');
     try {
-      const payload = {
-        property_id: propertyId,
-        personal_info: {
-          firstName: values.firstName,
-          lastName: values.lastName,
-          email: values.email,
-          phone: values.phone,
-          dateOfBirth: values.dateOfBirth,
-          currentAddress: values.currentAddress,
-          ssn: values.ssn
-        },
-        employment: {
-          employerName: values.employerName,
-          jobTitle: values.jobTitle,
-          monthlyIncome: values.monthlyIncome,
-          employmentDuration: values.employmentDuration
-        }
-      };
-
       if (!applicationId) {
-        // Initial creation
         const response = await apiRequest("POST", "/api/v2/applications", payload);
         const data = await response.json();
         if (data.success && data.data?.id) {
           setApplicationId(data.data.id);
         }
       } else {
-        // Subsequent autosaves
         await apiRequest("PATCH", `/api/v2/applications/${applicationId}/autosave`, payload);
       }
       
@@ -178,14 +193,13 @@ export default function Apply() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Check if any field has been touched or changed
       if (form.formState.isDirty) {
-        performAutosave(formValues as any);
+        performAutosave(formValues as any, currentStep);
       }
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [formValues, form.formState.isDirty, performAutosave]);
+  }, [formValues, form.formState.isDirty, performAutosave, currentStep]);
 
   useEffect(() => {
     if (propertyId) {
@@ -205,7 +219,11 @@ export default function Apply() {
     const fieldsToValidate = getFieldsForStep(currentStep);
     const isValid = await form.trigger(fieldsToValidate as any);
     if (isValid) {
-      setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+      const next = Math.min(currentStep + 1, steps.length);
+      setCurrentStep(next);
+      setLastSavedStep(next);
+      // Force autosave on step change
+      performAutosave(form.getValues() as any, next);
       window.scrollTo(0, 0);
     }
   };
@@ -270,8 +288,10 @@ export default function Apply() {
       };
 
       if (applicationId) {
-        await apiRequest("PATCH", `/api/v2/applications/${applicationId}/status`, { status: "submitted" });
+        // First ensure all data is saved
         await apiRequest("PATCH", `/api/v2/applications/${applicationId}/autosave`, payload);
+        // Then submit
+        await apiRequest("PATCH", `/api/v2/applications/${applicationId}/status`, { status: "submitted" });
       } else {
         await apiRequest("POST", "/api/v2/applications", { ...payload, status: "submitted" });
       }
