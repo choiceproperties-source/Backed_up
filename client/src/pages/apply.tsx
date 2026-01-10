@@ -1299,66 +1299,138 @@ export default function Apply() {
                       <CardTitle className="text-2xl font-black tracking-tight">Review & Submit</CardTitle>
                       <CardDescription className="text-gray-500 font-medium">Please review all information before submitting.</CardDescription>
                     </CardHeader>
-                    <CardContent className="pt-8 space-y-6">
-                      <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-none border border-gray-100 dark:border-gray-800 mb-6">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-2">Summary</h3>
-                        <p className="text-xs text-gray-500">You are applying for <strong>{property?.title}</strong>. Please ensure all details are accurate as they cannot be changed after submission.</p>
+                    <CardContent className="pt-8 space-y-8">
+                      {/* Read-only Summary Sections */}
+                      <div className="space-y-6">
+                        <section>
+                          <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+                            <Shield className="h-4 w-4" /> Personal Information
+                          </h3>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm bg-gray-50 dark:bg-gray-900/50 p-4 border border-gray-100 dark:border-gray-800">
+                            <div>
+                              <p className="text-[10px] font-black uppercase text-gray-400">Name</p>
+                              <p className="font-bold">{getValues("firstName")} {getValues("lastName")}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black uppercase text-gray-400">Email</p>
+                              <p className="font-bold truncate">{getValues("email")}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black uppercase text-gray-400">Phone</p>
+                              <p className="font-bold">{getValues("phone")}</p>
+                            </div>
+                          </div>
+                        </section>
+
+                        <section>
+                          <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+                            <DollarSign className="h-4 w-4" /> Employment & Income
+                          </h3>
+                          <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 dark:bg-gray-900/50 p-4 border border-gray-100 dark:border-gray-800">
+                            <div>
+                              <p className="text-[10px] font-black uppercase text-gray-400">Employer</p>
+                              <p className="font-bold">{getValues("employerName")}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black uppercase text-gray-400">Monthly Income</p>
+                              <p className="font-bold text-green-600">${getValues("monthlyIncome")}</p>
+                            </div>
+                          </div>
+                        </section>
+
+                        <section>
+                          <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+                            <MapPin className="h-4 w-4" /> Rental History
+                          </h3>
+                          <div className="text-sm bg-gray-50 dark:bg-gray-900/50 p-4 border border-gray-100 dark:border-gray-800">
+                            <p className="text-[10px] font-black uppercase text-gray-400">Reason for Moving</p>
+                            <p className="font-bold">{getValues("reasonForMoving") || "Not provided"}</p>
+                          </div>
+                        </section>
                       </div>
-                      <FormField
-                        control={form.control}
-                        name="agreeToBackgroundCheck"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4">
-                            <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel className="text-xs font-black uppercase tracking-widest">Background Check Consent</FormLabel>
-                              <FormDescription className="text-[10px]">I authorize Choice Properties to conduct a background and credit check.</FormDescription>
+
+                      <Separator className="my-8" />
+
+                      <div className="space-y-6">
+                        <FormField
+                          control={form.control}
+                          name="agreeToBackgroundCheck"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                              <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                                  Background Check Authorization
+                                  <Shield className="h-3 w-3 text-primary" />
+                                </FormLabel>
+                                <FormDescription className="text-[10px]">
+                                  I authorize Choice Properties to conduct a thorough background investigation, including criminal records, credit history, and employment verification.
+                                </FormDescription>
+                                <FormMessage />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="agreeToTerms"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                              <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-xs font-black uppercase tracking-widest">Attestation & Terms</FormLabel>
+                                <FormDescription className="text-[10px]">
+                                  I certify that all information provided in this application is true, complete, and accurate to the best of my knowledge. I understand that any false statements or omissions may result in immediate rejection or lease termination.
+                                </FormDescription>
+                                <FormMessage />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="signature"
+                          render={({ field }) => (
+                            <FormItem className="pt-4">
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Electronic Signature (Full Legal Name)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="Type your full legal name as it appears on your ID" 
+                                  className="h-14 bg-gray-50/50 dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 focus:border-primary rounded-none italic text-lg" 
+                                  {...field} 
+                                />
+                              </FormControl>
                               <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="agreeToTerms"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4">
-                            <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel className="text-xs font-black uppercase tracking-widest">Terms & Conditions</FormLabel>
-                              <FormDescription className="text-[10px]">I certify that all information is true and accurate.</FormDescription>
-                              <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="signature"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Electronic Signature (Full Name)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Type your full name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none italic" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </CardContent>
-                    <CardFooter className="justify-between pt-6 border-t bg-gray-50/50 dark:bg-gray-900/50">
-                      <Button type="button" variant="outline" onClick={prevStep} disabled={isProcessing} className="font-black uppercase tracking-widest h-12 rounded-none">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                    <CardFooter className="justify-between pt-8 border-t bg-gray-50/50 dark:bg-gray-900/50 px-8 py-6">
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        onClick={prevStep} 
+                        disabled={isProcessing} 
+                        className="font-black uppercase tracking-widest h-12 rounded-none hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Edit Sections
                       </Button>
-                      <Button type="submit" disabled={isProcessing} className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-12 px-8 rounded-none">
+                      <Button 
+                        type="submit" 
+                        disabled={isProcessing} 
+                        className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-14 px-12 rounded-none shadow-lg shadow-primary/20 transition-all active:scale-95"
+                      >
                         {isProcessing ? (
-                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+                          <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Finalizing...</>
                         ) : (
-                          <>Submit Application <CheckCircle2 className="ml-2 h-4 w-4" /></>
+                          <>Complete & Submit <CheckCircle2 className="ml-2 h-5 w-5" /></>
                         )}
                       </Button>
                     </CardFooter>
