@@ -593,6 +593,31 @@ export default function LandlordProperties() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
+                      <label className="text-sm text-muted-foreground">Listing Agent</label>
+                      <Select
+                        onValueChange={(value) => setValue('listing_agent_id', value === 'none' ? null : value)}
+                        value={watch('listing_agent_id') || 'none'}
+                      >
+                        <SelectTrigger data-testid="select-listing-agent">
+                          <SelectValue placeholder="Assign an Agent" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Agent Assigned</SelectItem>
+                          {assignmentProperty?.agentId && (
+                            <SelectItem value={assignmentProperty.agentId}>
+                              Current Assigned Agent
+                            </SelectItem>
+                          )}
+                          <SelectItem value="search-trigger" disabled className="text-xs text-muted-foreground italic">
+                            Use "Assign Agent" button on card for full search
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
                       <label className="text-sm text-muted-foreground">Application Fee ($)</label>
                       <Input
                         type="number"
