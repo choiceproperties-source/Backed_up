@@ -65,6 +65,26 @@ const applyFormSchema = z.object({
   emergencyContactName: z.string().min(2, "Emergency contact name is required"),
   emergencyContactPhone: z.string().min(10, "Emergency contact phone is required"),
   emergencyContactRelationship: z.string().min(2, "Relationship is required"),
+  // Rental History
+  currentLandlordName: z.string().optional(),
+  currentLandlordPhone: z.string().optional(),
+  currentRentAmount: z.string().optional(),
+  reasonForMoving: z.string().optional(),
+  // References
+  ref1Name: z.string().optional(),
+  ref1Phone: z.string().optional(),
+  ref1Relation: z.string().optional(),
+  // Pets & Vehicles
+  hasPets: z.boolean().default(false),
+  petDetails: z.string().optional(),
+  hasVehicles: z.boolean().default(false),
+  vehicleDetails: z.string().optional(),
+  // Disclosures
+  hasEvictions: z.boolean().default(false),
+  hasFelonies: z.boolean().default(false),
+  hasBankruptcies: z.boolean().default(false),
+  disclosureExplanation: z.string().optional(),
+  // Original acknowledgments
   acknowledgePetPolicy: z.boolean().refine(val => val === true, "You must acknowledge the pet policy"),
   acknowledgeSmokingPolicy: z.boolean().refine(val => val === true, "You must acknowledge the smoking policy"),
   acknowledgeOccupancyLimit: z.boolean().refine(val => val === true, "You must acknowledge the occupancy limit"),
@@ -99,6 +119,21 @@ export default function Apply() {
       emergencyContactName: "",
       emergencyContactPhone: "",
       emergencyContactRelationship: "",
+      currentLandlordName: "",
+      currentLandlordPhone: "",
+      currentRentAmount: "",
+      reasonForMoving: "",
+      ref1Name: "",
+      ref1Phone: "",
+      ref1Relation: "",
+      hasPets: false,
+      petDetails: "",
+      hasVehicles: false,
+      vehicleDetails: "",
+      hasEvictions: false,
+      hasFelonies: false,
+      hasBankruptcies: false,
+      disclosureExplanation: "",
       acknowledgePetPolicy: false,
       acknowledgeSmokingPolicy: false,
       acknowledgeOccupancyLimit: false,
@@ -158,6 +193,22 @@ export default function Apply() {
           jobTitle: existingDraft.employment?.jobTitle || "",
           monthlyIncome: existingDraft.employment?.monthlyIncome || "",
           employmentDuration: existingDraft.employment?.employmentDuration || "",
+          // New sections
+          currentLandlordName: existingDraft.rental_history?.currentLandlordName || "",
+          currentLandlordPhone: existingDraft.rental_history?.currentLandlordPhone || "",
+          currentRentAmount: existingDraft.rental_history?.currentRentAmount || "",
+          reasonForMoving: existingDraft.rental_history?.reasonForMoving || "",
+          ref1Name: existingDraft.references?.name || "",
+          ref1Phone: existingDraft.references?.phone || "",
+          ref1Relation: existingDraft.references?.relationship || "",
+          hasPets: existingDraft.pets?.hasPets || false,
+          petDetails: existingDraft.pets?.details || "",
+          hasVehicles: existingDraft.vehicles?.hasVehicles || false,
+          vehicleDetails: existingDraft.vehicles?.details || "",
+          hasEvictions: existingDraft.disclosures?.hasEvictions || false,
+          hasFelonies: existingDraft.disclosures?.hasFelonies || false,
+          hasBankruptcies: existingDraft.disclosures?.hasBankruptcies || false,
+          disclosureExplanation: existingDraft.disclosures?.explanation || "",
         });
       }
     }
@@ -187,11 +238,31 @@ export default function Apply() {
         monthlyIncome: values.monthlyIncome || "",
         employmentDuration: values.employmentDuration || ""
       },
-      rental_history: {},
-      references: {},
-      disclosures: {},
-      pets: {},
-      vehicles: {}
+      rental_history: {
+        currentLandlordName: values.currentLandlordName || "",
+        currentLandlordPhone: values.currentLandlordPhone || "",
+        currentRentAmount: values.currentRentAmount || "",
+        reasonForMoving: values.reasonForMoving || ""
+      },
+      references: {
+        name: values.ref1Name || "",
+        phone: values.ref1Phone || "",
+        relationship: values.ref1Relation || ""
+      },
+      disclosures: {
+        hasEvictions: values.hasEvictions || false,
+        hasFelonies: values.hasFelonies || false,
+        hasBankruptcies: values.hasBankruptcies || false,
+        explanation: values.disclosureExplanation || ""
+      },
+      pets: {
+        hasPets: values.hasPets || false,
+        details: values.petDetails || ""
+      },
+      vehicles: {
+        hasVehicles: values.hasVehicles || false,
+        details: values.vehicleDetails || ""
+      }
     };
 
     // Only save if data actually changed
@@ -241,8 +312,12 @@ export default function Apply() {
     { id: 1, label: "Personal Information" },
     { id: 2, label: "Employment & Income" },
     { id: 3, label: "Emergency Contact" },
-    { id: 4, label: "Property Policies" },
-    { id: 5, label: "Review & Submit" },
+    { id: 4, label: "Rental History" },
+    { id: 5, label: "References" },
+    { id: 6, label: "Pets & Vehicles" },
+    { id: 7, label: "Legal Disclosures" },
+    { id: 8, label: "Property Policies" },
+    { id: 9, label: "Review & Submit" },
   ];
 
   const nextStep = async () => {
@@ -273,6 +348,14 @@ export default function Apply() {
       case 3:
         return ["emergencyContactName", "emergencyContactPhone", "emergencyContactRelationship"];
       case 4:
+        return ["currentLandlordName", "currentLandlordPhone", "currentRentAmount", "reasonForMoving"];
+      case 5:
+        return ["ref1Name", "ref1Phone", "ref1Relation"];
+      case 6:
+        return ["hasPets", "petDetails", "hasVehicles", "vehicleDetails"];
+      case 7:
+        return ["hasEvictions", "hasFelonies", "hasBankruptcies", "disclosureExplanation"];
+      case 8:
         return ["acknowledgePetPolicy", "acknowledgeSmokingPolicy", "acknowledgeOccupancyLimit", "acknowledgeUtilities"];
       default:
         return [];
