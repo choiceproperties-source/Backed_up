@@ -171,35 +171,39 @@ export default function PropertyDetails() {
 
       <main className="flex-1 w-full max-w-[1440px] mx-auto pb-12">
         {/* Zillow Style Image Gallery */}
-        <section className={`relative group bg-gray-100 dark:bg-gray-900 overflow-hidden md:h-[500px] lg:h-[600px] flex ${isOffMarket ? 'opacity-75 grayscale-[0.2]' : ''}`}>
+        <section className={`relative group bg-gray-100 dark:bg-gray-900 overflow-hidden md:h-[500px] lg:h-[600px] flex ${isOffMarket ? 'opacity-90 grayscale-[0.2]' : ''}`}>
           {allImages.length > 0 ? (
             <div className="flex w-full h-full gap-1">
-              <div className="w-full md:w-2/3 h-full relative cursor-pointer overflow-hidden" onClick={() => setIsGalleryOpen(true)}>
+              <div className={`w-full ${!isOffMarket ? 'md:w-2/3' : ''} h-full relative ${!isOffMarket ? 'cursor-pointer' : ''}`} onClick={() => !isOffMarket && setIsGalleryOpen(true)}>
                 <img 
                   src={allImages[0]} 
                   alt={property.title}
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                  className={`w-full h-full object-cover ${!isOffMarket ? 'transition-transform duration-500 hover:scale-105' : ''}`}
                 />
-                <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1 rounded text-sm font-medium">
-                  {allImages.length} Photos
-                </div>
-              </div>
-              <div className="hidden md:flex md:w-1/3 flex-col gap-1">
-                {allImages.slice(1, 3).map((img, i) => (
-                  <div key={i} className="h-1/2 relative cursor-pointer overflow-hidden" onClick={() => setIsGalleryOpen(true)}>
-                    <img 
-                      src={img} 
-                      alt={`${property.title} view ${i + 2}`}
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                    />
-                    {i === 1 && allImages.length > 3 && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold text-lg">
-                        +{allImages.length - 3} more
-                      </div>
-                    )}
+                {!isOffMarket && (
+                  <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1 rounded text-sm font-medium">
+                    {allImages.length} Photos
                   </div>
-                ))}
+                )}
               </div>
+              {!isOffMarket && (
+                <div className="hidden md:flex md:w-1/3 flex-col gap-1">
+                  {allImages.slice(1, 3).map((img, i) => (
+                    <div key={i} className="h-1/2 relative cursor-pointer overflow-hidden" onClick={() => setIsGalleryOpen(true)}>
+                      <img 
+                        src={img} 
+                        alt={`${property.title} view ${i + 2}`}
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                      {i === 1 && allImages.length > 3 && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold text-lg">
+                          +{allImages.length - 3} more
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium">
@@ -497,14 +501,22 @@ export default function PropertyDetails() {
                         <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/40">
                           <Calendar className="h-5 w-5 shrink-0" />
                           <p className="text-sm font-medium">
-                            This property is coming soon. Applications will open on {availableFromDate?.toLocaleDateString()}.
+                            This property is coming soon. Applications will open on {availableFromDate?.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}.
                           </p>
                         </div>
                         <Button 
-                          variant="outline"
-                          className="w-full h-12 font-bold text-amber-600 border-amber-200 bg-amber-50 hover:bg-amber-100 cursor-default"
+                          className="w-full h-12 font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]" 
+                          onClick={handleInquiry} 
+                          disabled={submittingInquiry}
                         >
-                          Applications Opening Soon
+                          {submittingInquiry ? "Sending..." : "Contact Agent"}
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          className="w-full h-12 font-bold text-amber-600 border-amber-200 bg-amber-50 hover:bg-amber-100 cursor-not-allowed"
+                          disabled
+                        >
+                          Applications opening {availableFromDate?.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </Button>
                       </div>
                     ) : (
@@ -512,16 +524,9 @@ export default function PropertyDetails() {
                         <div className="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-600 dark:text-zinc-400 border border-zinc-100 dark:border-zinc-800">
                           <Info className="h-5 w-5 shrink-0" />
                           <p className="text-sm font-medium">
-                            This listing is currently off market and not accepting new applications or inquiries at this time.
+                            This property is currently off market.
                           </p>
                         </div>
-                        <Button 
-                          variant="outline"
-                          className="w-full h-12 font-bold text-zinc-500 border-zinc-200 cursor-not-allowed"
-                          disabled
-                        >
-                          Listing Inactive
-                        </Button>
                       </div>
                     )}
                   </CardContent>

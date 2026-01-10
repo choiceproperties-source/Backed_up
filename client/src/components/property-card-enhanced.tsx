@@ -108,7 +108,7 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
   const isFutureAvailable = !isOffMarket && availableFromDate && availableFromDate > new Date();
   const isComingSoon = !isOffMarket && isFutureAvailable;
   
-  const isAvailable = !isOffMarket && (property.status === 'active' || property.status === 'available');
+  const isAvailable = !isOffMarket && !isComingSoon && (property.status === 'active' || property.status === 'available');
   const leaseInfo = property.lease_term || "12 months";
   
   let availabilityText = 'Available Now';
@@ -116,16 +116,16 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
   
   if (isOffMarket) {
     availabilityText = 'Off Market';
-    availabilitySubtext = 'Not currently available';
+    availabilitySubtext = 'This property is not currently available';
   } else if (isComingSoon && availableFromDate) {
     availabilityText = 'Coming Soon';
-    availabilitySubtext = `Available ${availableFromDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+    availabilitySubtext = `Available from ${availableFromDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`;
   }
 
   return (
     <Link href={isOffMarket ? "#" : `/property/${property.id}`} onClick={e => isOffMarket && e.preventDefault()}>
       <Card 
-        className={`overflow-hidden group cursor-pointer transition-all duration-700 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:-translate-y-3 dark:hover:shadow-black/60 border border-white/5 hover:border-white/20 bg-card/40 backdrop-blur-xl relative flex flex-col h-full ${isOffMarket ? 'opacity-60 grayscale-[0.5] cursor-not-allowed hover:shadow-none hover:-translate-y-0' : ''}`}
+        className={`overflow-hidden group cursor-pointer transition-all duration-700 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:-translate-y-3 dark:hover:shadow-black/60 border border-white/5 hover:border-white/20 bg-card/40 backdrop-blur-xl relative flex flex-col h-full ${isOffMarket ? 'opacity-75 grayscale-[0.3] cursor-not-allowed hover:shadow-none hover:-translate-y-0' : ''}`}
         onMouseEnter={() => !isOffMarket && setIsHovered(true)}
         onMouseLeave={() => !isOffMarket && setIsHovered(false)}
         onKeyDown={(e) => {
@@ -173,9 +173,11 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
               <Badge className={`${isOffMarket ? 'bg-zinc-800 text-white border-zinc-700' : isComingSoon ? 'bg-amber-500/90' : 'bg-primary/90'} backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-2xl px-3 py-1.5`}>
                 {availabilityText}
               </Badge>
-              <Badge className="bg-white/10 backdrop-blur-md dark:bg-card/20 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl border border-white/20 px-3 py-1.5">
-                {property.property_type || 'Property'}
-              </Badge>
+              {!isOffMarket && (
+                <Badge className="bg-white/10 backdrop-blur-md dark:bg-card/20 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl border border-white/20 px-3 py-1.5">
+                  {property.property_type || 'Property'}
+                </Badge>
+              )}
               {!isOffMarket && photoCount > 1 && (
                 <Badge className="bg-black/40 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5">
                   <ImageIcon className="h-3.5 w-3.5" />
@@ -255,7 +257,7 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
 
           {/* Price Line - Bottom Left Over Image */}
           {!isOffMarket && (
-            <div className="absolute bottom-3 left-3 flex items-baseline gap-1.5 text-white z-10 [text-shadow:_0_2px_8px_rgba(0,0,0,0.8)]">
+            <div className={`absolute bottom-3 left-3 flex items-baseline gap-1.5 text-white z-10 [text-shadow:_0_2px_8px_rgba(0,0,0,0.8)] ${isComingSoon ? 'opacity-80 scale-95 origin-bottom-left' : ''}`}>
               <span className="text-3xl font-black tracking-tighter">${property.price ? parseInt(property.price).toLocaleString() : 'N/A'}</span>
               <span className="text-white/80 text-[11px] font-black uppercase tracking-widest">/mo</span>
             </div>
@@ -335,10 +337,10 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
               className="w-full h-12 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl border border-amber-200 dark:border-amber-800 hover:bg-amber-200 dark:hover:bg-amber-800/40 transition-all"
               data-testid="button-view-property-coming-soon"
               onClick={(e) => {
-                // Allow viewing details but label clearly
+                // View details is allowed for Coming Soon
               }}
             >
-              Coming Soon - View Details
+              View Details
             </Button>
           ) : (
             <Button 
