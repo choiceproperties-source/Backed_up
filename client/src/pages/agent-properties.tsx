@@ -15,14 +15,17 @@ import {
   DollarSign,
   ArrowRight,
   ArrowLeft,
+  Edit,
 } from 'lucide-react';
 import { updateMetaTags } from '@/lib/seo';
 import { PropertyCardSkeletonGrid } from '@/components/skeleton-loaders';
+import { AgentPropertyEditDialog } from '@/components/agent-property-edit-dialog';
 
 export default function AgentProperties() {
   const { user, isLoggedIn } = useAuth();
   const [, navigate] = useLocation();
   const { properties, loading } = useProperties();
+  const [editingProperty, setEditingProperty] = useState<any>(null);
 
   // Update meta tags
   useMemo(() => {
@@ -79,31 +82,37 @@ export default function AgentProperties() {
             {assignedProperties.map((property: any) => (
               <Card
                 key={property.id}
-                className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                className="overflow-hidden hover:shadow-lg transition-shadow"
                 data-testid={`card-property-${property.id}`}
-                onClick={() => navigate(`/property/${property.id}`)}
               >
                 {/* Property Image */}
-                {property.images && property.images[0] && (
-                  <div className="h-48 bg-gradient-to-br from-purple-400 to-indigo-600 relative overflow-hidden">
+                <div 
+                  className="h-48 bg-gradient-to-br from-purple-400 to-indigo-600 relative overflow-hidden cursor-pointer"
+                  onClick={() => navigate(`/property/${property.id}`)}
+                >
+                  {property.images && property.images[0] ? (
                     <img
                       src={property.images[0]}
                       alt={property.title}
                       className="w-full h-full object-cover"
                     />
-                    <Badge className="absolute top-4 right-4" data-testid={`badge-status-${property.id}`}>
-                      {property.status === 'active' ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </div>
-                )}
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Home className="h-12 w-12 text-white/50" />
+                    </div>
+                  )}
+                  <Badge className="absolute top-4 right-4" data-testid={`badge-status-${property.id}`}>
+                    {property.status === 'active' ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
 
                 {/* Property Info */}
                 <div className="p-6">
-                  <h3 className="font-bold text-lg text-foreground mb-2">{property.title}</h3>
+                  <h3 className="font-bold text-lg text-foreground mb-2 truncate">{property.title}</h3>
 
                   <div className="flex items-center text-sm text-muted-foreground mb-4">
                     <MapPin className="h-4 w-4 mr-2" />
-                    <span>
+                    <span className="truncate">
                       {property.city}, {property.state}
                     </span>
                   </div>
@@ -127,21 +136,39 @@ export default function AgentProperties() {
                     </div>
                   </div>
 
-                  {/* Action Button */}
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between"
-                    data-testid={`button-view-${property.id}`}
-                  >
-                    <span>View Details</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => navigate(`/property/${property.id}`)}
+                      data-testid={`button-view-${property.id}`}
+                    >
+                      View
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                    <Button
+                      variant="default"
+                      className="flex-1 bg-purple-600 hover:bg-purple-700"
+                      onClick={() => setEditingProperty(property)}
+                      data-testid={`button-edit-${property.id}`}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
           </div>
         )}
       </div>
+
+      <AgentPropertyEditDialog
+        property={editingProperty}
+        isOpen={!!editingProperty}
+        onClose={() => setEditingProperty(null)}
+      />
 
       <Footer />
     </div>

@@ -1,0 +1,93 @@
+// PROJECT CONTEXT
+// Choice Properties codebase
+// Backend already supports:
+// - properties.listing_agent_id → assigned agent
+// - agents see only properties assigned to them
+// Goal: allow agents to edit allowed fields of assigned properties only
+// Do NOT allow agents to change owner_id or reassign agents
+// Do NOT create new backend endpoints
+// ------------------------------
+
+// ------------------------------
+// 1. FILE LOCATIONS
+// client/src/pages/agent-properties.tsx
+// OR client/src/pages/property-edit.tsx (reuse PropertyEditForm component if exists)
+// ------------------------------
+
+// ------------------------------
+// 2. DASHBOARD / PROPERTY LIST
+// For agent dashboard, display only properties where listing_agent_id = CURRENT_USER_ID
+display for each property:
+- Thumbnail
+- Title
+- Status (available, pending, rented)
+- Edit button
+// ------------------------------
+
+// ------------------------------
+// 3. EDIT PERMISSIONS
+// Agent can only edit the following fields:
+- title
+- description
+- price
+- bedrooms, bathrooms, square_feet
+- amenities / utilities_included
+- application_fee
+- availability_date
+// DO NOT allow agents to edit:
+// - owner_id
+// - listing_agent_id
+// - agency_id
+// - deleted/archive status
+// ------------------------------
+
+// ------------------------------
+// 4. FORM BEHAVIOR
+// Reuse existing PropertyEditForm if possible
+- Prepopulate the form with existing property values
+- Enable autosave or "Save Changes" button
+- Validate inputs client-side
+- Show success or error toast after save
+- Reflect updates immediately on agent dashboard (optimistic UI)
+// ------------------------------
+
+// ------------------------------
+// 5. API USAGE
+// PATCH /api/v2/properties/:id
+payload: only include editable fields
+Example:
+PATCH /api/v2/properties/123
+{
+  title: "New Title",
+  price: 2500,
+  application_fee: 50,
+  available_from: "2026-02-01"
+}
+// Do NOT modify owner_id, listing_agent_id, or agency_id
+// ------------------------------
+
+// ------------------------------
+// 6. UX POLISH
+- Show loading spinner while saving
+- Success toast: "Property updated successfully"
+- Error toast for validation/backend errors
+- Optimistic UI: update dashboard immediately
+- Use same styling as landlord editing experience
+// ------------------------------
+
+// ------------------------------
+// 7. SAFETY / GUARDRAILS
+Do NOT:
+- Allow agents to post new properties
+- Allow agent to assign/unassign other agents
+- Change backend permissions
+- Expose owner contact info unless show_contact_info = true
+// ------------------------------
+
+// ------------------------------
+// END GOAL
+- Agents can safely edit assigned properties only
+- Reflect changes immediately
+- Professional MLS-style UX
+- No backend modifications
+// ------------------------------
