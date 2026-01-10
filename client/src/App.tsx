@@ -102,7 +102,7 @@ function Router() {
         <Route path="/select-role" component={SelectRole} />
 
         {/* Application Pages */}
-        <Route path="/apply">
+        <Route path="/apply/:id">
           <ProtectedRoute requireEmailVerification={false}>
             <Apply />
           </ProtectedRoute>

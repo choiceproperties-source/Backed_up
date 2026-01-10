@@ -1,4 +1,4 @@
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/navbar";
@@ -35,6 +35,7 @@ import { PostedBy } from "@/components/property/posted-by";
 
 export default function PropertyDetails() {
   const [match, params] = useRoute("/property/:id");
+  const [, setLocation] = useLocation();
   const id = params?.id;
   const { user } = useAuth();
   const { isFavorited, toggleFavorite } = useFavorites();
@@ -568,7 +569,7 @@ export default function PropertyDetails() {
                           <Button 
                             variant="outline" 
                             className="w-full h-12 font-bold border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                            onClick={() => window.location.href = `/apply/${property.id}`}
+                            onClick={() => setLocation(`/apply/${property.id}`)}
                           >
                             Apply Now
                           </Button>
