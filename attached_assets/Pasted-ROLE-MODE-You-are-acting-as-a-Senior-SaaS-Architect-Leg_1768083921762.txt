@@ -1,0 +1,231 @@
+ROLE & MODE
+You are acting as a Senior SaaS Architect, Legal Workflow Engineer, and Full-Stack Auditor.
+You must work strictly within the existing project architecture.
+DO NOT refactor unrelated systems.
+DO NOT remove existing logic unless explicitly instructed.
+DO NOT invent new product ideas.
+DO NOT require Autonomous Mode.
+
+OBJECTIVE
+Complete and professionalize the Rental Application System so it is:
+• Fully functional end-to-end
+• Legally compliant (US rental standards)
+• Secure, confidential, and trustworthy
+• Production-ready
+• Autosave-safe
+• Status-correct
+• UX-complete (no dead ends)
+
+This is NOT a redesign. This is a completion and correction task.
+
+────────────────────────────
+SECTION 1 — READ-ONLY AUDIT (MANDATORY FIRST STEP)
+────────────────────────────
+Scan the project and confirm the following files and systems:
+
+Frontend:
+• client/src/pages/apply.tsx
+• client/src/components/application/*
+• client/src/lib/api.ts
+• client/src/lib/types.ts
+
+Backend:
+• shared/schema.ts (applications table)
+• server/services/application.service.ts
+• server/routes/applications.ts
+• server/notifications/notification-service.ts
+
+Confirm:
+• Current wizard steps
+• Current autosave behavior
+• Current status transitions
+• Existing application schema fields
+• Existing email/notification hooks
+
+DO NOT change anything yet.
+Only proceed once understanding is complete.
+
+────────────────────────────
+SECTION 2 — FIX APPLICATION LIFECYCLE (CRITICAL)
+────────────────────────────
+Correct the application lifecycle to follow this exact state machine:
+
+draft
+→ review_pending
+→ submitted
+→ under_review
+→ approved | denied | withdrawn
+
+Rules:
+• Applications MUST start as `draft`
+• Autosave is ONLY allowed in `draft`
+• Status MUST NOT auto-advance on creation
+• Submission is a ONE-WAY transition
+• Submitted applications are READ-ONLY for applicants
+
+Update backend validation to ENFORCE these rules.
+
+────────────────────────────
+SECTION 3 — SPLIT AUTOSAVE VS SUBMISSION (NON-NEGOTIABLE)
+────────────────────────────
+Create a dedicated autosave pathway.
+
+Backend:
+• Add PATCH /api/applications/:id/autosave
+• This endpoint:
+  – Accepts partial data
+  – Does NOT validate completeness
+  – Does NOT change status
+  – Does NOT send notifications
+  – Only works when status === 'draft'
+
+Submission:
+• Keep POST /api/applications/:id/submit
+• This endpoint:
+  – Validates ALL required fields
+  – Requires legal acknowledgments
+  – Requires payment confirmation
+  – Transitions status to `submitted`
+  – Triggers notifications
+
+Frontend:
+• Autosave uses PATCH endpoint
+• Final submit uses submit endpoint
+• Prevent autosave after submission
+
+────────────────────────────
+SECTION 4 — FIX AUTOSAVE DATA SHAPE
+────────────────────────────
+Ensure autosave payload matches backend schema exactly.
+
+Required structure:
+{
+  personal_info: {},
+  employment: {},
+  rental_history: {},
+  references: {},
+  disclosures: {},
+  pets: {},
+  vehicles: {},
+  last_saved_step: number
+}
+
+Remove shallow merges.
+Use schema-aligned updates only.
+
+Increment `last_saved_step` correctly on each wizard step.
+
+────────────────────────────
+SECTION 5 — COMPLETE MISSING WIZARD STEPS
+────────────────────────────
+Add UI steps that ALREADY EXIST in the schema but are missing in the flow:
+
+1. Rental History
+   • Previous addresses
+   • Prior landlords
+   • Contact info
+
+2. References
+   • Personal or professional references
+
+3. Disclosures (MANDATORY)
+   • Eviction history
+   • Criminal history
+   • Fair Housing acknowledgment
+   • FCRA consent
+
+4. Pets & Vehicles
+   • Pet details
+   • Vehicle registration (if applicable)
+
+Each step:
+• Autosaves
+• Is resumable
+• Is validated only on final submission
+
+────────────────────────────
+SECTION 6 — REVIEW & SUBMIT PAGE (REQUIRED)
+────────────────────────────
+Add a final Review & Submit screen that:
+
+• Displays a FULL read-only summary of the application
+• Shows property name and address
+• Shows application fee
+• Displays all disclosures clearly
+• Requires explicit checkboxes for:
+  – Fair Housing acknowledgment
+  – FCRA consent
+  – Truthfulness declaration
+
+Include legal attestation text:
+“I certify under penalty of perjury that the information provided is true and complete.”
+
+Capture:
+• Timestamp
+• Applicant user ID
+
+────────────────────────────
+SECTION 7 — PAYMENT GATE (BEFORE SUBMISSION)
+────────────────────────────
+Enforce payment before submission.
+
+Rules:
+• Application fee must be paid BEFORE status becomes `submitted`
+• Submission is blocked until payment success
+• Use existing `pending_payment` field
+
+UI:
+• Show payment step before submit
+• Clearly indicate non-refundable status
+
+────────────────────────────
+SECTION 8 — CONFIDENTIALITY & SECURITY
+────────────────────────────
+Ensure sensitive data is protected:
+
+• Encrypt SSN at rest
+• Do NOT return SSN after save
+• Limit access to authorized roles only
+• Never expose confidential fields to property owners unless permitted
+
+If encryption helpers are missing:
+• Implement minimal field-level encryption in service layer
+
+────────────────────────────
+SECTION 9 — POST-SUBMISSION BEHAVIOR
+────────────────────────────
+After submission:
+
+Frontend:
+• Lock the application
+• Display “Submitted – Under Review”
+• Prevent edits
+• Show confirmation message
+
+Backend:
+• Send confirmation email to applicant
+• Notify property owner/agent
+• Transition to `under_review`
+
+────────────────────────────
+SECTION 10 — PROFESSIONAL FINISHING TOUCHES
+────────────────────────────
+Add:
+• Submission receipt view
+• Application status timeline
+• Clear confidentiality messaging
+• Error handling for failed autosave
+• User feedback on save success/failure
+
+────────────────────────────
+FINAL REQUIREMENTS
+────────────────────────────
+• Do NOT break existing features
+• Do NOT remove schema fields
+• Do NOT invent new APIs unless specified
+• All changes must be incremental
+• All behavior must be deterministic
+• All flows must be resumable
+• The system must feel legally legitimate and trustworthy
+
+Proceed step-by-step and implement fully.
