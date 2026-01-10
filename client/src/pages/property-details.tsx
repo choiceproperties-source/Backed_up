@@ -79,7 +79,7 @@ export default function PropertyDetails() {
         type: "property"
       });
       
-      const structuredData = getPropertyStructuredData(property);
+      const structuredData: any = getPropertyStructuredData(property);
       if (isOffMarket) {
         // Mark availability as Discontinued for off-market properties
         if (!structuredData.offers) {

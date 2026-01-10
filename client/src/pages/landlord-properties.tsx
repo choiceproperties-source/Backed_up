@@ -870,6 +870,17 @@ export default function LandlordProperties() {
                   </p>
 
                   <div className="flex gap-2">
+                    {(property.status === 'inactive' || property.status === 'off_market') && (
+                      <Button
+                        onClick={() => handleRelistProperty(property)}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        data-testid={`button-relist-property-${property.id}`}
+                      >
+                        Relist Property
+                      </Button>
+                    )}
                     <Button
                       onClick={() => handleEditProperty(property)}
                       size="sm"
