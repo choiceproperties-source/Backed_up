@@ -27,6 +27,7 @@ import {
   X,
   Upload,
   AlertCircle,
+  UserCheck,
 } from 'lucide-react';
 import { updateMetaTags } from '@/lib/seo';
 import { PropertyCardSkeletonGrid } from '@/components/skeleton-loaders';
@@ -40,6 +41,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { AgentAssignmentDialog } from '@/components/agent-assignment-dialog';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 // Validation schema
 const propertyFormSchema = z.object({
@@ -91,6 +94,7 @@ export default function LandlordProperties() {
   const [showNewPropertyForm, setShowNewPropertyForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [assignmentProperty, setAssignmentProperty] = useState<{ id: string; agentId?: string | null } | null>(null);
   const { uploadImage, isUploading } = useSupabaseStorageUpload({ folder: 'properties', maxSize: 5 });
   const { properties, loading, createProperty, updateProperty, deleteProperty } =
     useOwnedProperties();
@@ -880,6 +884,31 @@ export default function LandlordProperties() {
                     {(property.price || 0).toLocaleString()}/mo
                   </p>
 
+                  {/* Agent Info */}
+                  <div className="mb-4 pt-4 border-t flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={property.listing_agent?.profile_image} />
+                        <AvatarFallback><UserCheck className="h-4 w-4 text-muted-foreground" /></AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-muted-foreground font-semibold uppercase leading-none mb-1">Assigned Agent</p>
+                        <p className="text-xs font-medium text-foreground truncate max-w-[120px]">
+                          {property.listing_agent?.full_name || 'No agent assigned'}
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-7 text-[10px] uppercase font-bold px-2"
+                      onClick={() => setAssignmentProperty({ id: property.id, agentId: property.listing_agent_id })}
+                      data-testid={`button-assign-agent-${property.id}`}
+                    >
+                      {property.listing_agent_id ? 'Change' : 'Assign'}
+                    </Button>
+                  </div>
+
                   <div className="flex gap-2">
                     {(property.status === 'inactive' || property.status === 'off_market') && (
                       <Button
@@ -917,6 +946,15 @@ export default function LandlordProperties() {
           </div>
         )}
       </div>
+      
+      {assignmentProperty && (
+        <AgentAssignmentDialog
+          isOpen={!!assignmentProperty}
+          onClose={() => setAssignmentProperty(null)}
+          propertyId={assignmentProperty.id}
+          currentAgentId={assignmentProperty.agentId}
+        />
+      )}
 
       <Footer />
     </div>

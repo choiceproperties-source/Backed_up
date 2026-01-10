@@ -1,0 +1,84 @@
+// PROJECT CONTEXT
+// Choice Properties codebase
+// Backend already supports:
+// - properties.owner_id → landlord/owner
+// - properties.listing_agent_id → assigned agent
+// Agents see only assigned properties; owners see all owned properties
+// Goal: implement ONLY the UI for owners to assign/unassign agents to their properties
+// DO NOT change backend logic, database schema, or permissions
+
+// TASK: Add Owner → Agent Assignment UI
+
+// ------------------------------
+// 1. FILE LOCATIONS
+// client/src/pages/landlord-properties.tsx
+// OR client/src/pages/property-edit.tsx
+// Components: PropertyCard / PropertyRow / PropertyDetails
+// ------------------------------
+
+// ------------------------------
+// 2. UI DISPLAY REQUIREMENTS
+// For each property owned by the landlord:
+display "Assigned Agent: {agent_name || 'No agent assigned'}"
+display agent role (Agent / Property Manager)
+display agent profile image (if available)
+Add a button: "Assign Agent" / "Change Agent"
+// ------------------------------
+
+// ------------------------------
+// 3. ASSIGN AGENT MODAL OR DROPDOWN
+// When clicking "Assign Agent":
+// Fetch users with role = 'agent' OR 'property_manager' (and same agency if applicable)
+display a list:
+- Name
+- Role
+- Profile Image
+- Optional: organization
+Allow selection of one agent
+Include a "Remove Agent" button that sets listing_agent_id = null
+// ------------------------------
+
+// ------------------------------
+// 4. API USAGE
+// Use existing property update endpoint (PATCH/PUT):
+// Example:
+PATCH /api/v2/properties/:id
+payload: { listing_agent_id: selected_agent.user_id }
+// Do NOT create new endpoints
+// ------------------------------
+
+// ------------------------------
+// 5. ASSIGNMENT LOGIC
+// After assignment:
+- Property appears immediately in agent's dashboard
+- If unassigned, property disappears from agent dashboard
+- Owner always sees the property
+- Agents cannot assign themselves
+- Admins retain override if already implemented
+// ------------------------------
+
+// ------------------------------
+// 6. UX POLISH
+// Show loading spinner during assignment
+// Show success toast: "Agent assigned successfully"
+// Show error toast if fails
+// Optional: optimistic UI update for immediate feedback
+// Use labels: "Assigned Agent", "Property Manager", "No agent assigned", "Change Agent"
+// ------------------------------
+
+// ------------------------------
+// 7. SAFETY / GUARDRAILS
+// Do NOT:
+// - Allow agents to post or reassign properties
+// - Change ownership logic
+// - Modify backend role permissions
+// - Auto-assign agents
+// ------------------------------
+
+// ------------------------------
+// END GOAL
+// Owner can assign/unassign agents to properties
+// Agent dashboard updates immediately
+// Professional MLS-style UX
+// No backend logic changes required
+// ------------------------------
