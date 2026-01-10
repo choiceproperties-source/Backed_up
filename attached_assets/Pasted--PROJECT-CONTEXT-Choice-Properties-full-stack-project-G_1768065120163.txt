@@ -1,0 +1,87 @@
+// PROJECT CONTEXT
+// Choice Properties full-stack project
+// Goal: Implement proper Owner → Agent assignment workflow AND provide optimistic UI + autosave for agent property edits
+// ------------------------------
+
+// ------------------------------
+// SECTION 1: OWNER → AGENT ASSIGNMENT LOGIC
+// TASKS:
+// 1. Database & Schema:
+//    - properties table has owner_id (landlord) and listing_agent_id (assigned agent).
+//    - agency_id optional for management teams.
+// 2. Backend:
+//    - Only owner (landlord) or Admin can assign a listing_agent_id to a property.
+//    - API endpoint: PATCH /api/v2/properties/:id/assign-agent
+//      Body: { listing_agent_id: "user-uuid" }
+//    - Ensure role checks: only Admin or owner can assign
+//    - Backend validates agent exists and is active
+// 3. Frontend Assignment UI:
+//    - On Property Details (owner dashboard) add "Assign Agent" dropdown
+//    - Dropdown lists all users with role agent or property_manager
+//    - On selection, call PATCH /api/v2/properties/:id/assign-agent
+//    - Update property state locally immediately after success
+// 4. Visibility Rules:
+//    - Agents only see properties where their user ID matches listing_agent_id
+//    - Owner sees all properties with owner_id = current user
+//    - Dashboard filtering uses backend query: SELECT * FROM properties WHERE listing_agent_id = CURRENT_USER_ID
+// ------------------------------
+
+// ------------------------------
+// SECTION 2: OPTIMISTIC UI + AUTOSAVE FOR AGENT PROPERTY EDITS
+// TASKS:
+// 1. Optimistic UI:
+//    - Immediately update local property state when agent edits a field
+//    - Fields: title, description, price, bedrooms, bathrooms, square_feet, amenities, utilities_included, application_fee, availability_date
+//    - API call happens in background: PATCH /api/v2/properties/:id
+//    - On API failure, revert local field to previous value and show toast: "Failed to save, try again"
+// 2. Autosave:
+//    - Trigger save automatically 1-2 seconds after user stops typing (debounce)
+//    - Show indicator: "Saving..." while request is in progress, "All changes saved" on success
+//    - Do not autosave protected fields: owner_id, listing_agent_id, agency_id
+// 3. Error Handling:
+//    - Keep local changes intact if autosave fails
+//    - Provide retry button: "Retry Save"
+// 4. UI Feedback:
+//    - Subtle animations / transitions for save indicator
+//    - Reflect changes instantly on dashboard / PropertyCard preview
+// ------------------------------
+
+// ------------------------------
+// SECTION 3: FRONTEND / COMPONENT INTEGRATION
+// TASKS:
+// - PropertyEditForm (client/src/pages/property-edit.tsx):
+//    - Integrate optimistic UI + autosave for editable fields
+// - AssignAgentDropdown (client/src/components/property-assign-dropdown.tsx):
+//    - Show available agents
+//    - Update property.poster object on assignment
+// - Dashboard filtering:
+//    - Owner dashboard: all properties with owner_id = current user
+//    - Agent dashboard: all properties with listing_agent_id = current user
+// ------------------------------
+
+// ------------------------------
+// SECTION 4: SECURITY / ROLE CHECKS
+// - Owner or Admin only can assign agent
+// - Agents cannot assign properties themselves
+// - All API endpoints check JWT and enforce RLS
+// ------------------------------
+
+// ------------------------------
+// SECTION 5: API EXAMPLES
+// 1. Assign agent to property:
+// PATCH /api/v2/properties/123/assign-agent
+// Body: { listing_agent_id: "agent-uuid" }
+// Response: { property: { id, title, listing_agent_id, poster: { name, role, avatar } } }
+// 2. Update property fields (optimistic UI + autosave):
+// PATCH /api/v2/properties/123
+// Body: { title: "New Title", price: 2500, application_fee: 50, available_from: "2026-02-01" }
+// ------------------------------
+
+// ------------------------------
+// END GOAL
+// - Owner can assign an agent properly
+// - Agent sees only assigned properties
+// - Property edits by agent are reflected instantly (optimistic UI + autosave)
+// - Role checks enforced
+// - Dashboard, PropertyCard, and Property Details remain consistent
+// ------------------------------

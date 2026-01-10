@@ -30,7 +30,7 @@ import { updateMetaTags, getPropertyStructuredData, addStructuredData, removeStr
 import { PropertyDetailsSkeleton } from "@/components/property-details-skeleton";
 import NotFound from "@/pages/not-found";
 
-import { PostedBy } from "@/components/property/posted-by";
+import { AssignAgentDropdown } from "@/components/property-assign-dropdown";
 
 export default function PropertyDetails() {
   const [match, params] = useRoute("/property/:id");
@@ -287,15 +287,16 @@ export default function PropertyDetails() {
                   <div className="mb-6">
                     <div className="flex justify-between items-start mb-4">
                       <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Listing Representative</p>
-                      <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2">
+                        {user && (user.role === 'admin' || user.id === property.owner_id) && (
+                          <AssignAgentDropdown 
+                            propertyId={property.id} 
+                            currentAgentId={property.listing_agent_id} 
+                          />
+                        )}
                         <Badge className={`${isOffMarket ? 'bg-zinc-800' : isComingSoon ? 'bg-amber-500' : 'bg-blue-600'} text-white border-none font-bold py-1 px-3`}>
                           {availabilityText}
                         </Badge>
-                        {availabilitySubtext && (
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {availabilitySubtext}
-                          </span>
-                        )}
                       </div>
                     </div>
                     <PostedBy owner={ownerData as any} poster={(property as any).poster} />

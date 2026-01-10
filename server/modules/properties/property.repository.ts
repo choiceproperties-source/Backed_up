@@ -66,7 +66,7 @@ export async function findAllProperties(filters: PropertyFilters) {
 
   // Owner-specific view (Landlord / Admin dashboards)
   if (ownerId) {
-    query = query.eq("owner_id", ownerId);
+    query = query.or(`owner_id.eq.${ownerId},listing_agent_id.eq.${ownerId}`);
   }
 
   // Public filters
@@ -151,7 +151,7 @@ export async function findPropertiesByOwner(ownerId: string) {
   const { data, error } = await supabase
     .from("properties")
     .select("*")
-    .eq("owner_id", ownerId)
+    .or(`owner_id.eq.${ownerId},listing_agent_id.eq.${ownerId}`)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -193,6 +193,7 @@ export async function createProperty(propertyData: PropertyCreateData) {
     'price', 'bedrooms', 'bathrooms', 'square_feet', 'property_type',
     'amenities', 'images', 'latitude', 'longitude', 'furnished',
     'pets_allowed', 'utilities_included', 'status', 'owner_id',
+    'listing_agent_id', 'agency_id',
     'created_at', 'updated_at', 'view_count', 'deposit', 'hoa_fee',
     'year_built', 'expires_at', 'publish_at'
   ];
@@ -336,6 +337,10 @@ export async function updateProperty(
     'utilitiesIncluded': 'utilities_included',
     'utilities_included': 'utilities_included',
     'status': 'status',
+    'listing_agent_id': 'listing_agent_id',
+    'listingAgentId': 'listing_agent_id',
+    'agency_id': 'agency_id',
+    'agencyId': 'agency_id',
     'viewCount': 'view_count',
     'view_count': 'view_count',
     'deposit': 'deposit',
@@ -362,6 +367,7 @@ export async function updateProperty(
     'price', 'bedrooms', 'bathrooms', 'square_feet', 'property_type',
     'amenities', 'images', 'latitude', 'longitude', 'furnished',
     'pets_allowed', 'lease_term', 'utilities_included', 'status', 'view_count',
+    'listing_agent_id', 'agency_id',
     'deposit', 'hoa_fee', 'year_built', 'expires_at', 'publish_at',
     'updated_at'
   ];

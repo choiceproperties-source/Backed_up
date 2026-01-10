@@ -360,6 +360,8 @@ export async function createProperty({
     const propertyData = {
       ...parsed.data,
       owner_id: userId,
+      listing_agent_id: parsed.data.listingAgentId || null,
+      agency_id: parsed.data.agencyId || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

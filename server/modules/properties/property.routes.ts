@@ -250,6 +250,33 @@ router.patch(
 );
 
 /**
+ * Assign agent to property
+ */
+router.patch(
+  "/:id/assign-agent",
+  authenticateToken,
+  requireOwnership("property"),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { listing_agent_id } = req.body;
+      if (!listing_agent_id) {
+        return res.status(400).json(errorResponse("listing_agent_id is required"));
+      }
+
+      const data = await propertyService.updateProperty(
+        req.params.id,
+        { listing_agent_id },
+        req.user!.id
+      );
+      return res.json(success(data, "Agent assigned successfully"));
+    } catch (err: any) {
+      console.error("[PROPERTY_ROUTES] PATCH /:id/assign-agent error:", err);
+      return res.status(500).json(errorResponse("Failed to assign agent"));
+    }
+  }
+);
+
+/**
  * Update listing status
  */
 router.patch(

@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 
 interface AgentPropertyEditDialogProps {
   property: any;
@@ -54,9 +54,12 @@ export function AgentPropertyEditDialog({
     }
   }, [property]);
 
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [lastSavedData, setLastSavedData] = useState<any>(null);
+
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Security: Only send allowed fields to prevent role-escalation or unauthorized reassignment
+      setSaveStatus('saving');
       const allowedData = {
         title: data.title,
         description: data.description,
@@ -69,13 +72,15 @@ export function AgentPropertyEditDialog({
       };
       return apiRequest('PATCH', `/api/v2/properties/${property.id}`, allowedData);
     },
-    onSuccess: () => {
-      toast({ title: 'Property updated successfully' });
+    onSuccess: (data) => {
+      setSaveStatus('saved');
+      setLastSavedData(formData);
       queryClient.invalidateQueries({ queryKey: ['/api/v2/properties'] });
       queryClient.invalidateQueries({ queryKey: ['/api/v2/owned-properties'] });
-      onClose();
+      setTimeout(() => setSaveStatus('idle'), 3000);
     },
     onError: (err: any) => {
+      setSaveStatus('error');
       toast({
         title: 'Failed to update property',
         description: err.message,
@@ -83,6 +88,30 @@ export function AgentPropertyEditDialog({
       });
     },
   });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (JSON.stringify(formData) !== JSON.stringify(lastSavedData) && lastSavedData !== null) {
+        updateMutation.mutate(formData);
+      }
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [formData, lastSavedData]);
+
+  useEffect(() => {
+    if (property && lastSavedData === null) {
+      setLastSavedData({
+        title: property.title || '',
+        description: property.description || '',
+        price: property.price || 0,
+        bedrooms: property.bedrooms || 0,
+        bathrooms: property.bathrooms || 0,
+        squareFeet: property.squareFeet || 0,
+        applicationFee: property.applicationFee || 45,
+        availableFrom: property.availableFrom || '',
+      });
+    }
+  }, [property]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +122,14 @@ export function AgentPropertyEditDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Assigned Property</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>Edit Assigned Property</DialogTitle>
+            <div className="text-sm font-medium">
+              {saveStatus === 'saving' && <span className="text-blue-500 flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Saving...</span>}
+              {saveStatus === 'saved' && <span className="text-green-500 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> All changes saved</span>}
+              {saveStatus === 'error' && <span className="text-red-500">Failed to save</span>}
+            </div>
+          </div>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 py-4">

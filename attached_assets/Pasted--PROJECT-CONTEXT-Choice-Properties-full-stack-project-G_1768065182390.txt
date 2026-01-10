@@ -1,0 +1,73 @@
+// PROJECT CONTEXT
+// Choice Properties full-stack project
+// Goal: Make profile picture updates and property poster info immediately visible across the app
+// ------------------------------
+
+// ------------------------------
+// SECTION 1: PROFILE PICTURE UPDATES
+// TASKS:
+// 1. Frontend:
+//    - ProfileSettingsForm (client/src/components/profile-settings.tsx)
+//    - After successful upload, immediately update local user state in auth-context.tsx
+//    - Update all components relying on user.profile_image without refresh
+//    - Use context or global state (e.g., React Context, Zustand, or Redux) to propagate change
+// 2. Backend:
+//    - Keep existing /api/upload-image endpoint
+//    - Ensure endpoint returns updated image URL
+// 3. Feedback:
+//    - Show a "Saved!" toast / small success animation when upload completes
+// ------------------------------
+
+// ------------------------------
+// SECTION 2: PROPERTY POSTER INFO UPDATES
+// TASKS:
+// 1. Frontend:
+//    - Any change to user info (name, role, profile picture) should update property.poster objects on PropertyCard, PropertyDetails, and dashboard views
+//    - Use optimistic UI: immediately reflect new info while backend processes the update
+// 2. Backend:
+//    - Keep existing propertyService.getPropertyFull logic
+//    - Ensure returned property.poster object includes updated user fields
+// 3. Components:
+//    - PropertyCardEnhanced
+//    - PropertyDetailsPage
+//    - PostedBy component
+//    - All should reference the global property.poster object for rendering
+// ------------------------------
+
+// ------------------------------
+// SECTION 3: STATE MANAGEMENT
+// TASKS:
+// 1. Centralized Store / Context:
+//    - Store current user info (name, role, profile_image) in a context or global store
+//    - When profile info updates, trigger a global refresh of relevant components
+// 2. Optimistic UI / Autosave:
+//    - On profile edits or poster info edits, update local state immediately
+//    - Send PATCH requests in the background
+//    - On failure, revert field and show toast
+// ------------------------------
+
+// ------------------------------
+// SECTION 4: UI FEEDBACK & ANIMATIONS
+// - Show a subtle pulse or fade-in animation for new profile picture
+// - Update PropertyCard/Details dynamically without refresh
+// - Toast messages for save success or failure
+// ------------------------------
+
+// ------------------------------
+// SECTION 5: API EXAMPLES
+// 1. Profile update:
+// PATCH /api/v2/users/me
+// Body: { full_name: "New Name", profile_image: "https://..." }
+// Response: { user: { id, full_name, profile_image, role } }
+// 2. Property poster refresh:
+// GET /api/v2/properties/:id
+// Returns updated property.poster object
+// ------------------------------
+
+// ------------------------------
+// END GOAL
+// - Profile picture updates reflect instantly across all pages
+// - Property poster info updates propagate to PropertyCard, PropertyDetails, and dashboard
+// - Optimistic UI ensures smooth UX
+// - Toasts and subtle animations for user feedback
+// ------------------------------
