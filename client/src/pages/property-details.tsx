@@ -146,6 +146,7 @@ export default function PropertyDetails() {
 
   const ownerData = property.owner ? {
     ...property.owner,
+    id: property.owner_id,
     full_name: property.owner.full_name || "Property Owner"
   } : undefined;
 
@@ -292,7 +293,7 @@ export default function PropertyDetails() {
                         {user && (user.role === 'admin' || user.id === property.owner_id) && (
                           <AssignAgentDropdown 
                             propertyId={property.id} 
-                            currentAgentId={property.listing_agent_id} 
+                            currentAgentId={(property as any).listing_agent_id} 
                           />
                         )}
                         <Badge className={`${isOffMarket ? 'bg-zinc-800' : isComingSoon ? 'bg-amber-500' : 'bg-blue-600'} text-white border-none font-bold py-1 px-3`}>

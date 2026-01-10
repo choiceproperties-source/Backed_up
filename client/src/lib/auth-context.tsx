@@ -359,7 +359,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isEmailVerified: !!user?.email_verified,
         authRedirect,
         handlePostAuthRedirect,
-        updateUser: (updates: Partial<User>) => setUser(prev => prev ? { ...prev, ...updates } : null),
+        updateUser: (updates: Partial<User>) => {
+          setUser((prev) => {
+            if (!prev) return null;
+            return { ...prev, ...updates };
+          });
+        },
         clearAuthRedirect: () => setAuthRedirect(null)
       }}
     >

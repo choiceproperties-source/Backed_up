@@ -95,14 +95,18 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
     ? property.reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / property.reviews.length 
     : null);
 
+  // Determine availability status
+  const isOwner = user && (property.owner_id === user.id);
+  const isOffMarket = (property.status === 'off_market' || property.listing_status === 'off_market') && !isOwner;
+
   // Get owner/agent info
   const ownerName = property.owner?.full_name || "Property Owner";
   const ownerImage = property.owner?.profile_image;
   const ownerInitials = ownerName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
-  // Determine availability status
-  const isOwner = user && (property.owner_id === user.id);
-  const isOffMarket = (property.status === 'off_market' || property.listing_status === 'off_market') && !isOwner;
+  const displayOwnerName = isOwner ? (user?.full_name || ownerName) : ownerName;
+  const displayOwnerImage = isOwner ? (user?.profile_image || ownerImage) : ownerImage;
+  const displayOwnerInitials = isOwner ? (user?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || ownerInitials) : ownerInitials;
   
   const availableFromDate = property.available_from ? new Date(property.available_from) : null;
   const isFutureAvailable = !isOffMarket && availableFromDate && availableFromDate > new Date();

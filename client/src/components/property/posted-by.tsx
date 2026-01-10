@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Mail, ExternalLink, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth-context";
 import { 
   Tooltip,
   TooltipContent,
@@ -10,6 +11,7 @@ import {
 
 interface PostedByProps {
   owner?: {
+    id: string;
     full_name: string;
     profile_image: string | null;
     role: string | null;
@@ -35,6 +37,11 @@ interface PostedByProps {
 }
 
 export function PostedBy({ owner, poster }: PostedByProps) {
+  const { user } = useAuth();
+  
+  // Real-time sync for current user if they are the owner
+  const isCurrentUserOwner = user && owner && user.id === owner.id;
+
   // Prefer unified poster object if available, fallback to legacy owner
   const data = poster ? {
     fullName: poster.name,
@@ -45,8 +52,8 @@ export function PostedBy({ owner, poster }: PostedByProps) {
     isVerified: poster.is_verified,
     agency: poster.agency
   } : owner ? {
-    fullName: owner.full_name || "Property Owner",
-    profileImage: owner.profile_image,
+    fullName: isCurrentUserOwner ? (user.full_name || owner.full_name) : (owner.full_name || "Property Owner"),
+    profileImage: isCurrentUserOwner ? (user.profile_image || owner.profile_image) : owner.profile_image,
     roleLabel: owner.role === 'agent' ? 'Listing Agent' : owner.role === 'property_manager' ? 'Property Manager' : 'Property Owner',
     displayEmail: owner.display_email || owner.email,
     displayPhone: owner.display_phone,
@@ -95,6 +102,7 @@ export function PostedBy({ owner, poster }: PostedByProps) {
           </div>
           <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">
             {data.roleLabel}
+            {isCurrentUserOwner && " (You)"}
           </span>
           {data.agency && (
             <span className="text-[10px] text-muted-foreground font-medium">

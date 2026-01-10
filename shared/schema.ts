@@ -124,8 +124,6 @@ export const properties = pgTable("properties", {
   addressVerified: boolean("address_verified").default(false),
   applicationFee: decimal("application_fee", { precision: 8, scale: 2 }).default("45.00"),
   availableFrom: date("available_from"),
-  listingAgentId: uuid("listing_agent_id").references(() => users.id, { onDelete: "set null" }),
-  agencyId: uuid("agency_id").references(() => agencies.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),

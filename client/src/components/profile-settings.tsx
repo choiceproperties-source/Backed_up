@@ -50,7 +50,13 @@ export function ProfileSettings() {
     setIsUpdating(true);
     try {
       await apiRequest("PATCH", "/api/v2/auth/profile", values);
+      updateUser({ 
+        full_name: values.fullName,
+        display_email: values.displayEmail,
+        display_phone: values.displayPhone
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/v2/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v2/properties"] });
       toast({ title: "Success", description: "Profile updated successfully" });
     } catch (error: any) {
       toast({
@@ -84,6 +90,7 @@ export function ProfileSettings() {
         await apiRequest("PATCH", "/api/v2/auth/profile", { profileImage: uploadResult.url });
         updateUser({ profile_image: uploadResult.url });
         queryClient.invalidateQueries({ queryKey: ["/api/v2/auth/me"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/v2/properties"] });
         toast({ title: "Success", description: "Profile picture updated" });
       }
     } catch (error: any) {
