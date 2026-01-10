@@ -7,9 +7,13 @@ const router = Router();
 
 router.post("/", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    // PRIORITY 3 FIX: Handle guest applications safely with clear error messages
     if (!req.user) {
       return res.status(401).json(errorResponse("Authentication required to submit an application. Please log in or create an account."));
+    }
+
+    // Map propertyId to property_id if provided from frontend
+    if (req.body.propertyId && !req.body.property_id) {
+      req.body.property_id = req.body.propertyId;
     }
 
     const result = await applicationService.createApplication({

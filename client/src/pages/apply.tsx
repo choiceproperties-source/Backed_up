@@ -97,6 +97,7 @@ export default function Apply() {
 
   const form = useForm<ApplyFormValues>({
     resolver: zodResolver(applyFormSchema),
+    mode: "onBlur",
     defaultValues: {
       propertyId: propertyId || "",
       firstName: "",
@@ -135,7 +136,26 @@ export default function Apply() {
     setSaveStatus('saving');
     try {
       // Use existing endpoint for autosave logic
-      await apiRequest("POST", "/api/v2/applications", { ...values, propertyId, isAutosave: true });
+      const payload = {
+        property_id: propertyId,
+        isAutosave: true,
+        personal_info: {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          phone: values.phone,
+          dateOfBirth: values.dateOfBirth,
+          currentAddress: values.currentAddress,
+          ssn: values.ssn
+        },
+        employment: {
+          employerName: values.employerName,
+          jobTitle: values.jobTitle,
+          monthlyIncome: values.monthlyIncome,
+          employmentDuration: values.employmentDuration
+        }
+      };
+      await apiRequest("POST", "/api/v2/applications", payload);
       lastSavedData.current = currentDataStr;
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 3000);
@@ -202,7 +222,41 @@ export default function Apply() {
   const onSubmit = async (values: ApplyFormValues) => {
     setIsProcessing(true);
     try {
-      await apiRequest("POST", "/api/v2/applications", values);
+      const payload = {
+        property_id: values.propertyId,
+        personal_info: {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          phone: values.phone,
+          dateOfBirth: values.dateOfBirth,
+          currentAddress: values.currentAddress,
+          ssn: values.ssn
+        },
+        employment: {
+          employerName: values.employerName,
+          jobTitle: values.jobTitle,
+          monthlyIncome: values.monthlyIncome,
+          employmentDuration: values.employmentDuration
+        },
+        emergency_contact: {
+          name: values.emergencyContactName,
+          phone: values.emergencyContactPhone,
+          relationship: values.emergencyContactRelationship
+        },
+        acknowledgments: {
+          petPolicy: values.acknowledgePetPolicy,
+          smokingPolicy: values.acknowledgeSmokingPolicy,
+          occupancyLimit: values.acknowledgeOccupancyLimit,
+          utilities: values.acknowledgeUtilities
+        },
+        legal_consent: {
+          backgroundCheck: values.agreeToBackgroundCheck,
+          terms: values.agreeToTerms
+        },
+        signature: values.signature
+      };
+      await apiRequest("POST", "/api/v2/applications", payload);
       setIsSubmitted(true);
       toast({
         title: "Application Submitted",
