@@ -1,0 +1,72 @@
+TASK TYPE: Client-side Autosave UX Enhancement
+MODE: NON-AUTONOMOUS (READ FIRST, IMPLEMENT IN STEPS)
+
+GOAL:
+Implement a safe, modern autosave system for application editing
+WITHOUT changing backend logic or schema.
+
+--------------------------------------------------
+SECTION 1 — READ-ONLY AUDIT (DO NOT MODIFY)
+--------------------------------------------------
+
+Scan the following to understand current behavior:
+- client/src/pages/application-edit.tsx (or equivalent)
+- client/src/components/application-form.tsx
+- Application submit/update handlers
+- Any application-related context or hooks
+
+Identify:
+- How application data is loaded
+- How edits are currently submitted
+- Where state is stored
+
+STOP after audit. Do not write code yet.
+
+--------------------------------------------------
+SECTION 2 — AUTOSAVE LOGIC (CLIENT ONLY)
+--------------------------------------------------
+
+Implement autosave with these rules:
+
+- Autosave triggers:
+  • On field blur
+  • Or after 1–2 seconds of inactivity (debounced)
+- Autosave ONLY updates changed fields
+- Use the existing update endpoint
+- Do NOT submit the full application every time
+
+--------------------------------------------------
+SECTION 3 — UX REQUIREMENTS
+--------------------------------------------------
+
+UI behavior:
+- Show subtle status text:
+  • "Saving…" while request is in flight
+  • "Saved" when successful
+- If autosave fails:
+  • Keep all form data
+  • Show non-blocking inline warning
+  • Allow retry automatically on next change
+
+DO NOT:
+- Reload the page
+- Redirect the user
+- Clear the form
+
+--------------------------------------------------
+SECTION 4 — DATA SAFETY
+--------------------------------------------------
+
+- Preserve all unsaved edits locally
+- If user navigates away and comes back:
+  • Reload latest saved version from backend
+- Do NOT introduce new storage layers (no IndexedDB)
+
+--------------------------------------------------
+CONSTRAINTS:
+- No backend changes
+- No schema changes
+- No new libraries
+- No refactors of services
+
+SUCCESS = Application edits autosave seamlessly with zero data loss.
