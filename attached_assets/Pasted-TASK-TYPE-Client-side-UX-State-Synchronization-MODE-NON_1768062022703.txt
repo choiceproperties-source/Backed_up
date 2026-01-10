@@ -1,0 +1,84 @@
+TASK TYPE: Client-side UX & State Synchronization
+MODE: NON-AUTONOMOUS (DO NOT REFACTOR OR REDESIGN)
+
+GOAL:
+Implement a consistent, professional SaaS behavior for:
+- Property editing
+- Off-market properties
+- Immediate UI updates after successful actions
+
+--------------------------------------------------
+SECTION 1 — READ-ONLY AUDIT
+--------------------------------------------------
+
+Scan these files to understand current behavior:
+- client/src/pages/landlord-properties.tsx
+- client/src/pages/property-details.tsx
+- client/src/components/property-card-enhanced.tsx
+- client/src/lib/property-context.ts (or equivalent)
+- Any property edit submit handler
+
+DO NOT MODIFY CODE IN THIS SECTION.
+
+--------------------------------------------------
+SECTION 2 — PROPERTY EDIT FORM BEHAVIOR
+--------------------------------------------------
+
+When editing an existing property:
+- Pre-fill the form with all existing property values
+- If validation fails (e.g. zip code error):
+  - Keep the form open
+  - Preserve ALL user-entered data
+  - Show inline errors only
+  - Do NOT reset or unmount the form
+
+--------------------------------------------------
+SECTION 3 — IMMEDIATE UI UPDATE (NO REFRESH)
+--------------------------------------------------
+
+After a successful property update:
+- Replace the updated property in client state by ID
+- Do NOT refetch all properties
+- Do NOT reload the page
+- Update immediately:
+  - Property details page
+  - Property cards
+  - Owner dashboard list
+
+--------------------------------------------------
+SECTION 4 — OFF-MARKET PROPERTY UI
+--------------------------------------------------
+
+If listing_status === "off_market":
+
+UI RULES:
+- Show thumbnail image only
+- Disable:
+  - Gallery
+  - Apply button
+  - Contact actions
+- Show badge: "Off Market"
+- Display message:
+  "This property is not currently accepting applications."
+
+DO NOT delete or hide the property.
+
+--------------------------------------------------
+SECTION 5 — FAILURE SAFETY
+--------------------------------------------------
+
+If any update fails:
+- Preserve all form data
+- Keep user on the same screen
+- Display inline error messages
+- Do NOT revert existing UI state
+
+--------------------------------------------------
+CONSTRAINTS:
+- Do NOT change backend logic
+- Do NOT modify database schema
+- Do NOT introduce new state libraries
+- Do NOT refactor services
+- Client-side updates only
+
+SUCCESS = Modern SaaS editing experience with zero data loss.

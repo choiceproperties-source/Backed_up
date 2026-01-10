@@ -163,7 +163,74 @@ export default function PropertyDetails() {
   
   const availabilitySubtext = isComingSoon && availableFromDate
     ? `Available ${availableFromDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
-    : isOffMarket ? 'Not currently available' : '';
+    : isOffMarket ? 'This property is not currently accepting applications.' : '';
+
+  if (isOffMarket) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
+        <Navbar />
+        <main className="flex-1 w-full max-w-[1440px] mx-auto pb-12">
+          <section className="relative group bg-gray-100 dark:bg-gray-900 overflow-hidden md:h-[500px] lg:h-[600px] flex opacity-90 grayscale-[0.2]">
+            {allImages.length > 0 ? (
+              <div className="flex w-full h-full">
+                <div className="w-full h-full relative">
+                  <img 
+                    src={allImages[0]} 
+                    alt={property.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium">
+                No photos available
+              </div>
+            )}
+          </section>
+
+          <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                <Card className="p-8 rounded-xl border border-border/50 shadow-xl">
+                  <div className="mb-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Listing Representative</p>
+                      <Badge className="bg-zinc-800 text-white border-none font-bold py-1 px-3">
+                        Off Market
+                      </Badge>
+                    </div>
+                    <PostedBy owner={ownerData as any} poster={(property as any).poster} />
+                  </div>
+                  <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
+                    <MapPin className="h-5 w-5 mr-1 text-blue-600" />
+                    {property.address}, {property.city}, {property.state} {property.zip_code}
+                  </div>
+                </Card>
+
+                <section className="space-y-4">
+                  <h3 className="text-xl font-bold border-b-2 border-blue-600 w-fit pb-1">Status</h3>
+                  <div className="p-6 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-center">
+                    <Info className="h-8 w-8 mx-auto mb-3 text-zinc-500" />
+                    <p className="text-lg font-medium text-zinc-600 dark:text-zinc-400">
+                      This property is not currently accepting applications.
+                    </p>
+                  </div>
+                </section>
+
+                <section className="space-y-4">
+                  <h3 className="text-xl font-bold border-b-2 border-blue-600 w-fit pb-1">Overview</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed whitespace-pre-wrap">
+                    {property.description || "No description provided"}
+                  </p>
+                </section>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">

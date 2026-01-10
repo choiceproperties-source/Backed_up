@@ -8,6 +8,7 @@ import { Footer } from '@/components/layout/footer';
 import { useAuth } from '@/lib/auth-context';
 import { useOwnedProperties } from '@/hooks/use-owned-properties';
 import { useSupabaseStorageUpload } from '@/hooks/use-supabase-storage-upload';
+import { queryClient } from '@/lib/queryClient';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
