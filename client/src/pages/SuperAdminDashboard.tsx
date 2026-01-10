@@ -35,7 +35,7 @@ export default function SuperAdminDashboard() {
     queryKey: ['/api/v2/admin/users'],
   });
 
-  const { data: properties, isLoading: propertiesLoading } = useQuery<Property[]>({
+  const { data: properties, isLoading: propertiesLoading } = useQuery<any[]>({
     queryKey: ['/api/v2/admin/properties'],
   });
 
@@ -46,7 +46,14 @@ export default function SuperAdminDashboard() {
   const autosaveMutation = useMutation({
     mutationFn: async ({ type, id, field, value }: { type: 'user' | 'property', id: string, field: string, value: any }) => {
       setSaving(prev => ({ ...prev, [`${type}-${id}-${field}`]: true }));
-      await apiRequest('PUT', `/api/v2/admin/${type}s/${id}`, { [field]: value });
+      // Use the correct API field mapping for properties
+      const fieldMapping: Record<string, string> = {
+        'fullName': 'fullName',
+        'full_name': 'fullName',
+        'listing_agent_id': 'listingAgentId'
+      };
+      const apiField = fieldMapping[field] || field;
+      await apiRequest('PUT', `/api/v2/admin/${type}s/${id}`, { [apiField]: value });
     },
     onSuccess: (_, variables) => {
       const { type, id, field } = variables;
@@ -169,8 +176,8 @@ export default function SuperAdminDashboard() {
                   <TableRow key={user.id}>
                     <TableCell className="space-y-1">
                       <Input 
-                        defaultValue={user.full_name || ''} 
-                        onBlur={(e) => e.target.value !== user.full_name && autosaveMutation.mutate({ type: 'user', id: user.id, field: 'full_name', value: e.target.value })}
+                        defaultValue={user.fullName || ''} 
+                        onBlur={(e) => e.target.value !== user.fullName && autosaveMutation.mutate({ type: 'user', id: user.id, field: 'fullName', value: e.target.value })}
                         className="h-8 font-medium"
                       />
                       <Input 
