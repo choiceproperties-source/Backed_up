@@ -46,10 +46,10 @@ export default function SuperAdminDashboard() {
   const autosaveMutation = useMutation({
     mutationFn: async ({ type, id, field, value }: { type: 'user' | 'property', id: string, field: string, value: any }) => {
       setSaving(prev => ({ ...prev, [`${type}-${id}-${field}`]: true }));
-      // Use the correct API field mapping for properties
       const fieldMapping: Record<string, string> = {
         'fullName': 'fullName',
         'full_name': 'fullName',
+        'listingAgentId': 'listingAgentId',
         'listing_agent_id': 'listingAgentId'
       };
       const apiField = fieldMapping[field] || field;
@@ -98,8 +98,9 @@ export default function SuperAdminDashboard() {
 
   const filteredUsers = useMemo(() => {
     return users?.filter(u => {
+      const name = (u as any).fullName || (u as any).full_name || '';
       const matchesSearch = !searchTerm || 
-        u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        name.toLowerCase().includes(searchTerm.toLowerCase()) || 
         u.email?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRole = roleFilter === 'all' || u.role === roleFilter;
       return matchesSearch && matchesRole;
@@ -172,42 +173,45 @@ export default function SuperAdminDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers?.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="space-y-1">
-                      <Input 
-                        defaultValue={user.fullName || ''} 
-                        onBlur={(e) => e.target.value !== user.fullName && autosaveMutation.mutate({ type: 'user', id: user.id, field: 'fullName', value: e.target.value })}
-                        className="h-8 font-medium"
-                      />
-                      <Input 
-                        defaultValue={user.email} 
-                        onBlur={(e) => e.target.value !== user.email && autosaveMutation.mutate({ type: 'user', id: user.id, field: 'email', value: e.target.value })}
-                        className="h-7 text-xs text-muted-foreground"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        defaultValue={user.role || 'renter'}
-                        onValueChange={(value) => autosaveMutation.mutate({ type: 'user', id: user.id, field: 'role', value })}
-                      >
-                        <SelectTrigger className="h-8 w-[180px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(USER_ROLE_LABELS).map(([role, label]) => (
-                            <SelectItem key={role} value={role}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      {isSaving('user', user.id, 'role') || isSaving('user', user.id, 'full_name') ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                      ) : <Check className="w-4 h-4 text-green-500 opacity-40" />}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredUsers?.map((user) => {
+                  const name = (user as any).fullName || (user as any).full_name || '';
+                  return (
+                    <TableRow key={user.id}>
+                      <TableCell className="space-y-1">
+                        <Input 
+                          defaultValue={name} 
+                          onBlur={(e) => e.target.value !== name && autosaveMutation.mutate({ type: 'user', id: user.id, field: 'fullName', value: e.target.value })}
+                          className="h-8 font-medium"
+                        />
+                        <Input 
+                          defaultValue={user.email} 
+                          onBlur={(e) => e.target.value !== user.email && autosaveMutation.mutate({ type: 'user', id: user.id, field: 'email', value: e.target.value })}
+                          className="h-7 text-xs text-muted-foreground"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          defaultValue={user.role || 'renter'}
+                          onValueChange={(value) => autosaveMutation.mutate({ type: 'user', id: user.id, field: 'role', value })}
+                        >
+                          <SelectTrigger className="h-8 w-[180px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(USER_ROLE_LABELS).map(([role, label]) => (
+                              <SelectItem key={role} value={role}>{label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        {isSaving('user', user.id, 'role') || isSaving('user', user.id, 'fullName') ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                        ) : <Check className="w-4 h-4 text-green-500 opacity-40" />}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </Card>
@@ -245,8 +249,8 @@ export default function SuperAdminDashboard() {
                     </TableCell>
                     <TableCell className="space-y-2">
                       <Select
-                        defaultValue={p.status || 'available'}
-                        onValueChange={(value) => autosaveMutation.mutate({ type: 'property', id: p.id, field: 'status', value })}
+                        defaultValue={p.listingStatus || 'draft'}
+                        onValueChange={(value) => autosaveMutation.mutate({ type: 'property', id: p.id, field: 'listingStatus', value })}
                       >
                         <SelectTrigger className="h-8 w-[140px] text-xs">
                           <SelectValue />
@@ -259,29 +263,32 @@ export default function SuperAdminDashboard() {
                         </SelectContent>
                       </Select>
                       <Select
-                        defaultValue={p.listing_agent_id || ''}
-                        onValueChange={(value) => autosaveMutation.mutate({ type: 'property', id: p.id, field: 'listing_agent_id', value })}
+                        defaultValue={p.listingAgentId || ''}
+                        onValueChange={(value) => autosaveMutation.mutate({ type: 'property', id: p.id, field: 'listingAgentId', value })}
                       >
                         <SelectTrigger className="h-8 w-[140px] text-xs">
                           <SelectValue placeholder="Assign Agent" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Unassigned</SelectItem>
-                          {agents.map(a => <SelectItem key={a.id} value={a.id}>{a.full_name}</SelectItem>)}
+                          {agents.map(a => {
+                            const agentName = (a as any).fullName || (a as any).full_name || '';
+                            return <SelectItem key={a.id} value={a.id}>{agentName}</SelectItem>;
+                          })}
                         </SelectContent>
                       </Select>
                     </TableCell>
                     <TableCell>
                       <Button
-                        variant={p.status === 'available' ? 'outline' : 'secondary'}
+                        variant={p.listingStatus === 'available' ? 'outline' : 'secondary'}
                         size="sm"
-                        className={`h-8 gap-2 ${p.status === 'available' ? 'text-green-600 border-green-200 bg-green-50' : ''}`}
-                        onClick={() => approvalMutation.mutate({ propertyId: p.id, approve: p.status !== 'available' })}
+                        className={`h-8 gap-2 ${p.listingStatus === 'available' ? 'text-green-600 border-green-200 bg-green-50' : ''}`}
+                        onClick={() => approvalMutation.mutate({ propertyId: p.id, approve: p.listingStatus !== 'available' })}
                         disabled={saving[`approval-${p.id}`]}
                       >
                         {saving[`approval-${p.id}`] ? <Loader2 className="w-3 h-3 animate-spin" /> : 
-                          p.status === 'available' ? <ShieldCheck className="w-4 h-4" /> : <ShieldX className="w-4 h-4" />}
-                        {p.status === 'available' ? 'Approved' : 'Pending'}
+                          p.listingStatus === 'available' ? <ShieldCheck className="w-4 h-4" /> : <ShieldX className="w-4 h-4" />}
+                        {p.listingStatus === 'available' ? 'Approved' : 'Pending'}
                       </Button>
                     </TableCell>
                     <TableCell className="text-right">
@@ -311,7 +318,7 @@ export default function SuperAdminDashboard() {
                   <TableRow key={log.id}>
                     <TableCell className="text-[10px] text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</TableCell>
                     <TableCell><Badge variant="secondary" className="text-[10px] uppercase">{log.action}</Badge></TableCell>
-                    <TableCell className="font-mono text-[10px]">{log.resource_type}: {log.resource_id}</TableCell>
+                    <TableCell className="font-mono text-[10px]">{log.resourceType}: {log.resourceId}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

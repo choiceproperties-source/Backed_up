@@ -22,10 +22,6 @@ export function Navbar() {
     { href: "/faq", label: "FAQ" },
     ...(isAdmin || user?.role === 'admin' || user?.role === 'super_admin' ? [{ href: "/admin", label: "Admin" }] : []),
     ...(user?.role === 'super_admin' ? [{ href: "/super-admin", label: "Super Admin" }] : []),
-    ...(isLoggedInUser ? [
-      { href: "/renter-dashboard", label: "Renter" },
-      { href: "/landlord-dashboard", label: "Landlord" }
-    ] : []),
     { href: "/about", label: "About Us" },
     { href: "/contact", label: "Contact" },
   ];
