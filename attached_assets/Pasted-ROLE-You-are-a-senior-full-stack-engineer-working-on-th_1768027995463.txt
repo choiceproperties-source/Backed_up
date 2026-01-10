@@ -1,0 +1,115 @@
+ROLE:
+You are a senior full-stack engineer working on the Choice Properties platform.
+
+TASK TYPE:
+Targeted implementation update (DO NOT refactor unrelated logic).
+
+GOAL:
+Implement a professional “Off Market” property display behavior WITHOUT changing:
+- existing property fetching logic
+- database schema
+- hydration logic
+- property visibility rules
+- ownership / role logic
+
+Only update UI behavior and conditional rendering.
+
+--------------------------------
+BUSINESS REQUIREMENTS
+--------------------------------
+
+When a property is marked as "off_market":
+
+PUBLIC PROPERTY CARD:
+1. The property card MUST remain visible in public search results.
+2. Display a clear OFF MARKET badge at the top of the card.
+3. Show ONLY:
+   - Thumbnail image
+   - Property title
+   - City / general location
+4. Disable or hide:
+   - Image carousel
+   - Save / Favorite button
+   - Apply button
+   - Interactive hover effects
+5. Visually indicate disabled state:
+   - Slight opacity reduction OR desaturation
+   - Cursor should indicate non-actionable state
+
+--------------------------------
+PROPERTY DETAILS PAGE (PUBLIC)
+--------------------------------
+
+When visiting an off-market property details page:
+
+1. Display ONLY:
+   - Thumbnail image (no gallery)
+   - Property title
+   - Basic metadata (beds, baths, size — if already loaded)
+   - Poster information (owner / manager)
+   - OFF MARKET badge
+2. Show a clear informational notice:
+   “This property is currently off market and not accepting applications.”
+3. Hard-disable:
+   - Image gallery
+   - Amenities
+   - Full description expansion
+   - Application flow
+   - Contact actions
+4. This page must NOT:
+   - 404
+   - Redirect
+   - Appear broken or incomplete
+
+--------------------------------
+OWNER / MANAGER DASHBOARD
+--------------------------------
+
+For property owners and managers:
+- Off-market properties must retain FULL functionality
+- Editing, images, and relisting must work normally
+- No restrictions should apply in dashboard views
+
+--------------------------------
+TECHNICAL CONSTRAINTS
+--------------------------------
+
+DO NOT:
+- Change API responses
+- Change property hydration logic
+- Change database fields
+- Introduce new statuses
+- Move business logic to the frontend
+
+ONLY:
+- Use existing `listing_status === "off_market"` condition
+- Apply conditional UI rendering
+- Apply visual styling changes only
+
+--------------------------------
+FILES TO UPDATE (ONLY IF NECESSARY)
+--------------------------------
+
+- client/src/components/property-card-enhanced.tsx
+- client/src/pages/property-details.tsx
+- Shared UI components if already used for badges or notices
+
+--------------------------------
+QUALITY RULES
+--------------------------------
+
+- Maintain current UI style and design system
+- Follow existing badge and status patterns
+- Keep behavior intentional and professional
+- Do NOT introduce regressions
+
+--------------------------------
+OUTPUT EXPECTATION
+--------------------------------
+
+- Implement conditional UI behavior cleanly
+- No breaking changes
+- No new APIs
+- No schema changes
+
+Proceed with implementation now.
