@@ -277,6 +277,23 @@ export default function LandlordProperties() {
     }
   };
 
+  const handleRelistProperty = async (property: any) => {
+    if (confirm('Relisting will make this property publicly available again. Continue?')) {
+      try {
+        const result = await updateProperty(property.id, { status: 'active' });
+        if (result) {
+          toast({
+            title: 'Success',
+            description: 'Property has been relisted successfully',
+          });
+          navigate(`/property/${property.id}`);
+        }
+      } catch (error) {
+        console.error('Error relisting property:', error);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />

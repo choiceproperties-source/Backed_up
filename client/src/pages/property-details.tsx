@@ -87,9 +87,11 @@ export default function PropertyDetails() {
             '@type': 'Offer',
             priceCurrency: 'USD',
             price: property.price ? property.price.toString() : '0',
+            availability: "https://schema.org/Discontinued"
           };
+        } else {
+          structuredData.offers.availability = "https://schema.org/Discontinued";
         }
-        structuredData.offers.availability = "https://schema.org/Discontinued";
       }
       
       addStructuredData(structuredData, 'property');
