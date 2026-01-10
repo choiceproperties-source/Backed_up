@@ -318,7 +318,7 @@ export default function SuperAdminDashboard() {
                   <TableRow key={log.id}>
                     <TableCell className="text-[10px] text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</TableCell>
                     <TableCell><Badge variant="secondary" className="text-[10px] uppercase">{log.action}</Badge></TableCell>
-                    <TableCell className="font-mono text-[10px]">{log.resourceType}: {log.resourceId}</TableCell>
+                    <TableCell className="font-mono text-[10px]">{log.resource_type}: {log.resource_id}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
