@@ -1,0 +1,113 @@
+TASK TYPE: Client-side State Synchronization (Property Editing)
+
+GOAL:
+When a user edits an existing property and saves changes, the updated data should
+remain visible immediately in the UI without:
+- losing form progress
+- resetting the page
+- forcing a manual refresh
+- navigating away unexpectedly
+
+This applies to:
+- Property edit form
+- Property details page
+- Property cards (list/grid)
+- Owner dashboard listings
+
+IMPORTANT CONSTRAINTS:
+- Do NOT change backend logic
+- Do NOT change API routes or responses
+- Do NOT refactor the property service
+- Do NOT introduce new global stores
+- ONLY update client-side state handling and UI behavior
+
+--------------------------------------------------
+SECTION 1 — READ-ONLY AUDIT
+--------------------------------------------------
+
+Scan the following files to understand current behavior:
+- client/src/pages/landlord-properties.tsx
+- client/src/pages/property-details.tsx
+- client/src/components/property-card-enhanced.tsx
+- client/src/lib/property-context.ts (or equivalent state source)
+- Any edit submission handler used for updating properties
+
+Identify:
+- Where the edit form receives initial property values
+- What happens after a successful update response
+- Whether the UI refetches, resets, or navigates away
+- Where property lists/details read their data from
+
+DO NOT MODIFY CODE IN THIS SECTION.
+
+--------------------------------------------------
+SECTION 2 — FORM STATE PRESERVATION (EDIT MODE)
+--------------------------------------------------
+
+Ensure that when editing a property:
+- The form is pre-populated with ALL existing property values
+- If validation fails (e.g. zip code error), the form:
+  - stays open
+  - preserves all user-entered data
+  - only highlights the invalid field
+
+Rules:
+- Do NOT clear form state on submit error
+- Do NOT remount the form component
+- Use existing form state as the source of truth
+
+--------------------------------------------------
+SECTION 3 — IMMEDIATE PROPERTY STATE UPDATE
+--------------------------------------------------
+
+After a successful property update:
+1. Capture the updated property object returned from the API
+2. Update the in-memory property list/state immediately
+3. Replace ONLY the edited property by ID
+4. Preserve array order and pagination
+
+Expected behavior:
+- Property details page updates instantly
+- Property card reflects changes instantly
+- Dashboard list reflects changes instantly
+- No full refetch required
+
+Rules:
+- Do NOT trigger a full reload
+- Do NOT refetch all properties
+- Do NOT navigate away unless already intended
+
+--------------------------------------------------
+SECTION 4 — DETAILS PAGE SYNC
+--------------------------------------------------
+
+If the user is currently viewing the edited property:
+- Update the property details view immediately
+- Ensure badges (price, availability, application fee, dates) re-render correctly
+- Preserve scroll position
+
+--------------------------------------------------
+SECTION 5 — FAILURE SAFETY
+--------------------------------------------------
+
+If the update fails:
+- Keep the edit form open
+- Preserve all entered values
+- Show validation or server error inline
+- Do NOT revert to old property data in the UI
+
+--------------------------------------------------
+SUCCESS CRITERIA:
+- Edit property → changes appear instantly
+- No lost progress on validation errors
+- No forced reloads
+- No logic or backend changes
+- UI behaves like a modern SaaS app
+
+DO NOT:
+- Introduce polling
+- Modify backend validation
+- Change schema or migrations
+- Add new state libraries
+
+Proceed only with the scoped client-side updates described above.

@@ -248,6 +248,16 @@ export default function LandlordProperties() {
       if (editingId) {
         const result = await updateProperty(editingId, data);
         if (!result) return;
+        
+        // Update local property data in cache immediately
+        queryClient.setQueryData(['/api/v2/properties', editingId], (prev: any) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            property: { ...prev.property, ...result },
+            owner: prev.owner
+          };
+        });
       } else {
         const result = await createProperty(data);
         if (!result) return;
