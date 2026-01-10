@@ -200,17 +200,33 @@ export function useOwnerApplications() {
         ...options,
       });
     },
-    onSuccess: () => {
-      toast({ title: 'Application status updated' });
-      queryClient.invalidateQueries({ queryKey: ['/api/applications/owner'] });
-      refetch();
+    onMutate: async ({ applicationId, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/applications/owner'] });
+      const previousResponse = queryClient.getQueryData<ApplicationsResponse>(['/api/applications/owner']);
+      
+      if (previousResponse) {
+        queryClient.setQueryData(['/api/applications/owner'], {
+          ...previousResponse,
+          data: previousResponse.data.map(app => 
+            app.id === applicationId ? { ...app, status } : app
+          )
+        });
+      }
+      
+      return { previousResponse };
     },
-    onError: (err: any) => {
+    onError: (err: any, _, context) => {
+      if (context?.previousResponse) {
+        queryClient.setQueryData(['/api/applications/owner'], context.previousResponse);
+      }
       toast({
         title: 'Failed to update status',
         description: err.message,
         variant: 'destructive',
       });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/applications/owner'] });
     },
   });
 
