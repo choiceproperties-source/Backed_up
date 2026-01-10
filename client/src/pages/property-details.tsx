@@ -127,6 +127,11 @@ export default function PropertyDetails() {
     ? `Available ${availableFromDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
     : 'Available Now';
 
+  const ownerData = property.owner ? {
+    ...property.owner,
+    full_name: property.owner.full_name || "Property Owner"
+  } : undefined;
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
       <Navbar />
@@ -182,7 +187,7 @@ export default function PropertyDetails() {
                         {availabilityText}
                       </Badge>
                     </div>
-                    <PostedBy owner={property.owner} poster={property.poster} />
+                    <PostedBy owner={ownerData as any} poster={(property as any).poster} />
                   </div>
                   <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
                     <MapPin className="h-5 w-5 mr-1 text-blue-600" />
@@ -403,7 +408,7 @@ export default function PropertyDetails() {
                     <p className="text-white font-bold uppercase tracking-widest text-xs">Interested? Contact Agent</p>
                   </div>
                     <CardContent className="p-6 space-y-6">
-                      <PostedBy owner={property.owner} poster={property.poster} />
+                      <PostedBy owner={ownerData as any} poster={(property as any).poster} />
                     <div className="space-y-4">
                       <Input 
                         placeholder="Full Name" 
