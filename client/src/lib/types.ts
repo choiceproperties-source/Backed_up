@@ -78,6 +78,7 @@ export interface Property {
   view_count: number | null;
   save_count: number | null;
   application_fee: string | null;
+  available_from: string | null;
   created_at: string;
   updated_at: string | null;
   owner?: Owner;
@@ -214,6 +215,7 @@ export interface Application {
   documents: Record<string, unknown> | null;
   status: string | null;
   application_fee: string | null;
+  available_from: string | null;
   created_at: string;
   updated_at: string | null;
   properties?: Property;

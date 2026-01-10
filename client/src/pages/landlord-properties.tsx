@@ -48,6 +48,8 @@ const propertyFormSchema = z.object({
   state: z.string().min(2, 'State is required'),
   zipCode: z.string().optional(),
   price: z.number().min(0, 'Price must be positive'),
+  applicationFee: z.number().min(0, 'Application fee must be positive').optional(),
+  availableFrom: z.string().optional().nullable(),
   bedrooms: z.number().min(0, 'Bedrooms must be positive').int('Bedrooms must be a whole number'),
   bathrooms: z.number().min(0, 'Bathrooms must be positive'),
   squareFeet: z.number().min(0, 'Square feet must be positive').optional().nullable().transform(v => v ?? undefined),
@@ -109,12 +111,24 @@ export default function LandlordProperties() {
       amenities: [],
       utilitiesIncluded: [],
       images: [],
+      applicationFee: 45,
+      availableFrom: null,
     },
   });
 
   const selectedAmenities = watch('amenities') || [];
   const selectedUtilities = watch('utilitiesIncluded') || [];
   const images = watch('images') || [];
+  const availableFrom = watch('availableFrom');
+  const [availabilityType, setAvailabilityType] = useState<'now' | 'date'>(availableFrom ? 'date' : 'now');
+
+  useEffect(() => {
+    if (availableFrom) {
+      setAvailabilityType('date');
+    } else {
+      setAvailabilityType('now');
+    }
+  }, [availableFrom]);
 
   useEffect(() => {
     updateMetaTags({
@@ -156,6 +170,8 @@ export default function LandlordProperties() {
       amenities: Array.isArray(property.amenities) ? property.amenities : [],
       utilitiesIncluded: Array.isArray(property.utilitiesIncluded) ? property.utilitiesIncluded : [],
       images: Array.isArray(property.images) ? property.images : [],
+      applicationFee: property.application_fee ? parseFloat(property.application_fee) : 45,
+      availableFrom: property.available_from ? property.available_from : null,
     };
     
     reset(formData);
@@ -537,6 +553,62 @@ export default function LandlordProperties() {
                           {errors.price.message}
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-muted-foreground">Application Fee ($)</label>
+                      <Input
+                        type="number"
+                        placeholder="45"
+                        {...register('applicationFee', { valueAsNumber: true })}
+                        data-testid="input-application-fee"
+                        className={errors.applicationFee ? 'border-destructive' : ''}
+                      />
+                      {errors.applicationFee && (
+                        <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          {errors.applicationFee.message}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-sm text-muted-foreground">Availability</label>
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            type="button"
+                            variant={availabilityType === 'now' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => {
+                              setAvailabilityType('now');
+                              setValue('availableFrom', null);
+                            }}
+                            className="flex-1"
+                          >
+                            Available Now
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={availabilityType === 'date' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setAvailabilityType('date')}
+                            className="flex-1"
+                          >
+                            Available on Date
+                          </Button>
+                        </div>
+                        {availabilityType === 'date' && (
+                          <Input
+                            type="date"
+                            {...register('availableFrom')}
+                            data-testid="input-available-from"
+                            className={errors.availableFrom ? 'border-destructive' : ''}
+                            min={new Date().toISOString().split('T')[0]}
+                          />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

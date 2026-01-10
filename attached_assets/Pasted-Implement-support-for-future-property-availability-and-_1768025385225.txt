@@ -1,0 +1,115 @@
+Implement support for future property availability and application fee editing,
+using the results of the completed audit.
+
+IMPORTANT CONSTRAINTS:
+- Do NOT refactor existing logic
+- Do NOT remove or rename fields
+- Do NOT touch listing_status behavior
+- Do NOT invent new status enums
+- Treat everything here as informational display only
+
+-----------------------------------
+1. DATA MODEL (MINIMAL EXTENSION)
+-----------------------------------
+
+Add a new optional field to the property model:
+
+- available_from (date | null)
+
+Rules:
+- This field represents when a property becomes available
+- If null → property is considered "Available Now"
+- This field does NOT replace listing_status
+- expires_at must remain unchanged
+
+Update all required locations:
+- shared/schema.ts
+- client/src/lib/types.ts
+- Any property validation schema
+
+Do NOT change defaults for existing records.
+
+-----------------------------------
+2. CREATE & EDIT PROPERTY FORM
+-----------------------------------
+
+File: client/src/pages/landlord-properties.tsx
+
+Enhance the existing shared Create/Edit form:
+
+A. Application Fee
+- Add a numeric input bound to application_fee
+- Prefill value when editing
+- Allow landlord to change it per property
+- Do NOT hardcode defaults in the UI
+
+B. Availability
+- Add a toggle or radio input:
+  • "Available Now"
+  • "Available On Date"
+
+Behavior:
+- If "Available Now" → available_from = null
+- If "Available On Date" → show date picker and store value in available_from
+- Date picker must be prefilled when editing
+
+CRITICAL:
+- Editing a property must preload ALL existing values
+- No form resets on validation errors
+- Submission failure must NOT clear the form state
+
+-----------------------------------
+3. PROPERTY CARD DISPLAY (INFORMATIONAL)
+-----------------------------------
+
+File: client/src/components/property-card-enhanced.tsx
+
+Enhance availability badge display:
+
+Display rules:
+- If available_from is null:
+  → Badge text: "Available Now"
+- If available_from is in the future:
+  → Badge text: "Available {formatted date}"
+
+Placement:
+- Top area of the card (badge/pill)
+- Must not conflict with existing availability badge styles
+
+Application Fee:
+- Display only if application_fee exists
+- Example text: "Application Fee: $45"
+- Keep it secondary (not visually louder than price)
+
+-----------------------------------
+4. PROPERTY DETAILS PAGE
+-----------------------------------
+
+File: client/src/pages/property-details.tsx
+
+Display the same informational data consistently:
+
+- Availability:
+  • Near the price or title
+  • Same wording as property card
+
+- Application Fee:
+  • Display before any "Apply" or CTA section
+  • Informational only
+
+Rules:
+- Reuse formatting logic where possible
+- Do NOT duplicate badge logic unnecessarily
+- Do NOT alter poster/owner logic
+
+-----------------------------------
+5. FINAL CHECK
+-----------------------------------
+
+Verify:
+- Existing properties without available_from still show "Available Now"
+- Editing a property does NOT lose data
+- No conflicts with listing_status
+- No breaking changes to existing UI
+
+This is a UX enhancement only, not a business logic change.

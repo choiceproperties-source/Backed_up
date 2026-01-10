@@ -121,6 +121,12 @@ export default function PropertyDetails() {
   const lng = property.longitude ? parseFloat(String(property.longitude)) : 0;
   const hasCoordinates = lat !== 0 && lng !== 0;
 
+  const availableFromDate = property.available_from ? new Date(property.available_from) : null;
+  const isFutureAvailable = availableFromDate && availableFromDate > new Date();
+  const availabilityText = isFutureAvailable 
+    ? `Available ${availableFromDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+    : 'Available Now';
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
       <Navbar />
@@ -170,7 +176,12 @@ export default function PropertyDetails() {
             <div className="lg:col-span-2 space-y-8">
                 <Card className="p-8 rounded-xl border border-border/50 shadow-xl" data-testid="section-posted-by">
                   <div className="mb-6">
-                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-4">Listing Representative</p>
+                    <div className="flex justify-between items-start mb-4">
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Listing Representative</p>
+                      <Badge className={`${isFutureAvailable ? 'bg-amber-500' : 'bg-blue-600'} text-white border-none font-bold py-1 px-3`}>
+                        {availabilityText}
+                      </Badge>
+                    </div>
                     <PostedBy owner={property.owner} poster={property.poster} />
                   </div>
                   <div className="flex items-center text-gray-600 dark:text-gray-400 text-lg">
@@ -226,9 +237,6 @@ export default function PropertyDetails() {
                       <span className="text-xs text-gray-500 font-bold uppercase">Sq Ft</span>
                     </div>
                   </div>
-                  <Badge className="ml-auto bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-none font-bold py-1 px-3">
-                    {property.status === 'active' ? 'Available Now' : 'Off Market'}
-                  </Badge>
                 </div>
 
               {/* Overview Section */}

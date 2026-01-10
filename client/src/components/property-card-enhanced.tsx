@@ -102,6 +102,12 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
   const isAvailable = property.status === 'active' || property.status === 'available';
   const leaseInfo = property.lease_term || "12 months";
 
+  const availableFromDate = property.available_from ? new Date(property.available_from) : null;
+  const isFutureAvailable = availableFromDate && availableFromDate > new Date();
+  const availabilityText = isFutureAvailable 
+    ? `Available ${availableFromDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+    : 'Available Now';
+
   return (
     <Link href={`/property/${property.id}`}>
       <Card 
@@ -147,8 +153,8 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
           
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-wrap gap-2 max-w-[70%] z-10">
-            <Badge className="bg-primary/90 backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-2xl px-3 py-1.5">
-              {property.status === 'available' ? 'Available' : property.status === 'pending' ? 'Pending' : 'Rented'}
+            <Badge className={`${isFutureAvailable ? 'bg-amber-500/90' : 'bg-primary/90'} backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-2xl px-3 py-1.5`}>
+              {availabilityText}
             </Badge>
             <Badge className="bg-white/10 backdrop-blur-md dark:bg-card/20 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl border border-white/20 px-3 py-1.5">
               {property.property_type || 'Property'}
@@ -234,6 +240,11 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
             <h3 className="text-lg font-bold text-foreground truncate leading-tight" title={property.title}>
               {property.title}
             </h3>
+            {property.application_fee && (
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                App Fee: ${parseFloat(property.application_fee).toFixed(0)}
+              </p>
+            )}
           </div>
 
           {/* Quick Stats Grid - Single Row */}

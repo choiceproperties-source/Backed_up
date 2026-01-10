@@ -123,6 +123,7 @@ export const properties = pgTable("properties", {
   scheduledPublishAt: timestamp("scheduled_publish_at"),
   addressVerified: boolean("address_verified").default(false),
   applicationFee: decimal("application_fee", { precision: 8, scale: 2 }).default("45.00"),
+  availableFrom: date("available_from"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
