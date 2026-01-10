@@ -1,7 +1,8 @@
-import { supabase } from "../../supabase";
+import { getSupabaseOrThrow } from "../../supabase";
 
 export class AdminRepository {
   async getImageAuditLogs(propertyId?: string, action?: string, limit: number = 100, offset: number = 0): Promise<{ logs: any[]; total: number }> {
+    const supabase = getSupabaseOrThrow();
     let query = supabase
       .from("image_audit_logs")
       .select("id, actor_id, actor_role, action, photo_id, property_id, metadata, timestamp, users:actor_id(id, full_name, email, role)", { count: "exact" })
@@ -23,6 +24,7 @@ export class AdminRepository {
   }
 
   async getPersonas(): Promise<any[]> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("personas")
       .select("*");
@@ -32,6 +34,7 @@ export class AdminRepository {
   }
 
   async createPersona(personaData: any): Promise<any> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("personas")
       .insert([personaData])
@@ -43,6 +46,7 @@ export class AdminRepository {
   }
 
   async updatePersona(id: string, updates: any): Promise<any> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("personas")
       .update(updates)
@@ -55,6 +59,7 @@ export class AdminRepository {
   }
 
   async deletePersona(id: string): Promise<void> {
+    const supabase = getSupabaseOrThrow();
     const { error } = await supabase
       .from("personas")
       .delete()
@@ -64,6 +69,7 @@ export class AdminRepository {
   }
 
   async getSettings(): Promise<any> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("admin_settings")
       .select("*")
@@ -74,6 +80,7 @@ export class AdminRepository {
   }
 
   async updateSettings(updates: any): Promise<any> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("admin_settings")
       .upsert(updates, { onConflict: "id" })
@@ -82,5 +89,20 @@ export class AdminRepository {
 
     if (error) throw error;
     return data;
+  }
+
+  async logAdminAction(userId: string, action: string, resourceType: string, resourceId: string, details?: any) {
+    const supabase = getSupabaseOrThrow();
+    const { error } = await supabase
+      .from("admin_actions")
+      .insert([{
+        user_id: userId,
+        action,
+        resource_type: resourceType,
+        resource_id: resourceId,
+        details,
+      }]);
+
+    if (error) throw error;
   }
 }

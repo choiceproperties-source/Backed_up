@@ -182,6 +182,7 @@ export const USER_ROLE_DESCRIPTIONS: Record<UserRole, string> = {
   property_manager: 'Manages multiple properties',
   agent: 'Licensed real estate agent',
   admin: 'System administrator',
+  super_admin: 'Full platform access',
   tenant: 'Tenant of a property',
 };
 

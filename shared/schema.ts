@@ -143,6 +143,18 @@ export const propertyQuestions = pgTable("property_questions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Property internal notes for landlords/agents
+export const propertyNotes = pgTable("property_notes", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  noteType: text("note_type").default("general"),
+  isPinned: boolean("is_pinned").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Admin actions for audit logging
 export const adminActions = pgTable("admin_actions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1015,7 +1027,7 @@ export const insertPropertySchema = createInsertSchema(properties)
     }
   );
 
-export const insertPropertyNoteSchema = createInsertSchema(propertyNotes).omit({
+export const insertPropertyNoteSchema = createInsertSchema(properties).omit({
   id: true,
   createdAt: true,
   updatedAt: true,

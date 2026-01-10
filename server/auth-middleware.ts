@@ -22,6 +22,7 @@ export interface AuthenticatedRequest extends Request {
 /* ------------------------------------------------ */
 
 export const ROLE_HIERARCHY: Record<string, number> = {
+  super_admin: 1000,
   admin: 100,
   owner: 80,
   agent: 70,
@@ -32,6 +33,7 @@ export const ROLE_HIERARCHY: Record<string, number> = {
 };
 
 export const PROPERTY_EDIT_ROLES = [
+  "super_admin",
   "admin",
   "owner",
   "agent",
@@ -41,7 +43,7 @@ export const PROPERTY_EDIT_ROLES = [
 
 export const APPLICATION_REVIEW_ROLES = [...PROPERTY_EDIT_ROLES];
 export const SENSITIVE_DATA_ROLES = [...PROPERTY_EDIT_ROLES];
-export const ADMIN_ONLY_ROLES = ["admin"];
+export const ADMIN_ONLY_ROLES = ["admin", "super_admin"];
 
 /* ------------------------------------------------ */
 /* Role Helpers */
@@ -109,7 +111,7 @@ export async function authenticateToken(
     req.user = {
       id: userId,
       email: data.user.email ?? "",
-      role,
+      role: role || "renter",
     };
 
     next();
@@ -160,7 +162,7 @@ export async function optionalAuth(
     req.user = {
       id: data.user.id,
       email: data.user.email ?? "",
-      role,
+      role: role || "renter",
     };
   } catch {
     // silent fail (optional auth)
@@ -193,6 +195,13 @@ export function requireRole(...allowedRoles: string[]) {
 
 export function invalidateOwnershipCache(type: string, id: string) {
   cache.invalidate(`ownership:${type}:${id}`);
+}
+
+export function requireSuperAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  if (!req.user || req.user.role !== "super_admin") {
+    return res.status(403).json({ error: "Super Admin access required" });
+  }
+  next();
 }
 
 async function getResourceOwner(
@@ -232,7 +241,7 @@ async function getResourceOwner(
       .eq("id", id)
       .single();
 
-    ownerId = data?.[config.field] ?? null;
+    ownerId = (data as any)?.[config.field as any] ?? null;
     found = !!data;
   }
 
@@ -259,7 +268,7 @@ export function requireOwnership(
       return res.status(401).json({ error: "Authentication required" });
     }
 
-    if (req.user.role === "admin") return next();
+    if (req.user.role === "admin" || req.user.role === "super_admin") return next();
 
     try {
       const { ownerId, found } = await getResourceOwner(type, req.params.id);

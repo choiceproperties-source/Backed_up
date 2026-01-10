@@ -59,4 +59,8 @@ export class AdminService {
 
     return await this.repository.updateSettings(updates);
   }
+
+  async logAdminAction(userId: string, action: string, resourceType: string, resourceId: string, details?: any) {
+    return await this.repository.logAdminAction(userId, action, resourceType, resourceId, details);
+  }
 }
