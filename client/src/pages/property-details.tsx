@@ -31,6 +31,7 @@ import { PropertyDetailsSkeleton } from "@/components/property-details-skeleton"
 import NotFound from "@/pages/not-found";
 
 import { AssignAgentDropdown } from "@/components/property-assign-dropdown";
+import { PostedBy } from "@/components/property/posted-by";
 
 export default function PropertyDetails() {
   const [match, params] = useRoute("/property/:id");
