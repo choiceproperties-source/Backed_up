@@ -61,14 +61,31 @@ export default function PropertyDetails() {
 
   useEffect(() => {
     if (property) {
+      const isOffMarket = property.listing_status === 'off_market' || property.status === 'off_market';
+      
+      const metaTitle = isOffMarket 
+        ? `${property.title} – Off Market | Choice Properties`
+        : `${property.title} - Listing`;
+      
+      const metaDescription = isOffMarket
+        ? "This property is currently off market. View details, photos, and future availability on Choice Properties."
+        : (property.description || '');
+
       updateMetaTags({
-        title: `${property.title} - Listing`,
-        description: property.description || '',
+        title: metaTitle,
+        description: metaDescription,
         image: Array.isArray(property.images) ? property.images[0] : undefined,
         url: window.location.href,
         type: "property"
       });
-      addStructuredData(getPropertyStructuredData(property), 'property');
+      
+      const structuredData = getPropertyStructuredData(property);
+      if (isOffMarket && structuredData.offers) {
+        // Mark availability as Discontinued for off-market properties
+        structuredData.offers.availability = "https://schema.org/Discontinued";
+      }
+      
+      addStructuredData(structuredData, 'property');
     }
     return () => { removeStructuredData('property'); };
   }, [property]);
@@ -132,13 +149,15 @@ export default function PropertyDetails() {
     full_name: property.owner.full_name || "Property Owner"
   } : undefined;
 
+  const isOffMarket = property.listing_status === 'off_market' || property.status === 'off_market';
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
       <Navbar />
 
       <main className="flex-1 w-full max-w-[1440px] mx-auto pb-12">
         {/* Zillow Style Image Gallery */}
-        <section className="relative group bg-gray-100 dark:bg-gray-900 overflow-hidden md:h-[500px] lg:h-[600px] flex">
+        <section className={`relative group bg-gray-100 dark:bg-gray-900 overflow-hidden md:h-[500px] lg:h-[600px] flex ${isOffMarket ? 'opacity-75 grayscale-[0.2]' : ''}`}>
           {allImages.length > 0 ? (
             <div className="flex w-full h-full gap-1">
               <div className="w-full md:w-2/3 h-full relative cursor-pointer overflow-hidden" onClick={() => setIsGalleryOpen(true)}>
@@ -404,48 +423,71 @@ export default function PropertyDetails() {
             <div className="space-y-6">
               <div className="sticky top-24">
                 <Card className="shadow-xl border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
-                  <div className="bg-blue-600 p-4 text-center">
-                    <p className="text-white font-bold uppercase tracking-widest text-xs">Interested? Contact Agent</p>
+                  <div className={`${isOffMarket ? 'bg-zinc-800' : 'bg-blue-600'} p-4 text-center`}>
+                    <p className="text-white font-bold uppercase tracking-widest text-xs">
+                      {isOffMarket ? "Property Off Market" : "Interested? Contact Agent"}
+                    </p>
                   </div>
                     <CardContent className="p-6 space-y-6">
                       <PostedBy owner={ownerData as any} poster={(property as any).poster} />
-                    <div className="space-y-4">
-                      <Input 
-                        placeholder="Full Name" 
-                        value={inquiryForm.name} 
-                        onChange={e => setInquiryForm(prev => ({...prev, name: e.target.value}))} 
-                        className="h-11 rounded-lg border-gray-200"
-                      />
-                      <Input 
-                        placeholder="Email" 
-                        value={inquiryForm.email} 
-                        onChange={e => setInquiryForm(prev => ({...prev, email: e.target.value}))} 
-                        className="h-11 rounded-lg border-gray-200"
-                      />
-                      <Textarea 
-                        placeholder="I'm interested in this property..." 
-                        value={inquiryForm.message} 
-                        onChange={e => setInquiryForm(prev => ({...prev, message: e.target.value}))} 
-                        className="h-32 rounded-lg border-gray-200 resize-none" 
-                      />
-                    </div>
                     
-                    <div className="space-y-3">
-                      <Button 
-                        className="w-full h-12 font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]" 
-                        onClick={handleInquiry} 
-                        disabled={submittingInquiry}
-                      >
-                        {submittingInquiry ? "Sending..." : "Contact Agent"}
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full h-12 font-bold border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                        onClick={() => window.location.href = `/apply/${property.id}`}
-                      >
-                        Apply Now
-                      </Button>
-                    </div>
+                    {!isOffMarket ? (
+                      <>
+                        <div className="space-y-4">
+                          <Input 
+                            placeholder="Full Name" 
+                            value={inquiryForm.name} 
+                            onChange={e => setInquiryForm(prev => ({...prev, name: e.target.value}))} 
+                            className="h-11 rounded-lg border-gray-200"
+                          />
+                          <Input 
+                            placeholder="Email" 
+                            value={inquiryForm.email} 
+                            onChange={e => setInquiryForm(prev => ({...prev, email: e.target.value}))} 
+                            className="h-11 rounded-lg border-gray-200"
+                          />
+                          <Textarea 
+                            placeholder="I'm interested in this property..." 
+                            value={inquiryForm.message} 
+                            onChange={e => setInquiryForm(prev => ({...prev, message: e.target.value}))} 
+                            className="h-32 rounded-lg border-gray-200 resize-none" 
+                          />
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <Button 
+                            className="w-full h-12 font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]" 
+                            onClick={handleInquiry} 
+                            disabled={submittingInquiry}
+                          >
+                            {submittingInquiry ? "Sending..." : "Contact Agent"}
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            className="w-full h-12 font-bold border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                            onClick={() => window.location.href = `/apply/${property.id}`}
+                          >
+                            Apply Now
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="space-y-4 py-4">
+                        <div className="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-600 dark:text-zinc-400 border border-zinc-100 dark:border-zinc-800">
+                          <Info className="h-5 w-5 shrink-0" />
+                          <p className="text-sm font-medium">
+                            This listing is currently off market and not accepting new applications or inquiries at this time.
+                          </p>
+                        </div>
+                        <Button 
+                          variant="outline"
+                          className="w-full h-12 font-bold text-zinc-500 border-zinc-200 cursor-not-allowed"
+                          disabled
+                        >
+                          Listing Inactive
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
