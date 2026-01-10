@@ -209,13 +209,27 @@ export interface Application {
   id: string;
   property_id: string | null;
   user_id: string | null;
-  step: number | null;
-  personal_info: Record<string, unknown> | null;
+  last_saved_step: number | null;
+  personal_info: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    dateOfBirth?: string;
+    currentAddress?: string;
+    ssn?: string;
+  } | null;
+  employment: {
+    employerName?: string;
+    jobTitle?: string;
+    monthlyIncome?: string;
+    employmentDuration?: string;
+  } | null;
   rental_history: Record<string, unknown> | null;
-  employment: Record<string, unknown> | null;
   references: Record<string, unknown> | null;
   disclosures: Record<string, unknown> | null;
-  documents: Record<string, unknown> | null;
+  pets: Record<string, unknown> | null;
+  vehicles: Record<string, unknown> | null;
   status: string | null;
   application_fee: string | null;
   available_from: string | null;

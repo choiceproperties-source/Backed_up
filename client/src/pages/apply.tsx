@@ -114,24 +114,23 @@ export default function Apply() {
         setCurrentStep(savedStep);
         
         // Populate form with saved data
-        if (existingDraft.personal_info) {
-          form.reset({
-            ...form.getValues(),
-            firstName: existingDraft.personal_info.firstName || "",
-            lastName: existingDraft.personal_info.lastName || "",
-            email: existingDraft.personal_info.email || "",
-            phone: existingDraft.personal_info.phone || "",
-            dateOfBirth: existingDraft.personal_info.dateOfBirth || "",
-            currentAddress: existingDraft.personal_info.currentAddress || "",
-            ssn: existingDraft.personal_info.ssn || "",
-          });
-        }
-        if (existingDraft.employment) {
-          form.setValue("employerName", existingDraft.employment.employerName || "");
-          form.setValue("jobTitle", existingDraft.employment.jobTitle || "");
-          form.setValue("monthlyIncome", existingDraft.employment.monthlyIncome || "");
-          form.setValue("employmentDuration", existingDraft.employment.employmentDuration || "");
-        }
+        const personal = existingDraft.personal_info || {};
+        const employment = existingDraft.employment || {};
+        
+        form.reset({
+          ...form.getValues(),
+          firstName: personal.firstName || "",
+          lastName: personal.lastName || "",
+          email: personal.email || "",
+          phone: personal.phone || "",
+          dateOfBirth: personal.dateOfBirth || "",
+          currentAddress: personal.currentAddress || "",
+          ssn: personal.ssn || "",
+          employerName: employment.employerName || "",
+          jobTitle: employment.jobTitle || "",
+          monthlyIncome: employment.monthlyIncome || "",
+          employmentDuration: employment.employmentDuration || "",
+        });
       }
     }
   }, [userAppsResponse, propertyId, form]);
@@ -145,19 +144,19 @@ export default function Apply() {
       property_id: propertyId,
       last_saved_step: step,
       personal_info: {
-        firstName: values.firstName,
-        lastName: values.lastName,
-        email: values.email,
-        phone: values.phone,
-        dateOfBirth: values.dateOfBirth,
-        currentAddress: values.currentAddress,
-        ssn: values.ssn
+        firstName: values.firstName || "",
+        lastName: values.lastName || "",
+        email: values.email || "",
+        phone: values.phone || "",
+        dateOfBirth: values.dateOfBirth || "",
+        currentAddress: values.currentAddress || "",
+        ssn: values.ssn || ""
       },
       employment: {
-        employerName: values.employerName,
-        jobTitle: values.jobTitle,
-        monthlyIncome: values.monthlyIncome,
-        employmentDuration: values.employmentDuration
+        employerName: values.employerName || "",
+        jobTitle: values.jobTitle || "",
+        monthlyIncome: values.monthlyIncome || "",
+        employmentDuration: values.employmentDuration || ""
       },
       rental_history: {},
       references: {},
