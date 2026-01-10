@@ -80,6 +80,8 @@ export default function Apply() {
   const [, params] = useRoute("/apply/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { formState, trigger, getValues, reset, setValue, control, handleSubmit } = form;
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -87,6 +89,34 @@ export default function Apply() {
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [lastSavedStep, setLastSavedStep] = useState<number>(1);
   const lastSavedData = useRef<string>("");
+
+  const form = useForm<ApplyFormValues>({
+    resolver: zodResolver(applyFormSchema),
+    defaultValues: {
+      propertyId: params?.id || "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      dateOfBirth: "",
+      currentAddress: "",
+      ssn: "",
+      employerName: "",
+      jobTitle: "",
+      monthlyIncome: "",
+      employmentDuration: "",
+      emergencyContactName: "",
+      emergencyContactPhone: "",
+      emergencyContactRelationship: "",
+      acknowledgePetPolicy: false,
+      acknowledgeSmokingPolicy: false,
+      acknowledgeOccupancyLimit: false,
+      acknowledgeUtilities: false,
+      agreeToBackgroundCheck: false,
+      agreeToTerms: false,
+      signature: "",
+    },
+  });
 
   const propertyId = params?.id;
 
@@ -117,8 +147,8 @@ export default function Apply() {
         const personal = existingDraft.personal_info || {};
         const employment = existingDraft.employment || {};
         
-        form.reset({
-          ...form.getValues(),
+        reset({
+          ...getValues(),
           firstName: personal.firstName || "",
           lastName: personal.lastName || "",
           email: personal.email || "",
@@ -133,9 +163,9 @@ export default function Apply() {
         });
       }
     }
-  }, [userAppsResponse, propertyId, form]);
+  }, [userAppsResponse, propertyId, reset, getValues]);
 
-  const formValues = useWatch({ control: form.control });
+  const formValues = useWatch({ control });
 
   const performAutosave = useCallback(async (values: Partial<ApplyFormValues>, step: number) => {
     if (isSubmitted || !propertyId) return;
@@ -192,19 +222,19 @@ export default function Apply() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (form.formState.isDirty) {
+      if (formState.isDirty) {
         performAutosave(formValues as any, currentStep);
       }
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [formValues, form.formState.isDirty, performAutosave, currentStep]);
+  }, [formValues, formState.isDirty, performAutosave, currentStep]);
 
   useEffect(() => {
     if (propertyId) {
-      form.setValue("propertyId", propertyId);
+      setValue("propertyId", propertyId);
     }
-  }, [propertyId, form]);
+  }, [propertyId, setValue]);
 
   const steps = [
     { id: 1, label: "Personal Information" },
@@ -216,13 +246,13 @@ export default function Apply() {
 
   const nextStep = async () => {
     const fieldsToValidate = getFieldsForStep(currentStep);
-    const isValid = await form.trigger(fieldsToValidate as any);
+    const isValid = await trigger(fieldsToValidate as any);
     if (isValid) {
       const next = Math.min(currentStep + 1, steps.length);
       setCurrentStep(next);
       setLastSavedStep(next);
       // Force autosave on step change
-      performAutosave(form.getValues() as any, next);
+      performAutosave(getValues() as any, next);
       window.scrollTo(0, 0);
     }
   };
@@ -328,7 +358,7 @@ export default function Apply() {
         <CheckCircle2 className="h-20 w-20 text-green-500 mb-6" />
         <h1 className="text-3xl font-bold mb-2">Application Received!</h1>
         <p className="text-muted-foreground mb-8 text-center max-w-md">
-          Thank you for applying for {property?.title}. We've sent a confirmation email to {form.getValues("email")}.
+          Thank you for applying for {property?.title}. We've sent a confirmation email to {getValues("email")}.
         </p>
         <Button onClick={() => setLocation("/dashboard")}>Go to Dashboard</Button>
       </div>
