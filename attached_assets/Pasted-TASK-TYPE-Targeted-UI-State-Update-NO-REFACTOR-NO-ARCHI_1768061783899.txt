@@ -1,0 +1,87 @@
+TASK TYPE: Targeted UI + State Update (NO REFACTOR, NO ARCHITECTURE CHANGES)
+
+GOAL:
+After a user uploads a profile picture, the new avatar must reflect IMMEDIATELY across the UI
+without page refresh, logout, or re-login.
+
+IMPORTANT CONSTRAINTS:
+- Do NOT change upload logic
+- Do NOT change backend behavior
+- Do NOT refactor auth architecture
+- ONLY update client-side state handling
+- Maintain existing API responses exactly as they are
+
+--------------------------------------------------
+SECTION 1 — SCAN & UNDERSTAND (READ-ONLY)
+--------------------------------------------------
+
+Scan the following files to understand current behavior:
+- client/src/components/profile-settings.tsx
+- client/src/lib/auth-context.tsx
+- Any component rendering user avatars (header, dashboard, PostedBy)
+
+Identify:
+- Where the upload request returns the new image URL
+- Where user profile data is stored in global state
+- Where avatar components read their data from
+
+DO NOT MODIFY ANY CODE IN THIS STEP.
+
+--------------------------------------------------
+SECTION 2 — CLIENT STATE UPDATE (MINIMAL CHANGE)
+--------------------------------------------------
+
+After a successful profile image upload:
+1. Capture the returned image URL from the upload API response
+2. Update the existing authenticated user object in auth-context
+3. Ensure the updated avatar URL replaces the old one in memory
+
+Rules:
+- Do NOT refetch user data
+- Do NOT reload the page
+- Use the existing setUser / updateUser pattern
+- Preserve all other user fields unchanged
+
+Expected pattern:
+- server confirms upload
+- client updates user.profile_image immediately
+- UI re-renders automatically
+
+--------------------------------------------------
+SECTION 3 — UI CONSISTENCY CHECK
+--------------------------------------------------
+
+Verify that the updated profile image reflects instantly in:
+- Profile settings avatar
+- Dashboard header avatar
+- Property “Posted by” section
+- Any other component consuming auth user data
+
+If any component is using a stale local copy:
+- Replace it with the centralized auth user state
+- Do NOT introduce new state stores
+
+--------------------------------------------------
+SECTION 4 — FAILURE SAFETY (NO UX REGRESSION)
+--------------------------------------------------
+
+If upload fails:
+- Do NOT update UI
+- Show existing error behavior
+- Ensure no broken image placeholders appear
+
+--------------------------------------------------
+SUCCESS CRITERIA:
+- Upload profile picture → image updates instantly
+- No page refresh required
+- No auth logout/login cycle
+- No backend changes
+- No new API calls
+
+DO NOT:
+- Introduce polling
+- Introduce new contexts
+- Modify backend routes
+- Change storage providers
+
+Proceed only with the scoped client-side changes described above.
