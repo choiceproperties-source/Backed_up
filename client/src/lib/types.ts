@@ -162,7 +162,7 @@ export interface User {
   needs_role_selection?: boolean;
 }
 
-export type UserRole = 'renter' | 'buyer' | 'landlord' | 'property_manager' | 'agent' | 'admin' | 'tenant';
+export type UserRole = 'renter' | 'buyer' | 'landlord' | 'property_manager' | 'agent' | 'admin' | 'super_admin' | 'tenant';
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
   renter: 'Renter',
@@ -171,6 +171,7 @@ export const USER_ROLE_LABELS: Record<UserRole, string> = {
   property_manager: 'Property Manager',
   agent: 'Real Estate Agent',
   admin: 'Administrator',
+  super_admin: 'Super Admin',
   tenant: 'Tenant',
 };
 

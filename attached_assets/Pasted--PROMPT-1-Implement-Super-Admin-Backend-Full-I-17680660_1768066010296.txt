@@ -1,0 +1,87 @@
+// ============================================
+// PROMPT 1: Implement Super Admin Backend
+// Full Implementation (All-in-One, Code-Based)
+// ============================================
+
+// Task: Create a "Super Admin" role with full access to all resources
+// in the Choice Properties platform, including users, properties, and
+// administrative actions, with audit logging and role protection.
+
+// 1. Database Updates
+// -------------------
+// Ensure 'super_admin' exists in roles
+await db.insert(roles)
+    .values({ name: 'super_admin' })
+    .onConflictDoNothing();
+
+// Users table role references
+// Ensure that users.role_id points to roles.id
+// (assuming roles table has id, name)
+
+// 2. Middleware: requireSuperAdmin
+// --------------------------------
+import { Request, Response, NextFunction } from 'express';
+
+export function requireSuperAdmin(req: Request, res: Response, next: NextFunction) {
+    if (!req.user || req.user.role !== 'super_admin') {
+        return res.status(403).json({ message: 'Access denied: Super Admin only' });
+    }
+    next();
+}
+
+// 3. Protect API Endpoints
+// ------------------------
+
+// Example: Get all users (Super Admin only)
+app.get('/api/admin/users', requireSuperAdmin, async (req, res) => {
+    const users = await db.select().from('users');
+    res.json(users);
+});
+
+// Example: Delete a property (Super Admin only)
+app.delete('/api/admin/properties/:id', requireSuperAdmin, async (req, res) => {
+    const { id } = req.params;
+    await db.delete(properties).where(eq(properties.id, id));
+    // Log the action
+    await logAdminAction(req.user.id, 'delete_property', 'property', id);
+    res.json({ message: 'Property deleted' });
+});
+
+// Example: Update user role
+app.put('/api/admin/users/:id/role', requireSuperAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+    await db.update(users).set({ role_id: role }).where(eq(users.id, id));
+    await logAdminAction(req.user.id, 'update_user_role', 'user', id);
+    res.json({ message: 'User role updated' });
+});
+
+// 4. Audit Logging
+// ----------------
+// Table: admin_actions (id, user_id, action, resource_type, resource_id, timestamp)
+async function logAdminAction(userId: string, action: string, resourceType: string, resourceId: string) {
+    await db.insert(admin_actions).values({
+        user_id: userId,
+        action,
+        resource_type: resourceType,
+        resource_id: resourceId,
+        timestamp: new Date()
+    });
+}
+
+// 5. Goals & Rules
+// ----------------
+// - Only users with role 'super_admin' can access these routes
+// - All actions by super_admin are logged in admin_actions
+// - Existing role checks for Admin, Landlord, Agent, Tenant remain untouched
+// - Super Admin can:
+//    * View and manage all users
+//    * View, edit, or delete any property
+//    * Update roles and assignments
+//    * Perform any platform-wide administrative tasks
+// - Backend integrates fully with Supabase Auth
+// - Maintains security and privacy filters for sensitive fields
+
+// ============================================
+// END OF SUPER ADMIN BACKEND IMPLEMENTATION
+// ============================================

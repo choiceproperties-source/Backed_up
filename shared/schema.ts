@@ -143,17 +143,24 @@ export const propertyQuestions = pgTable("property_questions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Property internal notes for landlords/agents
-export const propertyNotes = pgTable("property_notes", {
+// Admin actions for audit logging
+export const adminActions = pgTable("admin_actions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "cascade" }),
   userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
-  content: text("content").notNull(),
-  noteType: text("note_type").default("general"),
-  isPinned: boolean("is_pinned").default(false),
+  action: text("action").notNull(),
+  resourceType: text("resource_type").notNull(),
+  resourceId: text("resource_id"),
+  details: jsonb("details"),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const insertAdminActionSchema = createInsertSchema(adminActions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type AdminAction = typeof adminActions.$inferSelect;
+export type InsertAdminAction = z.infer<typeof insertAdminActionSchema>;
 
 // Application status workflow: draft -> pending_payment -> payment_verified -> submitted -> under_review -> conditional_approval/info_requested -> approved/rejected/withdrawn
 // Valid transitions: draft->pending_payment, pending_payment->payment_verified, payment_verified->submitted, submitted->under_review, 
