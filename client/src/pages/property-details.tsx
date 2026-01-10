@@ -473,6 +473,14 @@ export default function PropertyDetails() {
                     <p className="text-xs text-gray-500 font-bold uppercase">Application Fee</p>
                     <p className="text-xl font-bold">${property.application_fee || "45.00"}</p>
                   </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500 font-bold uppercase">Available From</p>
+                    <p className="text-xl font-bold">
+                      {property.available_from 
+                        ? new Date(property.available_from).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+                        : "Available Now"}
+                    </p>
+                  </div>
                 </div>
 
                 {Array.isArray(property.price_history) && property.price_history.length > 0 ? (

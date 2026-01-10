@@ -173,6 +173,11 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
               <Badge className={`${isOffMarket ? 'bg-zinc-800 text-white border-zinc-700' : isComingSoon ? 'bg-amber-500/90' : 'bg-primary/90'} backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-2xl px-3 py-1.5`}>
                 {availabilityText}
               </Badge>
+              {property.application_fee && !isOffMarket && (
+                <Badge className="bg-emerald-500/90 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest border-none shadow-2xl px-3 py-1.5">
+                  Fee: ${parseFloat(property.application_fee).toFixed(0)}
+                </Badge>
+              )}
               {!isOffMarket && (
                 <Badge className="bg-white/10 backdrop-blur-md dark:bg-card/20 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl border border-white/20 px-3 py-1.5">
                   {property.property_type || 'Property'}
