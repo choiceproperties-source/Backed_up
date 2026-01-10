@@ -143,23 +143,20 @@ export default function Apply() {
         setLastSavedStep(savedStep);
         setCurrentStep(savedStep);
         
-        // Populate form with saved data
-        const personal = existingDraft.personal_info || {};
-        const employment = existingDraft.employment || {};
-        
+        // Populate form with saved data exactly from draft
         reset({
           ...getValues(),
-          firstName: personal.firstName || "",
-          lastName: personal.lastName || "",
-          email: personal.email || "",
-          phone: personal.phone || "",
-          dateOfBirth: personal.dateOfBirth || "",
-          currentAddress: personal.currentAddress || "",
-          ssn: personal.ssn || "",
-          employerName: employment.employerName || "",
-          jobTitle: employment.jobTitle || "",
-          monthlyIncome: employment.monthlyIncome || "",
-          employmentDuration: employment.employmentDuration || "",
+          firstName: existingDraft.personal_info?.firstName || "",
+          lastName: existingDraft.personal_info?.lastName || "",
+          email: existingDraft.personal_info?.email || "",
+          phone: existingDraft.personal_info?.phone || "",
+          dateOfBirth: existingDraft.personal_info?.dateOfBirth || "",
+          currentAddress: existingDraft.personal_info?.currentAddress || "",
+          ssn: existingDraft.personal_info?.ssn || "",
+          employerName: existingDraft.employment?.employerName || "",
+          jobTitle: existingDraft.employment?.jobTitle || "",
+          monthlyIncome: existingDraft.employment?.monthlyIncome || "",
+          employmentDuration: existingDraft.employment?.employmentDuration || "",
         });
       }
     }
@@ -170,6 +167,7 @@ export default function Apply() {
   const performAutosave = useCallback(async (values: Partial<ApplyFormValues>, step: number) => {
     if (isSubmitted || !propertyId) return;
     
+    // Construct exact payload required by backend schema
     const payload = {
       property_id: propertyId,
       last_saved_step: step,
@@ -208,6 +206,7 @@ export default function Apply() {
           setApplicationId(data.data.id);
         }
       } else {
+        // Use PATCH for the specific autosave endpoint
         await apiRequest("PATCH", `/api/v2/applications/${applicationId}/autosave`, payload);
       }
       
@@ -222,13 +221,14 @@ export default function Apply() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      // Logic for background autosave while typing
       if (formState.isDirty) {
-        performAutosave(formValues as any, currentStep);
+        performAutosave(getValues() as any, currentStep);
       }
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [formValues, formState.isDirty, performAutosave, currentStep]);
+  }, [formValues, formState.isDirty, performAutosave, currentStep, getValues]);
 
   useEffect(() => {
     if (propertyId) {
@@ -251,8 +251,9 @@ export default function Apply() {
       const next = Math.min(currentStep + 1, steps.length);
       setCurrentStep(next);
       setLastSavedStep(next);
-      // Force autosave on step change
-      performAutosave(getValues() as any, next);
+      // Force autosave on step change with current values
+      const currentValues = getValues();
+      performAutosave(currentValues as any, next);
       window.scrollTo(0, 0);
     }
   };

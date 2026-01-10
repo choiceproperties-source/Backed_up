@@ -226,10 +226,25 @@ export interface Application {
     employmentDuration?: string;
   } | null;
   rental_history: Record<string, unknown> | null;
-  references: Record<string, unknown> | null;
-  disclosures: Record<string, unknown> | null;
-  pets: Record<string, unknown> | null;
-  vehicles: Record<string, unknown> | null;
+  references: {
+    name?: string;
+    phone?: string;
+    relationship?: string;
+  } | null;
+  disclosures: {
+    hasEvictions?: boolean;
+    hasFelonies?: boolean;
+    hasBankruptcies?: boolean;
+    explanation?: string;
+  } | null;
+  pets: {
+    hasPets?: boolean;
+    details?: string;
+  } | null;
+  vehicles: {
+    hasVehicles?: boolean;
+    details?: string;
+  } | null;
   status: string | null;
   application_fee: string | null;
   available_from: string | null;
