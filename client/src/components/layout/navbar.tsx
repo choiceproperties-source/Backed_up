@@ -12,8 +12,8 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout, isLoggedIn } = useAuth();
 
-  const isAdmin = user?.email === 'admin@choiceproperties.com';
-  const isLoggedInUser = user && user.email !== 'admin@choiceproperties.com';
+  const isAdmin = user?.email === 'Choiceproperties404@gmail.com';
+  const isLoggedInUser = user && user.email !== 'Choiceproperties404@gmail.com';
 
   const links = [
     { href: "/", label: "Home" },
