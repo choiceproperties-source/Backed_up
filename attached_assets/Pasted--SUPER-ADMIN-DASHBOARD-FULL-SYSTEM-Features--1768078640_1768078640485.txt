@@ -1,0 +1,220 @@
+// ============================================
+// SUPER ADMIN DASHBOARD - FULL SYSTEM
+// Features:
+// - User Management (edit, role change)
+// - Property Management (edit, status update, assignment)
+// - Optimistic UI + Autosave
+// - Approval Workflow
+// - Role-Based Filtering
+// - Backend API integration hints
+// ============================================
+
+import React, { useState, useEffect } from 'react';
+import apiRequest from '../lib/apiRequest';
+import { User, Property } from '../lib/types';
+
+export default function SuperAdminDashboard() {
+  // State
+  const [users, setUsers] = useState<User[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
+  const [approvals, setApprovals] = useState<{ [key: string]: boolean }>({});
+
+  // Fetch initial data
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [usersRes, propsRes] = await Promise.all([
+          apiRequest('/api/admin/users', 'GET'),
+          apiRequest('/api/admin/properties', 'GET'),
+        ]);
+        setUsers(usersRes);
+        setProperties(propsRes);
+      } catch (err) {
+        console.error('Failed to fetch admin data', err);
+      }
+    }
+    fetchData();
+  }, []);
+
+  // ----------------------------
+  // Optimistic Autosave Handler
+  // ----------------------------
+  async function handleAutosave(
+    type: 'user' | 'property',
+    id: string,
+    field: string,
+    value: any
+  ) {
+    // Optimistic UI update
+    if (type === 'user') setUsers(prev => prev.map(u => u.id === id ? { ...u, [field]: value } : u));
+    if (type === 'property') setProperties(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+
+    setSaving(prev => ({ ...prev, [`${type}-${id}`]: true }));
+
+    try {
+      await apiRequest(`/api/admin/${type}s/${id}`, 'PUT', { [field]: value });
+      setSaving(prev => ({ ...prev, [`${type}-${id}`]: false }));
+    } catch (err) {
+      console.error('Autosave failed', err);
+      setSaving(prev => ({ ...prev, [`${type}-${id}`]: false }));
+
+      // Rollback: re-fetch affected data
+      if (type === 'user') setUsers(await apiRequest('/api/admin/users', 'GET'));
+      if (type === 'property') setProperties(await apiRequest('/api/admin/properties', 'GET'));
+    }
+  }
+
+  // ----------------------------
+  // Approvals Handler
+  // ----------------------------
+  async function handleApproval(propertyId: string, approve: boolean) {
+    // Optimistic UI
+    setApprovals(prev => ({ ...prev, [propertyId]: approve }));
+
+    try {
+      await apiRequest(`/api/admin/properties/${propertyId}/approval`, 'POST', { approve });
+    } catch (err) {
+      console.error('Approval failed', err);
+      setApprovals(prev => ({ ...prev, [propertyId]: false }));
+      // Re-fetch properties
+      setProperties(await apiRequest('/api/admin/properties', 'GET'));
+    }
+  }
+
+  return (
+    <div className="super-admin-dashboard p-6">
+      <h1 className="text-3xl font-bold mb-6">Super Admin Dashboard</h1>
+
+      {/* User Management Section */}
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">User Management</h2>
+        <table className="min-w-full border">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map(u => (
+              <tr key={u.id}>
+                <td>
+                  <input
+                    type="text"
+                    value={u.full_name}
+                    onChange={e => handleAutosave('user', u.id, 'full_name', e.target.value)}
+                    className="border p-1"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="email"
+                    value={u.email}
+                    onChange={e => handleAutosave('user', u.id, 'email', e.target.value)}
+                    className="border p-1"
+                  />
+                </td>
+                <td>
+                  <select
+                    value={u.role}
+                    onChange={e => handleAutosave('user', u.id, 'role', e.target.value)}
+                    className="border p-1"
+                  >
+                    <option value="tenant">Tenant</option>
+                    <option value="landlord">Landlord</option>
+                    <option value="agent">Agent</option>
+                    <option value="property_manager">Property Manager</option>
+                    <option value="admin">Admin</option>
+                    <option value="super_admin">Super Admin</option>
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      {/* Property Management Section */}
+      <section>
+        <h2 className="text-xl font-semibold mb-2">Property Management</h2>
+        <table className="min-w-full border">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Agent</th>
+              <th>Approval</th>
+            </tr>
+          </thead>
+          <tbody>
+            {properties.map(p => (
+              <tr key={p.id}>
+                <td>
+                  <input
+                    type="text"
+                    value={p.title}
+                    onChange={e => handleAutosave('property', p.id, 'title', e.target.value)}
+                    className="border p-1"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    value={p.price}
+                    onChange={e => handleAutosave('property', p.id, 'price', Number(e.target.value))}
+                    className="border p-1"
+                  />
+                </td>
+                <td>
+                  <select
+                    value={p.listing_status}
+                    onChange={e => handleAutosave('property', p.id, 'listing_status', e.target.value)}
+                    className="border p-1"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="available">Available</option>
+                    <option value="pending">Pending</option>
+                    <option value="rented">Rented</option>
+                    <option value="off_market">Off Market</option>
+                  </select>
+                </td>
+                <td>
+                  <select
+                    value={p.listing_agent_id || ''}
+                    onChange={e => handleAutosave('property', p.id, 'listing_agent_id', e.target.value)}
+                    className="border p-1"
+                  >
+                    <option value="">Unassigned</option>
+                    {users.filter(u => u.role === 'agent' || u.role === 'property_manager').map(agent => (
+                      <option key={agent.id} value={agent.id}>{agent.full_name}</option>
+                    ))}
+                  </select>
+                </td>
+                <td>
+                  <button
+                    className={`px-2 py-1 rounded ${approvals[p.id] ? 'bg-green-500 text-white' : 'bg-gray-200'}`}
+                    onClick={() => handleApproval(p.id, !approvals[p.id])}
+                  >
+                    {approvals[p.id] ? 'Approved' : 'Pending'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    </div>
+  );
+}
+
+// ============================================
+// FEATURES SUMMARY:
+// - Fully functional Super Admin Dashboard
+// - Optimistic UI + Autosave for users & properties
+// - Role-based property assignment
+// - Approvals workflow with instant feedback
+// - Backend API integration points ready
+// ============================================
