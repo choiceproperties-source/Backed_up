@@ -30,7 +30,7 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export function ProfileSettings() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -82,6 +82,7 @@ export function ProfileSettings() {
       
       if (uploadResult.url) {
         await apiRequest("PATCH", "/api/v2/auth/profile", { profileImage: uploadResult.url });
+        updateUser({ profile_image: uploadResult.url });
         queryClient.invalidateQueries({ queryKey: ["/api/v2/auth/me"] });
         toast({ title: "Success", description: "Profile picture updated" });
       }

@@ -198,6 +198,7 @@ export interface AuthContextType {
   isEmailVerified: boolean;
   authRedirect: string | null;
   handlePostAuthRedirect: (user: User) => void;
+  updateUser: (updates: Partial<User>) => void;
   clearAuthRedirect: () => void;
 }
 
