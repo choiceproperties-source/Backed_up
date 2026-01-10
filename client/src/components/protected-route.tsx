@@ -7,7 +7,8 @@ export type AppRole =
   | "landlord"
   | "property_manager"
   | "agent"
-  | "admin";
+  | "admin"
+  | "super_admin";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

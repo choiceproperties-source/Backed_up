@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, LogOut, User as UserIcon, X, MessageSquare } from "lucide-react";
+import { Menu, LogOut, User as UserIcon, X, MessageSquare, Shield, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { FavoritesDropdown } from "@/components/favorites-dropdown";
@@ -20,7 +20,8 @@ export function Navbar() {
     { href: "/properties", label: "Rent" },
     { href: "/success-stories", label: "Success Stories" },
     { href: "/faq", label: "FAQ" },
-    ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
+    ...(isAdmin || user?.role === 'admin' || user?.role === 'super_admin' ? [{ href: "/admin", label: "Admin" }] : []),
+    ...(user?.role === 'super_admin' ? [{ href: "/super-admin", label: "Super Admin" }] : []),
     ...(isLoggedInUser ? [
       { href: "/renter-dashboard", label: "Renter" },
       { href: "/landlord-dashboard", label: "Landlord" }
@@ -85,6 +86,13 @@ export function Navbar() {
               </Link>
               <NotificationBell />
               <span className="text-sm text-muted-foreground" data-testid="text-user-name">{user?.full_name || user?.email}</span>
+              {user?.role === 'super_admin' && (
+                <Link href="/super-admin">
+                  <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                    <ShieldAlert className="h-4 w-4" /> Super Admin
+                  </Button>
+                </Link>
+              )}
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -170,6 +178,17 @@ export function Navbar() {
                       <UserIcon className="h-4 w-4 mr-2" aria-hidden="true" />
                       {user?.full_name || user?.email}
                     </div>
+                    {user?.role === 'super_admin' && (
+                      <Link href="/super-admin">
+                        <button
+                          onClick={() => setIsOpen(false)}
+                          className="px-4 py-3 text-base font-medium text-muted-foreground hover:bg-muted rounded-lg w-full text-left flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        >
+                          <ShieldAlert className="h-4 w-4 mr-2" />
+                          Super Admin
+                        </button>
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         logout();

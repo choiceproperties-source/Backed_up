@@ -43,6 +43,7 @@ import AgentApplications from "@/pages/agent-applications";
 import AgentProfile from "@/pages/agent-profile";
 import Admin from "@/pages/admin";
 import AdminStorageMonitor from "@/pages/admin-storage-monitor";
+import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import Apply from "@/pages/apply";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
@@ -153,81 +154,87 @@ function Router() {
 
         {/* Landlord Routes */}
         <Route path="/landlord-dashboard">
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin", "super_admin"]}>
             <LandlordDashboard />
           </ProtectedRoute>
         </Route>
 
         <Route path="/landlord-properties">
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin", "super_admin"]}>
             <LandlordProperties />
           </ProtectedRoute>
         </Route>
 
         <Route path="/landlord-applications">
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin", "super_admin"]}>
             <LandlordApplications />
           </ProtectedRoute>
         </Route>
 
         <Route path="/landlord-profile">
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin", "super_admin"]}>
             <LandlordProfile />
           </ProtectedRoute>
         </Route>
 
         <Route path="/landlord-lease-dashboard">
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin", "super_admin"]}>
             <LandlordLeaseDashboard />
           </ProtectedRoute>
         </Route>
 
         <Route path="/landlord-payments-verification">
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin", "super_admin"]}>
             <LandlordPaymentsVerification />
           </ProtectedRoute>
         </Route>
 
         <Route path="/landlord-payment-history">
-          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin"]}>
+          <ProtectedRoute requiredRoles={["landlord", "property_manager", "admin", "super_admin"]}>
             <LandlordPaymentHistory />
           </ProtectedRoute>
         </Route>
 
         {/* Agent Routes */}
         <Route path="/agent-dashboard">
-          <ProtectedRoute requiredRoles={["agent", "admin"]}>
+          <ProtectedRoute requiredRoles={["agent", "admin", "super_admin"]}>
             <AgentDashboard />
           </ProtectedRoute>
         </Route>
 
         <Route path="/agent-properties">
-          <ProtectedRoute requiredRoles={["agent", "admin"]}>
+          <ProtectedRoute requiredRoles={["agent", "admin", "super_admin"]}>
             <AgentProperties />
           </ProtectedRoute>
         </Route>
 
         <Route path="/agent-applications">
-          <ProtectedRoute requiredRoles={["agent", "admin"]}>
+          <ProtectedRoute requiredRoles={["agent", "admin", "super_admin"]}>
             <AgentApplications />
           </ProtectedRoute>
         </Route>
 
         <Route path="/agent-profile">
-          <ProtectedRoute requiredRoles={["agent", "admin"]}>
+          <ProtectedRoute requiredRoles={["agent", "admin", "super_admin"]}>
             <AgentProfile />
           </ProtectedRoute>
         </Route>
 
         {/* Admin Routes */}
         <Route path="/admin">
-          <ProtectedRoute requiredRoles={["admin"]}>
+          <ProtectedRoute requiredRoles={["admin", "super_admin"]}>
             <Admin />
           </ProtectedRoute>
         </Route>
 
+        <Route path="/super-admin">
+          <ProtectedRoute requiredRoles={["super_admin"]}>
+            <SuperAdminDashboard />
+          </ProtectedRoute>
+        </Route>
+
         <Route path="/admin-storage-monitor">
-          <ProtectedRoute requiredRoles={["admin"]}>
+          <ProtectedRoute requiredRoles={["admin", "super_admin"]}>
             <AdminStorageMonitor />
           </ProtectedRoute>
         </Route>
