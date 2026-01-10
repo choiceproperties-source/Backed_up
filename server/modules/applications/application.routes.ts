@@ -77,6 +77,26 @@ router.get("/property/:propertyId", authenticateToken, async (req: Authenticated
   }
 });
 
+router.patch("/:id/autosave", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const result = await applicationService.autosaveApplication(
+      req.params.id,
+      req.body,
+      req.user!.id
+    );
+
+    if (result.error) {
+      const status = result.error === "Application not found" ? 404 : 403;
+      return res.status(status).json({ error: result.error });
+    }
+
+    return res.json(success(result.data, "Draft saved successfully"));
+  } catch (err: any) {
+    console.error("[APPLICATIONS] Error in autosave:", err);
+    return res.status(500).json(errorResponse("Failed to save draft"));
+  }
+});
+
 router.patch("/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const result = await applicationService.updateApplication({

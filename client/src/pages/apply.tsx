@@ -84,6 +84,7 @@ export default function Apply() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [applicationId, setApplicationId] = useState<string | null>(null);
   const lastSavedData = useRef<string>("");
 
   const propertyId = params?.id;
@@ -135,10 +136,8 @@ export default function Apply() {
 
     setSaveStatus('saving');
     try {
-      // Use existing endpoint for autosave logic
       const payload = {
         property_id: propertyId,
-        isAutosave: true,
         personal_info: {
           firstName: values.firstName,
           lastName: values.lastName,
@@ -155,7 +154,19 @@ export default function Apply() {
           employmentDuration: values.employmentDuration
         }
       };
-      await apiRequest("POST", "/api/v2/applications", payload);
+
+      if (!applicationId) {
+        // Initial creation
+        const response = await apiRequest("POST", "/api/v2/applications", payload);
+        const data = await response.json();
+        if (data.success && data.data?.id) {
+          setApplicationId(data.data.id);
+        }
+      } else {
+        // Subsequent autosaves
+        await apiRequest("PATCH", `/api/v2/applications/${applicationId}/autosave`, payload);
+      }
+      
       lastSavedData.current = currentDataStr;
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 3000);
@@ -163,7 +174,7 @@ export default function Apply() {
       console.error("Autosave failed:", error);
       setSaveStatus('error');
     }
-  }, [isSubmitted, propertyId]);
+  }, [isSubmitted, propertyId, applicationId]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -223,6 +234,7 @@ export default function Apply() {
     setIsProcessing(true);
     try {
       const payload = {
+        status: "submitted",
         property_id: values.propertyId,
         personal_info: {
           firstName: values.firstName,
@@ -256,7 +268,14 @@ export default function Apply() {
         },
         signature: values.signature
       };
-      await apiRequest("POST", "/api/v2/applications", payload);
+
+      if (applicationId) {
+        await apiRequest("PATCH", `/api/v2/applications/${applicationId}/status`, { status: "submitted" });
+        await apiRequest("PATCH", `/api/v2/applications/${applicationId}/autosave`, payload);
+      } else {
+        await apiRequest("POST", "/api/v2/applications", { ...payload, status: "submitted" });
+      }
+
       setIsSubmitted(true);
       toast({
         title: "Application Submitted",

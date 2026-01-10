@@ -361,6 +361,31 @@ export async function createApplication(
   return { data: application };
 }
 
+export async function autosaveApplication(
+  id: string,
+  body: Record<string, any>,
+  userId: string
+): Promise<{ data?: any; error?: string }> {
+  const application = await applicationRepository.findApplicationById(id);
+
+  if (!application) {
+    return { error: "Application not found" };
+  }
+
+  if (application.user_id !== userId) {
+    return { error: "Not authorized" };
+  }
+
+  if (application.status !== "draft") {
+    return { error: "Autosave is only allowed for draft applications" };
+  }
+
+  // Partial update without strict validation or status change
+  const data = await applicationRepository.updateApplication(id, body);
+
+  return { data };
+}
+
 /* ------------------------------------------------ */
 /* Read Operations */
 /* ------------------------------------------------ */
