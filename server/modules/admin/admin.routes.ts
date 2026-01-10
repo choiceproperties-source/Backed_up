@@ -27,8 +27,8 @@ export function registerAdminRoutes(app: Express): void {
   // Super Admin Users Management
   app.get("/api/v2/admin/users", authenticateToken, requireRole("super_admin"), async (req: AuthenticatedRequest, res) => {
     try {
-      // This would ideally be in a user service
-      return res.json(success([], "User management placeholder"));
+      const users = await adminService.getAllUsers();
+      return res.json(success(users, "Users retrieved"));
     } catch (error) {
       return res.status(500).json(errorResponse("Failed to fetch users"));
     }
@@ -42,6 +42,39 @@ export function registerAdminRoutes(app: Express): void {
       return res.json(success(null, "Property deleted"));
     } catch (error) {
       return res.status(500).json(errorResponse("Failed to delete property"));
+    }
+  });
+
+  app.put("/api/v2/admin/properties/:id", authenticateToken, requireRole("super_admin"), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      await adminService.updateProperty(id, updates);
+      await adminService.logAdminAction(req.user!.id, "update_property", "property", id, updates);
+      return res.json(success(null, "Property updated"));
+    } catch (error) {
+      return res.status(500).json(errorResponse("Failed to update property"));
+    }
+  });
+
+  app.get("/api/v2/admin/properties", authenticateToken, requireRole("super_admin"), async (req: AuthenticatedRequest, res) => {
+    try {
+      const properties = await adminService.getAllProperties();
+      return res.json(success(properties, "Property list retrieved"));
+    } catch (error) {
+      return res.status(500).json(errorResponse("Failed to fetch properties"));
+    }
+  });
+
+  app.put("/api/v2/admin/users/:id", authenticateToken, requireRole("super_admin"), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      await adminService.updateUser(id, updates);
+      await adminService.logAdminAction(req.user!.id, "update_user", "user", id, updates);
+      return res.json(success(null, "User updated"));
+    } catch (error) {
+      return res.status(500).json(errorResponse("Failed to update user"));
     }
   });
 

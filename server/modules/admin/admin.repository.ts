@@ -91,6 +91,54 @@ export class AdminRepository {
     return data;
   }
 
+  async updateProperty(id: string, updates: any): Promise<any> {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase
+      .from("properties")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async updateUser(id: string, updates: any): Promise<any> {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase
+      .from("users")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async getAllUsers(): Promise<any[]> {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async getAllProperties(): Promise<any[]> {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase
+      .from("properties")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }
+
   async logAdminAction(userId: string, action: string, resourceType: string, resourceId: string, details?: any) {
     const supabase = getSupabaseOrThrow();
     const { error } = await supabase

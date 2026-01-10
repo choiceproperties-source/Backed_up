@@ -60,6 +60,22 @@ export class AdminService {
     return await this.repository.updateSettings(updates);
   }
 
+  async updateProperty(id: string, updates: any): Promise<any> {
+    return await this.repository.updateProperty(id, updates);
+  }
+
+  async updateUser(id: string, updates: any): Promise<any> {
+    return await this.repository.updateUser(id, updates);
+  }
+
+  async getAllUsers(): Promise<any[]> {
+    return await this.repository.getAllUsers();
+  }
+
+  async getAllProperties(): Promise<any[]> {
+    return await this.repository.getAllProperties();
+  }
+
   async logAdminAction(userId: string, action: string, resourceType: string, resourceId: string, details?: any) {
     return await this.repository.logAdminAction(userId, action, resourceType, resourceId, details);
   }
