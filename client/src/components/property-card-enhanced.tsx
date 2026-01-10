@@ -222,6 +222,24 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
             </div>
           )}
 
+          {/* Owner Info - Floating Avatar with Listed By info */}
+          <div className="absolute bottom-3 right-3 z-20">
+            <div className="flex items-center gap-2.5 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 group-hover:border-primary/30 transition-all duration-500">
+              <Avatar className="h-10 w-10 border-2 border-white/20 shadow-lg group-hover:border-primary/50 transition-colors duration-500">
+                <AvatarImage src={displayOwnerImage || undefined} alt={displayOwnerName} />
+                <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
+                  {displayOwnerInitials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none mb-1">Listed By</p>
+                <p className="text-sm font-bold text-white leading-none tracking-tight group-hover:text-primary transition-colors duration-500">
+                  {displayOwnerName}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Action buttons */}
           {!isOffMarket && !isComingSoon && (
             <div className="absolute top-3 right-3 flex gap-2 z-20" onClick={(e) => e.stopPropagation()}>
