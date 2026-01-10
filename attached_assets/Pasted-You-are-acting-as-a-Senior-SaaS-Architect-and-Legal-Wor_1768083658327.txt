@@ -1,0 +1,135 @@
+You are acting as a **Senior SaaS Architect and Legal Workflow Auditor**.
+
+## TASK TYPE
+🔍 **READ-ONLY AUDIT — DO NOT MODIFY CODE**
+❌ No refactors
+❌ No new features
+❌ No behavior changes
+❌ No autonomous execution
+
+Your task is to **fully audit and map the Property Application System** in the Choice Properties codebase and report findings only.
+
+---
+
+## AUDIT OBJECTIVE
+Determine why the application flow stalls around ~70–75% completion, why autosave fails, and what is missing for a **100% professional, legal, production-ready rental application workflow**.
+
+---
+
+## SCOPE — YOU MUST SCAN ALL OF THESE
+
+### 1️⃣ FRONTEND — Application Wizard
+Scan all files related to:
+- ApplicationWizard component
+- Step-based forms (personal, rental, employment, documents)
+- Autosave logic
+- Progress calculation
+- Validation behavior
+- Error handling when save fails
+- What happens after ~75% completion
+
+Identify:
+- Which steps exist
+- Which steps are missing
+- Where autosave breaks
+- Whether a final submission step exists
+
+---
+
+### 2️⃣ BACKEND — Application Services & Status Logic
+Scan:
+- server/modules/applications/
+- server/application-service.ts
+- Any STATUS_TRANSITIONS or state machines
+- Autosave endpoints
+- Application create/update logic
+
+Identify:
+- Which statuses are implemented
+- Which transitions are allowed or blocked
+- Whether "submitted" is fully defined
+- Whether autosave is allowed in all states
+- Where validation rejects saves
+
+---
+
+### 3️⃣ DATABASE SCHEMA
+Scan:
+- applications table
+- JSONB fields
+- status and status_history
+- required vs optional fields
+
+Identify:
+- Fields required to complete an application
+- Fields missing for final submission
+- Schema gaps preventing submission
+
+---
+
+### 4️⃣ PAYMENT & CONFIRMATION
+Scan for:
+- Application fee handling
+- Payment verification logic
+- Receipt or confirmation records
+- Submission locking behavior
+
+Identify:
+- Whether payment is required to submit
+- Whether submission is blocked without payment
+- Whether the UI reflects this properly
+
+---
+
+### 5️⃣ LEGAL & TRUST REQUIREMENTS
+Verify whether the system includes:
+- Consent to background/credit checks
+- Fair Housing acknowledgment
+- Data privacy consent
+- Applicant attestation ("I confirm this is accurate")
+- Timestamped submission confirmation
+
+If missing, clearly list them.
+
+---
+
+## REQUIRED OUTPUT FORMAT
+
+Produce a **single structured report** with these sections:
+
+### SECTION A — What Exists (Confirmed Working)
+List implemented features that are functioning correctly.
+
+### SECTION B — Where the Flow Breaks
+Explain:
+- Why the application stalls around ~75%
+- Why autosave fails
+- Whether this is frontend, backend, or schema related
+
+### SECTION C — Missing Required Sections
+List **missing pages, steps, or logic** required for a legally credible rental application.
+
+### SECTION D — Status & Autosave Analysis
+Explain:
+- Which statuses allow autosave
+- Which should not
+- Why autosave currently fails
+
+### SECTION E — Professional SaaS Gaps
+List gaps preventing the system from feeling:
+- Trustworthy
+- Legal
+- Confidential
+- Production-ready
+
+---
+
+## IMPORTANT RULES
+- ❌ DO NOT implement anything
+- ❌ DO NOT refactor
+- ❌ DO NOT assume missing features exist
+- ❌ DO NOT require autonomous mode
+
+This is a **diagnostic audit only**.
+
+Return findings clearly and concisely.
