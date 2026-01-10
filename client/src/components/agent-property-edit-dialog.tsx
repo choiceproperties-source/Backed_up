@@ -56,11 +56,23 @@ export function AgentPropertyEditDialog({
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('PATCH', `/api/v2/properties/${property.id}`, data);
+      // Security: Only send allowed fields to prevent role-escalation or unauthorized reassignment
+      const allowedData = {
+        title: data.title,
+        description: data.description,
+        price: data.price,
+        bedrooms: data.bedrooms,
+        bathrooms: data.bathrooms,
+        squareFeet: data.squareFeet,
+        applicationFee: data.applicationFee,
+        availableFrom: data.availableFrom,
+      };
+      return apiRequest('PATCH', `/api/v2/properties/${property.id}`, allowedData);
     },
     onSuccess: () => {
       toast({ title: 'Property updated successfully' });
       queryClient.invalidateQueries({ queryKey: ['/api/v2/properties'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/v2/owned-properties'] });
       onClose();
     },
     onError: (err: any) => {

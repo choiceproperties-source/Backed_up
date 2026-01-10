@@ -1,0 +1,95 @@
+// PROJECT CONTEXT
+// Choice Properties codebase
+// Backend already supports:
+// - properties.owner_id → landlord / property owner
+// - properties.listing_agent_id → assigned agent
+// - agents only see assigned properties in dashboard
+// Goal: Implement a professional, secure, and intuitive UI for:
+// 1. Landlord/Admin assigning properties to agents
+// 2. Agents editing only their assigned properties
+// ------------------------------
+
+// ------------------------------
+// 1. OWNER → AGENT ASSIGNMENT UI
+// FILE: client/src/pages/landlord-properties.tsx
+// TASKS:
+// - Add a dropdown or multi-select for assigning listing_agent_id when creating or editing a property
+// - Populate dropdown with users that have role: "agent" or "property_manager"
+// - Only landlord or admin can see and use this UI
+// - On selection, update property via PATCH /api/v2/properties/:id
+// - Keep current API logic; do not modify backend
+// - Show toast: "Agent assigned successfully"
+// - Do not allow assigning owner_id or agency_id here
+// ------------------------------
+
+// ------------------------------
+// 2. AGENT → PROPERTY EDIT UI
+// FILES: client/src/pages/agent-properties.tsx, client/src/pages/property-edit.tsx
+// TASKS:
+// - Display list of properties where listing_agent_id = CURRENT_USER_ID
+// - For each property:
+//   - Thumbnail
+//   - Title
+//   - Status (available, pending, rented)
+//   - Edit button
+// - Clicking Edit opens PropertyEditForm (reuse existing component if possible)
+// - Prepopulate form with existing property values
+// - Editable fields for agent:
+//   - title, description, price
+//   - bedrooms, bathrooms, square_feet
+//   - amenities, utilities_included
+//   - application_fee
+//   - availability_date
+// - Do NOT allow editing:
+//   - owner_id, listing_agent_id, agency_id, deleted/archive status
+// - PATCH only the editable fields to /api/v2/properties/:id
+// - Optimistic UI: reflect changes immediately on agent dashboard
+// - Show loading spinner, success, and error toast
+// - Styling should match landlord edit form
+// ------------------------------
+
+// ------------------------------
+// 3. DASHBOARD BEHAVIOR
+// - Landlord/Admin sees all properties they own
+// - Agents see only properties assigned to them
+// - "No Assigned Properties" message appears if listing_agent_id does not match CURRENT_USER_ID
+// - Ensure all fetch queries filter by role and listing_agent_id
+// ------------------------------
+
+// ------------------------------
+// 4. SECURITY & PERMISSIONS
+// - Agents cannot post new properties
+// - Agents cannot assign/unassign other agents
+// - Agents cannot see or edit owner_id or agency_id
+// - Owner contact info displayed only if property.show_contact_info = true
+// - Backend logic remains intact; only frontend UI changes
+// ------------------------------
+
+// ------------------------------
+// 5. UX & POLISH
+// - Toasts for all save/assignment actions
+// - Loading indicators for API calls
+// - Autosave or "Save Changes" button for edits
+// - Consistent styling with PropertyCard / PropertyDetails
+// - Optimistic UI updates where possible
+// ------------------------------
+
+// ------------------------------
+// 6. API USAGE EXAMPLES
+// PATCH assign agent:
+// PATCH /api/v2/properties/123
+// { listing_agent_id: "agent-user-id" }
+
+// PATCH property edit by agent:
+// PATCH /api/v2/properties/123
+// { title: "New Title", price: 2500, application_fee: 50, available_from: "2026-02-01" }
+// ------------------------------
+
+// ------------------------------
+// END GOAL
+// - Landlords/Admins can assign agents to properties
+// - Agents can edit only their assigned properties
+// - Permissions enforced strictly on frontend
+// - Reflect updates immediately on dashboards
+// - Professional MLS-style workflow for all users
+// ------------------------------

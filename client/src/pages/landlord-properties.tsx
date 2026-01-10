@@ -65,7 +65,8 @@ const propertyFormSchema = z.object({
   status: z.enum(['active', 'inactive']).default('active'),
   amenities: z.array(z.string()).default([]),
   utilitiesIncluded: z.array(z.string()).default([]),
-  images: z.array(z.string()).max(25, 'Maximum 25 images allowed').default([]), // Images validated after upload
+  images: z.array(z.string()).max(25, 'Maximum 25 images allowed').default([]),
+  listing_agent_id: z.string().uuid().optional().nullable(),
 });
 
 type PropertyFormData = z.infer<typeof propertyFormSchema>;
@@ -177,6 +178,7 @@ export default function LandlordProperties() {
       images: Array.isArray(property.images) ? property.images : [],
       applicationFee: property.application_fee ? parseFloat(property.application_fee) : 45,
       availableFrom: property.available_from ? property.available_from : null,
+      listing_agent_id: property.listing_agent_id || null,
     };
     
     reset(formData);
@@ -251,7 +253,8 @@ export default function LandlordProperties() {
   const onSubmit = async (data: PropertyFormData) => {
     try {
       if (editingId) {
-        const result = await updateProperty(editingId, data);
+        const payload = { ...data };
+        const result = await updateProperty(editingId, payload);
         if (!result) return;
         
         // Update local property data in cache immediately
