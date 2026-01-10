@@ -101,19 +101,25 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
   const ownerInitials = ownerName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   // Determine availability status
-  const isOwner = user && (property.listing_agent_id === user.id || property.landlord_id === user.id);
+  const isOwner = user && (property.owner_id === user.id);
   const isOffMarket = (property.status === 'off_market' || property.listing_status === 'off_market') && !isOwner;
-  const isAvailable = !isOffMarket && (property.status === 'active' || property.status === 'available');
-  const leaseInfo = property.lease_term || "12 months";
-
+  
   const availableFromDate = property.available_from ? new Date(property.available_from) : null;
   const isFutureAvailable = !isOffMarket && availableFromDate && availableFromDate > new Date();
+  const isComingSoon = !isOffMarket && isFutureAvailable;
+  
+  const isAvailable = !isOffMarket && (property.status === 'active' || property.status === 'available');
+  const leaseInfo = property.lease_term || "12 months";
   
   let availabilityText = 'Available Now';
+  let availabilitySubtext = '';
+  
   if (isOffMarket) {
     availabilityText = 'Off Market';
-  } else if (isFutureAvailable && availableFromDate) {
-    availabilityText = `Available ${availableFromDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+    availabilitySubtext = 'Not currently available';
+  } else if (isComingSoon && availableFromDate) {
+    availabilityText = 'Coming Soon';
+    availabilitySubtext = `Available ${availableFromDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
   }
 
   return (
@@ -162,18 +168,25 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none opacity-70 group-hover:opacity-90 transition-opacity duration-500" />
           
           {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-wrap gap-2 max-w-[70%] z-10">
-            <Badge className={`${isOffMarket ? 'bg-zinc-800 text-white border-zinc-700' : isFutureAvailable ? 'bg-amber-500/90' : 'bg-primary/90'} backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-2xl px-3 py-1.5`}>
-              {availabilityText}
-            </Badge>
-            <Badge className="bg-white/10 backdrop-blur-md dark:bg-card/20 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl border border-white/20 px-3 py-1.5">
-              {property.property_type || 'Property'}
-            </Badge>
-            {!isOffMarket && photoCount > 1 && (
-              <Badge className="bg-black/40 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5">
-                <ImageIcon className="h-3.5 w-3.5" />
-                {photoCount}
+          <div className="absolute top-3 left-3 flex flex-col gap-2 max-w-[70%] z-10">
+            <div className="flex flex-wrap gap-2">
+              <Badge className={`${isOffMarket ? 'bg-zinc-800 text-white border-zinc-700' : isComingSoon ? 'bg-amber-500/90' : 'bg-primary/90'} backdrop-blur-md text-primary-foreground font-black text-[10px] uppercase tracking-widest border-none shadow-2xl px-3 py-1.5`}>
+                {availabilityText}
               </Badge>
+              <Badge className="bg-white/10 backdrop-blur-md dark:bg-card/20 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl border border-white/20 px-3 py-1.5">
+                {property.property_type || 'Property'}
+              </Badge>
+              {!isOffMarket && photoCount > 1 && (
+                <Badge className="bg-black/40 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-2xl border border-white/10 px-3 py-1.5">
+                  <ImageIcon className="h-3.5 w-3.5" />
+                  {photoCount}
+                </Badge>
+              )}
+            </div>
+            {availabilitySubtext && (
+              <p className="text-[10px] font-black text-white uppercase tracking-widest drop-shadow-md bg-black/20 backdrop-blur-sm px-2 py-0.5 rounded w-fit">
+                {availabilitySubtext}
+              </p>
             )}
           </div>
           
@@ -199,7 +212,7 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
           )}
 
           {/* Action buttons */}
-          {!isOffMarket && (
+          {!isOffMarket && !isComingSoon && (
             <div className="absolute top-3 right-3 flex gap-2 z-20" onClick={(e) => e.stopPropagation()}>
               {showCompareButton && (
                 <Tooltip>
@@ -304,7 +317,7 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
           </div>
 
           {/* CTA Button */}
-          {!isOffMarket ? (
+          {!isOffMarket && !isComingSoon ? (
             <Button 
               className="w-full h-12 bg-secondary hover:bg-secondary/90 text-primary-foreground font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl shadow-xl hover-elevate active-elevate-2 transition-all group/btn"
               data-testid="button-view-property"
@@ -316,6 +329,16 @@ export const EnhancedPropertyCard = memo(function EnhancedPropertyCard({
             >
               View Details
               <ArrowRight className="h-4.5 w-4.5 transition-transform group-hover/btn:translate-x-1" />
+            </Button>
+          ) : isComingSoon ? (
+            <Button 
+              className="w-full h-12 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl border border-amber-200 dark:border-amber-800 hover:bg-amber-200 dark:hover:bg-amber-800/40 transition-all"
+              data-testid="button-view-property-coming-soon"
+              onClick={(e) => {
+                // Allow viewing details but label clearly
+              }}
+            >
+              Coming Soon - View Details
             </Button>
           ) : (
             <Button 

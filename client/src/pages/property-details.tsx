@@ -143,22 +143,27 @@ export default function PropertyDetails() {
     );
   }
 
+  const ownerData = property.owner ? {
+    ...property.owner,
+    full_name: property.owner.full_name || "Property Owner"
+  } : undefined;
+
   const lat = property.latitude ? parseFloat(String(property.latitude)) : 0;
   const lng = property.longitude ? parseFloat(String(property.longitude)) : 0;
   const hasCoordinates = lat !== 0 && lng !== 0;
 
   const availableFromDate = property.available_from ? new Date(property.available_from) : null;
   const isFutureAvailable = availableFromDate && availableFromDate > new Date();
-  const availabilityText = isFutureAvailable 
-    ? `Available ${availableFromDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
-    : 'Available Now';
-
-  const ownerData = property.owner ? {
-    ...property.owner,
-    full_name: property.owner.full_name || "Property Owner"
-  } : undefined;
-
   const isOffMarket = property.listing_status === 'off_market' || property.status === 'off_market';
+  const isComingSoon = !isOffMarket && isFutureAvailable;
+
+  const availabilityText = isComingSoon 
+    ? 'Coming Soon'
+    : isOffMarket ? 'Off Market' : 'Available Now';
+  
+  const availabilitySubtext = isComingSoon && availableFromDate
+    ? `Available ${availableFromDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+    : isOffMarket ? 'Not currently available' : '';
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
@@ -211,9 +216,16 @@ export default function PropertyDetails() {
                   <div className="mb-6">
                     <div className="flex justify-between items-start mb-4">
                       <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Listing Representative</p>
-                      <Badge className={`${isFutureAvailable ? 'bg-amber-500' : 'bg-blue-600'} text-white border-none font-bold py-1 px-3`}>
-                        {availabilityText}
-                      </Badge>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge className={`${isOffMarket ? 'bg-zinc-800' : isComingSoon ? 'bg-amber-500' : 'bg-blue-600'} text-white border-none font-bold py-1 px-3`}>
+                          {availabilityText}
+                        </Badge>
+                        {availabilitySubtext && (
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            {availabilitySubtext}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <PostedBy owner={ownerData as any} poster={(property as any).poster} />
                   </div>
@@ -440,7 +452,7 @@ export default function PropertyDetails() {
                     <CardContent className="p-6 space-y-6">
                       <PostedBy owner={ownerData as any} poster={(property as any).poster} />
                     
-                    {!isOffMarket ? (
+                    {!isOffMarket && !isComingSoon ? (
                       <>
                         <div className="space-y-4">
                           <Input 
@@ -480,6 +492,21 @@ export default function PropertyDetails() {
                           </Button>
                         </div>
                       </>
+                    ) : isComingSoon ? (
+                      <div className="space-y-4 py-4">
+                        <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/40">
+                          <Calendar className="h-5 w-5 shrink-0" />
+                          <p className="text-sm font-medium">
+                            This property is coming soon. Applications will open on {availableFromDate?.toLocaleDateString()}.
+                          </p>
+                        </div>
+                        <Button 
+                          variant="outline"
+                          className="w-full h-12 font-bold text-amber-600 border-amber-200 bg-amber-50 hover:bg-amber-100 cursor-default"
+                        >
+                          Applications Opening Soon
+                        </Button>
+                      </div>
                     ) : (
                       <div className="space-y-4 py-4">
                         <div className="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-600 dark:text-zinc-400 border border-zinc-100 dark:border-zinc-800">
