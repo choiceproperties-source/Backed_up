@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { User, Property, UserRole, USER_ROLE_LABELS } from '@/lib/types';
+import { User, Property, USER_ROLE_LABELS } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Shield, Users, Building, History, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Trash2, Shield, Users, Building, History, Loader2, Check, Filter, Search, ShieldCheck, ShieldX } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export interface AdminAction {
   id: string;
@@ -27,6 +28,8 @@ export default function SuperAdminDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
 
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['/api/v2/admin/users'],
@@ -40,7 +43,6 @@ export default function SuperAdminDashboard() {
     queryKey: ['/api/v2/admin/image-audit-logs'],
   });
 
-  // Generic Autosave Mutation
   const autosaveMutation = useMutation({
     mutationFn: async ({ type, id, field, value }: { type: 'user' | 'property', id: string, field: string, value: any }) => {
       setSaving(prev => ({ ...prev, [`${type}-${id}-${field}`]: true }));
@@ -50,15 +52,29 @@ export default function SuperAdminDashboard() {
       const { type, id, field } = variables;
       setSaving(prev => ({ ...prev, [`${type}-${id}-${field}`]: false }));
       queryClient.invalidateQueries({ queryKey: [`/api/v2/admin/${type}s`] });
-      toast({ title: 'Changes saved automatically' });
+      toast({ title: 'Changes saved' });
     },
-    onError: (err, variables) => {
+    onError: (_, variables) => {
       const { type, id, field } = variables;
       setSaving(prev => ({ ...prev, [`${type}-${id}-${field}`]: false }));
-      toast({ title: 'Autosave failed', description: 'Changes could not be saved to server.', variant: 'destructive' });
-      // Revert logic handled by TanStack query invalidation usually, 
-      // but for immediate feedback we can keep state or re-fetch
+      toast({ title: 'Autosave failed', variant: 'destructive' });
       queryClient.invalidateQueries({ queryKey: [`/api/v2/admin/${type}s`] });
+    }
+  });
+
+  const approvalMutation = useMutation({
+    mutationFn: async ({ propertyId, approve }: { propertyId: string, approve: boolean }) => {
+      setSaving(prev => ({ ...prev, [`approval-${propertyId}`]: true }));
+      await apiRequest('POST', `/api/v2/admin/properties/${propertyId}/approval`, { approve });
+    },
+    onSuccess: (_, variables) => {
+      setSaving(prev => ({ ...prev, [`approval-${variables.propertyId}`]: false }));
+      queryClient.invalidateQueries({ queryKey: ['/api/v2/admin/properties'] });
+      toast({ title: variables.approve ? 'Property approved' : 'Property returned to pending' });
+    },
+    onError: (_, variables) => {
+      setSaving(prev => ({ ...prev, [`approval-${variables.propertyId}`]: false }));
+      toast({ title: 'Approval failed', variant: 'destructive' });
     }
   });
 
@@ -68,22 +84,27 @@ export default function SuperAdminDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/v2/admin/properties'] });
-      toast({ title: 'Property deleted successfully' });
+      toast({ title: 'Property deleted' });
     },
-    onError: () => {
-      toast({ title: 'Failed to delete property', variant: 'destructive' });
-    }
+    onError: () => toast({ title: 'Deletion failed', variant: 'destructive' })
   });
 
-  const isFieldSaving = (type: string, id: string, field: string) => !!saving[`${type}-${id}-${field}`];
+  const filteredUsers = useMemo(() => {
+    return users?.filter(u => {
+      const matchesSearch = !searchTerm || 
+        u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesRole = roleFilter === 'all' || u.role === roleFilter;
+      return matchesSearch && matchesRole;
+    });
+  }, [users, searchTerm, roleFilter]);
+
+  const agents = useMemo(() => users?.filter(u => u.role === 'agent' || u.role === 'property_manager') || [], [users]);
+
+  const isSaving = (type: string, id: string, field: string) => !!saving[`${type}-${id}-${field}`];
 
   if (usersLoading || propertiesLoading || logsLoading) {
-    return (
-      <div className="p-8 space-y-8">
-        <Skeleton className="h-12 w-64" />
-        <Skeleton className="h-[400px] w-full" />
-      </div>
-    );
+    return <div className="p-8 space-y-8"><Skeleton className="h-12 w-64" /><Skeleton className="h-[400px] w-full" /></div>;
   }
 
   return (
@@ -91,221 +112,206 @@ export default function SuperAdminDashboard() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Shield className="w-8 h-8 text-primary" />
-          <h1 className="text-3xl font-bold tracking-tight">Super Admin Editor</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Super Admin Dashboard</h1>
         </div>
-        <Badge variant="outline" className="px-3 py-1 text-xs font-normal">
-          Autosave Enabled
+        <Badge variant="outline" className="px-3 py-1 flex gap-2 items-center">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+          Live Autosave
         </Badge>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
-            <Users className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{users?.length || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Properties</CardTitle>
-            <Building className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{properties?.length || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">System Actions</CardTitle>
-            <History className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{logsData?.logs?.length || 0}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 max-w-md mb-8">
+          <TabsTrigger value="users" className="flex gap-2"><Users className="w-4 h-4" /> Users</TabsTrigger>
+          <TabsTrigger value="properties" className="flex gap-2"><Building className="w-4 h-4" /> Properties</TabsTrigger>
+          <TabsTrigger value="logs" className="flex gap-2"><History className="w-4 h-4" /> System Logs</TabsTrigger>
+        </TabsList>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>User Management (Live Edit)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Full Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead className="w-[100px]">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users?.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <Input 
-                      defaultValue={user.full_name || ''} 
-                      onBlur={(e) => {
-                        if (e.target.value !== user.full_name) {
-                          autosaveMutation.mutate({ type: 'user', id: user.id, field: 'full_name', value: e.target.value });
-                        }
-                      }}
-                      className="h-8"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input 
-                      defaultValue={user.email} 
-                      onBlur={(e) => {
-                        if (e.target.value !== user.email) {
-                          autosaveMutation.mutate({ type: 'user', id: user.id, field: 'email', value: e.target.value });
-                        }
-                      }}
-                      className="h-8"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      defaultValue={user.role || 'renter'}
-                      onValueChange={(value) => autosaveMutation.mutate({ type: 'user', id: user.id, field: 'role', value })}
-                    >
-                      <SelectTrigger className="h-8 w-[180px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(USER_ROLE_LABELS).map(([role, label]) => (
-                          <SelectItem key={role} value={role}>{label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    {isFieldSaving('user', user.id, 'role') || isFieldSaving('user', user.id, 'full_name') || isFieldSaving('user', user.id, 'email') ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                    ) : (
-                      <Check className="w-4 h-4 text-green-500 opacity-50" />
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+        <TabsContent value="users" className="space-y-6">
+          <div className="flex gap-4 items-center mb-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search users..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-[180px]">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                {Object.entries(USER_ROLE_LABELS).map(([role, label]) => (
+                  <SelectItem key={role} value={role}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Global Property Directory (Live Edit)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {properties?.map((property) => (
-                <TableRow key={property.id}>
-                  <TableCell>
-                    <Input 
-                      defaultValue={property.title} 
-                      onBlur={(e) => {
-                        if (e.target.value !== property.title) {
-                          autosaveMutation.mutate({ type: 'property', id: property.id, field: 'title', value: e.target.value });
-                        }
-                      }}
-                      className="h-8"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input 
-                      type="number"
-                      defaultValue={Number(property.price) || 0} 
-                      onBlur={(e) => {
-                        if (Number(e.target.value) !== Number(property.price)) {
-                          autosaveMutation.mutate({ type: 'property', id: property.id, field: 'price', value: Number(e.target.value) });
-                        }
-                      }}
-                      className="h-8"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      defaultValue={property.status || 'available'}
-                      onValueChange={(value) => autosaveMutation.mutate({ type: 'property', id: property.id, field: 'status', value })}
-                    >
-                      <SelectTrigger className="h-8 w-[140px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="available">Available</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="rented">Rented</SelectItem>
-                        <SelectItem value="off_market">Off Market</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="text-destructive hover:bg-destructive/10"
-                      onClick={() => {
-                        if (confirm('Delete property forever?')) {
-                          deletePropertyMutation.mutate(property.id);
-                        }
-                      }}
-                      disabled={deletePropertyMutation.isPending}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User Information</TableHead>
+                  <TableHead>System Role</TableHead>
+                  <TableHead className="w-[100px]">Status</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers?.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="space-y-1">
+                      <Input 
+                        defaultValue={user.full_name || ''} 
+                        onBlur={(e) => e.target.value !== user.full_name && autosaveMutation.mutate({ type: 'user', id: user.id, field: 'full_name', value: e.target.value })}
+                        className="h-8 font-medium"
+                      />
+                      <Input 
+                        defaultValue={user.email} 
+                        onBlur={(e) => e.target.value !== user.email && autosaveMutation.mutate({ type: 'user', id: user.id, field: 'email', value: e.target.value })}
+                        className="h-7 text-xs text-muted-foreground"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        defaultValue={user.role || 'renter'}
+                        onValueChange={(value) => autosaveMutation.mutate({ type: 'user', id: user.id, field: 'role', value })}
+                      >
+                        <SelectTrigger className="h-8 w-[180px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(USER_ROLE_LABELS).map(([role, label]) => (
+                            <SelectItem key={role} value={role}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      {isSaving('user', user.id, 'role') || isSaving('user', user.id, 'full_name') ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                      ) : <Check className="w-4 h-4 text-green-500 opacity-40" />}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>System Audit Logs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Actor</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Resource</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {logsData?.logs?.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {new Date(log.timestamp).toLocaleString()}
-                  </TableCell>
-                  <TableCell>{log.actor_role}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="text-[10px]">{log.action}</Badge>
-                  </TableCell>
-                  <TableCell className="font-mono text-[10px]">{log.resource_type}: {log.resource_id}</TableCell>
+        <TabsContent value="properties" className="space-y-6">
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Property Details</TableHead>
+                  <TableHead>Status & Agent</TableHead>
+                  <TableHead>Verification</TableHead>
+                  <TableHead className="text-right">Manage</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {properties?.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="space-y-1">
+                      <Input 
+                        defaultValue={p.title} 
+                        onBlur={(e) => e.target.value !== p.title && autosaveMutation.mutate({ type: 'property', id: p.id, field: 'title', value: e.target.value })}
+                        className="h-8 font-medium"
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">$</span>
+                        <Input 
+                          type="number"
+                          defaultValue={Number(p.price) || 0} 
+                          onBlur={(e) => Number(e.target.value) !== Number(p.price) && autosaveMutation.mutate({ type: 'property', id: p.id, field: 'price', value: Number(e.target.value) })}
+                          className="h-7 w-24 text-xs"
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell className="space-y-2">
+                      <Select
+                        defaultValue={p.status || 'available'}
+                        onValueChange={(value) => autosaveMutation.mutate({ type: 'property', id: p.id, field: 'status', value })}
+                      >
+                        <SelectTrigger className="h-8 w-[140px] text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">Draft</SelectItem>
+                          <SelectItem value="available">Available</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="rented">Rented</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select
+                        defaultValue={p.listing_agent_id || ''}
+                        onValueChange={(value) => autosaveMutation.mutate({ type: 'property', id: p.id, field: 'listing_agent_id', value })}
+                      >
+                        <SelectTrigger className="h-8 w-[140px] text-xs">
+                          <SelectValue placeholder="Assign Agent" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Unassigned</SelectItem>
+                          {agents.map(a => <SelectItem key={a.id} value={a.id}>{a.full_name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant={p.status === 'available' ? 'outline' : 'secondary'}
+                        size="sm"
+                        className={`h-8 gap-2 ${p.status === 'available' ? 'text-green-600 border-green-200 bg-green-50' : ''}`}
+                        onClick={() => approvalMutation.mutate({ propertyId: p.id, approve: p.status !== 'available' })}
+                        disabled={saving[`approval-${p.id}`]}
+                      >
+                        {saving[`approval-${p.id}`] ? <Loader2 className="w-3 h-3 animate-spin" /> : 
+                          p.status === 'available' ? <ShieldCheck className="w-4 h-4" /> : <ShieldX className="w-4 h-4" />}
+                        {p.status === 'available' ? 'Approved' : 'Pending'}
+                      </Button>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => confirm('Delete?') && deletePropertyMutation.mutate(p.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="logs">
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead>Details</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logsData?.logs?.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="text-[10px] text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</TableCell>
+                    <TableCell><Badge variant="secondary" className="text-[10px] uppercase">{log.action}</Badge></TableCell>
+                    <TableCell className="font-mono text-[10px]">{log.resource_type}: {log.resource_id}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -78,6 +78,30 @@ export function registerAdminRoutes(app: Express): void {
     }
   });
 
+  app.post("/api/v2/admin/properties/:id/approval", authenticateToken, requireRole("super_admin"), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { approve } = req.body;
+      
+      // Update property status based on approval
+      const status = approve ? 'available' : 'pending';
+      await adminService.updateProperty(id, { status });
+      
+      await adminService.logAdminAction(
+        req.user!.id, 
+        approve ? "approve_property" : "unapprove_property", 
+        "property", 
+        id, 
+        { approve }
+      );
+      
+      return res.json(success({ status }, `Property ${approve ? 'approved' : 'returned to pending'}`));
+    } catch (error) {
+      console.error("[ADMIN] Property approval error:", error);
+      return res.status(500).json(errorResponse("Failed to update property approval status"));
+    }
+  });
+
   app.put("/api/v2/admin/users/:id/role", authenticateToken, requireRole("super_admin"), async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
