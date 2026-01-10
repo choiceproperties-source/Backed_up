@@ -80,15 +80,6 @@ export default function Apply() {
   const [, params] = useRoute("/apply/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { formState, trigger, getValues, reset, setValue, control, handleSubmit } = form;
-
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [applicationId, setApplicationId] = useState<string | null>(null);
-  const [lastSavedStep, setLastSavedStep] = useState<number>(1);
-  const lastSavedData = useRef<string>("");
 
   const form = useForm<ApplyFormValues>({
     resolver: zodResolver(applyFormSchema),
@@ -117,6 +108,16 @@ export default function Apply() {
       signature: "",
     },
   });
+
+  const { formState, trigger, getValues, reset, setValue, control, handleSubmit } = form;
+
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [lastSavedStep, setLastSavedStep] = useState<number>(1);
+  const lastSavedData = useRef<string>("");
 
   const propertyId = params?.id;
 
