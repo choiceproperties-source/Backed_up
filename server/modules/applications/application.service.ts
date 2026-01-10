@@ -11,13 +11,10 @@ import * as applicationRepository from "./application.repository";
 /* ------------------------------------------------ */
 
 const STATUS_TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
-  draft: ["submitted", "pending_payment", "withdrawn"],
-  pending_payment: ["payment_verified", "withdrawn"],
-  payment_verified: ["submitted", "withdrawn"],
+  draft: ["review_pending", "withdrawn"],
+  review_pending: ["submitted", "withdrawn"],
   submitted: ["under_review", "withdrawn"],
-  under_review: ["info_requested", "conditional_approval", "approved", "rejected", "withdrawn"],
-  info_requested: ["under_review", "conditional_approval", "approved", "rejected", "withdrawn"],
-  conditional_approval: ["approved", "rejected", "withdrawn"],
+  under_review: ["approved", "rejected", "withdrawn"],
   approved: [],
   rejected: [],
   withdrawn: [],
@@ -257,7 +254,7 @@ export async function createApplication(
   const applicationPayload = {
     ...validation.data,
     user_id: input.userId,
-    status: "submitted",
+    status: "draft",
     // Snapshot pricing & lease terms
     rentSnapshot: property.price ? property.price.toString() : "0.00",
     depositSnapshot: property.price ? property.price.toString() : "0.00", 
@@ -280,7 +277,7 @@ export async function createApplication(
     propertyStatusAtApplyTime: property.listing_status || property.status || "available",
     status_history: [
       {
-        status: "submitted",
+        status: "draft",
         changedAt: new Date().toISOString(),
         changedBy: input.userId,
       },
@@ -440,6 +437,11 @@ export async function updateApplication(
     return { error: "Not authorized" };
   }
 
+  // Block edits after submission for applicants
+  if (isApplicant && !isAdmin && application.status !== "draft") {
+    return { error: "Application is locked and cannot be edited after submission" };
+  }
+
   const data = await applicationRepository.updateApplication(
     input.id,
     input.body
@@ -519,6 +521,14 @@ export async function updateStatus(
     return {
       success: false,
       error: "Only the applicant can submit the application",
+    };
+  }
+
+  // Enforce one-way transitions for critical states
+  if (application.status === "submitted" && input.status === "draft") {
+    return {
+      success: false,
+      error: "Cannot move application back to draft after submission",
     };
   }
 
