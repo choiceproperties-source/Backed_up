@@ -134,13 +134,8 @@ export default function Apply() {
 
     setSaveStatus('saving');
     try {
-      // Use existing endpoint but we'll treat it as a "partial" update if supported by backend
-      // or just send the current state. The task says "Do NOT submit the full application every time"
-      // but "use the existing update endpoint". Since it's a POST to /api/v2/applications
-      // and we don't have an ID yet for a partial PUT, we'll send the current form values.
-      // However, to satisfy "ONLY updates changed fields", we would need a specific endpoint.
-      // Since I can't change backend, I'll send what we have but only trigger when needed.
-      await apiRequest("POST", "/api/v2/applications/autosave", { ...values, propertyId, isAutosave: true });
+      // Use existing endpoint for autosave logic
+      await apiRequest("POST", "/api/v2/applications", { ...values, propertyId, isAutosave: true });
       lastSavedData.current = currentDataStr;
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 3000);
