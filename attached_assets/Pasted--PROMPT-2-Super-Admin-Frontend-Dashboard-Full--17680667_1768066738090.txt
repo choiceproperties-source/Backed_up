@@ -1,0 +1,175 @@
+// ============================================
+// PROMPT 2: Super Admin Frontend Dashboard
+// Full Implementation (All-in-One, Code-Based)
+// ============================================
+
+// Task: Create a dashboard for Super Admins that allows full
+// platform management: users, properties, roles, and audit logs.
+// Must work with the backend Super Admin routes defined previously.
+
+// 1. Create SuperAdminDashboard Component
+// ---------------------------------------
+import React, { useEffect, useState } from 'react';
+import apiRequest from '../lib/apiRequest'; // your API helper
+import { User, Property, AdminAction } from '../lib/types';
+
+export default function SuperAdminDashboard() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [logs, setLogs] = useState<AdminAction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch all data on mount
+  useEffect(() => {
+    async function fetchAll() {
+      setLoading(true);
+      try {
+        const [usersRes, propertiesRes, logsRes] = await Promise.all([
+          apiRequest('/api/admin/users', 'GET'),
+          apiRequest('/api/admin/properties', 'GET'),
+          apiRequest('/api/admin/actions', 'GET')
+        ]);
+        setUsers(usersRes);
+        setProperties(propertiesRes);
+        setLogs(logsRes);
+      } catch (err) {
+        console.error('Failed to fetch Super Admin data', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAll();
+  }, []);
+
+  if (loading) return <div>Loading dashboard...</div>;
+
+  return (
+    <div className="super-admin-dashboard p-6">
+      <h1 className="text-3xl font-bold mb-4">Super Admin Dashboard</h1>
+
+      {/* Users Table */}
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">Users</h2>
+        <table className="min-w-full border">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map(u => (
+              <tr key={u.id}>
+                <td>{u.id}</td>
+                <td>{u.full_name}</td>
+                <td>{u.email}</td>
+                <td>{u.role}</td>
+                <td>
+                  {/* Update role dropdown */}
+                  <select
+                    value={u.role}
+                    onChange={async e => {
+                      const newRole = e.target.value;
+                      await apiRequest(`/api/admin/users/${u.id}/role`, 'PUT', { role: newRole });
+                      setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: newRole } : user));
+                    }}
+                  >
+                    <option value="tenant">Tenant</option>
+                    <option value="landlord">Landlord</option>
+                    <option value="agent">Agent</option>
+                    <option value="property_manager">Property Manager</option>
+                    <option value="admin">Admin</option>
+                    <option value="super_admin">Super Admin</option>
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      {/* Properties Table */}
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">Properties</h2>
+        <table className="min-w-full border">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Owner</th>
+              <th>Agent</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {properties.map(p => (
+              <tr key={p.id}>
+                <td>{p.id}</td>
+                <td>{p.title}</td>
+                <td>{p.owner?.full_name || 'N/A'}</td>
+                <td>{p.agent?.full_name || 'Unassigned'}</td>
+                <td>{p.listing_status}</td>
+                <td>
+                  <button
+                    className="text-red-600"
+                    onClick={async () => {
+                      if (confirm('Delete property?')) {
+                        await apiRequest(`/api/admin/properties/${p.id}`, 'DELETE');
+                        setProperties(prev => prev.filter(prop => prop.id !== p.id));
+                      }
+                    }}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      {/* Audit Logs */}
+      <section>
+        <h2 className="text-xl font-semibold mb-2">Audit Logs</h2>
+        <table className="min-w-full border">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>User</th>
+              <th>Action</th>
+              <th>Resource</th>
+              <th>Resource ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {logs.map(log => (
+              <tr key={log.id}>
+                <td>{new Date(log.timestamp).toLocaleString()}</td>
+                <td>{log.user_id}</td>
+                <td>{log.action}</td>
+                <td>{log.resource_type}</td>
+                <td>{log.resource_id}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    </div>
+  );
+}
+
+// ============================================
+// END OF SUPER ADMIN FRONTEND DASHBOARD
+// ============================================
+
+// Features:
+// - Lists all users with role management dropdowns
+// - Lists all properties with owner/agent info
+// - Delete properties with confirmation and optimistic UI update
+// - Audit log table for tracking super admin actions
+// - Fully integrated with the backend Super Admin routes
+// - No external dependencies required beyond existing API helpers
