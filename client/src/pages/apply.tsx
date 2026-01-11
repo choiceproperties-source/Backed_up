@@ -1377,7 +1377,7 @@ export default function Apply() {
                         !form.watch("legalDisclosures.creditCheckAuthorized") ||
                         !form.watch("legalDisclosures.accuracyCertified") ||
                         !form.watch("legalDisclosures.feeAcknowledged") ||
-                        (property?.state && getRequiredDisclosures(property.state).some(d => !form.watch(`stateDisclosures.${d.id}.acknowledged`)))
+                        !!(property?.state && getRequiredDisclosures(property.state).some(d => !form.watch(`stateDisclosures.${d.id}.acknowledged`)))
                       }
                       className="h-12 px-12 bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
