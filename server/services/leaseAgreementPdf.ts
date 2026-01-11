@@ -1,11 +1,11 @@
 import PDFDocument from 'pdfkit';
 import * as applicationRepository from '../modules/applications/application.repository';
-import { getSupabaseOrThrow } from '../supabase';
+import { supabase } from '../supabase';
 
 export async function generateLeasePdf(applicationId: string): Promise<string> {
   const application = await applicationRepository.findApplicationById(applicationId);
   if (!application) throw new Error("Application not found");
-  return `/api/v2/applications/${applicationId}/lease-agreement.pdf`;
+  return `/api/v2/leases/${applicationId}/download-pdf`;
 }
 
 export async function createLeasePdfStream(applicationId: string, res: any, isSigned: boolean = false) {
@@ -19,7 +19,7 @@ export async function createLeasePdfStream(applicationId: string, res: any, isSi
   // Fetch signatures if signed
   let signatures: any[] = [];
   if (isSigned) {
-    const { data, error } = await getSupabaseOrThrow()
+    const { data, error } = await supabase
       .from("lease_signatures")
       .select("*")
       .eq("application_id", applicationId);
