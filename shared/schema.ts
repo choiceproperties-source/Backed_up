@@ -399,6 +399,7 @@ export const applications = pgTable("applications", {
   // Last step saved for auto-save tracking
   lastSavedStep: integer("last_saved_step").default(0),
   // Legal Disclosures
+  disclosurePdfUrl: text("disclosure_pdf_url"),
   legalDisclosures: jsonb("legal_disclosures").$type<{
     fairHousingAcknowledged: boolean;
     creditCheckAuthorized: boolean;

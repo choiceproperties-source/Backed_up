@@ -1,0 +1,172 @@
+ROLE:
+You are a Senior SaaS Engineer and Legal Compliance Architect.
+You are implementing DOWNLOADABLE LEGAL DISCLOSURE PDFs for rental applications.
+This is an extension of the existing federal + state disclosure system.
+
+DO NOT refactor unrelated systems.
+DO NOT require Autonomous Mode.
+DO NOT change application scoring or payments.
+
+GOAL:
+Allow applicants, landlords, and admins to download a legally valid,
+timestamped PDF copy of all disclosures acknowledged during an application.
+
+========================================
+SECTION 1 — READ-ONLY AUDIT (NO CHANGES)
+========================================
+Scan and confirm:
+
+Files:
+- shared/schema.ts
+- server/modules/applications/application.service.ts
+- client/src/pages/apply.tsx
+- client/src/pages/application-details.tsx (or equivalent)
+- server/email.ts (for future attachment support)
+
+Confirm:
+1. Where disclosures (federal + state) are stored (JSONB)
+2. Where application submission is finalized
+3. How application IDs are generated
+4. Whether a documents or uploads bucket already exists in Supabase
+
+Report findings briefly before implementation.
+
+========================================
+SECTION 2 — PDF GENERATION STRATEGY
+========================================
+Implement SERVER-SIDE PDF generation.
+
+Rules:
+- PDF must be generated AFTER application submission
+- PDF must be immutable (read-only record)
+- PDF must be reproducible for audits
+
+Technology:
+- Use a Node-compatible PDF library already supported by the stack
+  (e.g. pdfkit or equivalent)
+- Do NOT generate PDFs on the client
+
+========================================
+SECTION 3 — PDF CONTENT STRUCTURE
+========================================
+Each PDF must include:
+
+HEADER:
+- Choice Properties (branding text only)
+- “Rental Application Legal Disclosures”
+- Generated Date (ISO timestamp)
+
+APPLICANT INFO:
+- Full Name
+- Email
+- Application ID (UUID)
+- Property Address (street, city, state)
+
+DISCLOSURE SECTIONS:
+1. Federal Disclosures
+   - Each disclosure text
+   - Applicant acknowledgment (✔ Acknowledged)
+   - Timestamp
+
+2. State-Specific Disclosures
+   - State name
+   - Disclosure text
+   - Applicant acknowledgment
+   - Timestamp
+
+LEGAL ATTESTATION:
+“I certify under penalty of perjury that the above information is true and correct.”
+
+SIGNATURE BLOCK:
+- Typed Name
+- Date
+- IP Address (if available)
+
+FOOTER:
+- “This document is legally binding and retained for audit purposes.”
+
+========================================
+SECTION 4 — BACKEND IMPLEMENTATION
+========================================
+Create:
+server/services/applicationDisclosurePdf.ts
+
+Responsibilities:
+1. Accept applicationId
+2. Fetch:
+   - Application data
+   - Property data
+   - Stored disclosures (federal + state)
+3. Generate PDF
+4. Save PDF to Supabase Storage:
+   - Bucket: application-documents
+   - Path: applications/{applicationId}/disclosures.pdf
+5. Return file URL
+
+Rules:
+- Generate once at submission
+- Reuse existing file if already generated
+- Never overwrite an existing PDF
+
+========================================
+SECTION 5 — DATABASE LINKING
+========================================
+Extend applications table metadata ONLY:
+
+Add:
+disclosure_pdf_url (nullable string)
+
+Rules:
+- No schema redesign
+- No breaking changes
+- URL is written once after submission
+
+========================================
+SECTION 6 — FRONTEND ACCESS
+========================================
+Add “Download Disclosures (PDF)” button:
+
+Locations:
+- Applicant dashboard (after submission)
+- Landlord application review page
+- Admin application view
+
+Behavior:
+- Button opens PDF in new tab
+- Disabled if application not submitted
+- Show loading state while fetching URL
+
+DO NOT:
+- Auto-download
+- Expose raw storage paths
+
+========================================
+SECTION 7 — SECURITY & COMPLIANCE
+========================================
+Enforce:
+- Only applicant, property owner, assigned agent, or admin can access PDF
+- URL must be protected via Supabase policies or signed URLs
+- No public access
+
+Retention:
+- PDFs are retained indefinitely for legal compliance
+- No delete UI exposed
+
+========================================
+SECTION 8 — CONSTRAINTS (STRICT)
+========================================
+- DO NOT regenerate PDFs on edits
+- DO NOT include payment info
+- DO NOT include SSN values
+- DO NOT change autosave behavior
+- DO NOT introduce client-side PDF logic
+
+========================================
+EXPECTED RESULT:
+• Applicants can download legal disclosures
+• Landlords have audit-ready records
+• Admins can verify compliance
+• Platform meets professional legal standards
+• No regression in existing flows
+
+Proceed carefully and explain changes briefly.

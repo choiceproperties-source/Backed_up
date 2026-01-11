@@ -7,6 +7,7 @@ import {
 import { notifyOwnerOfNewApplication, sendStatusChangeNotification, notifyOwnerOfScoringComplete } from "../../notification-service";
 import * as applicationRepository from "./application.repository";
 import { getRequiredDisclosures } from "@shared/state-disclosures";
+import { generateDisclosurePdf } from "../../services/applicationDisclosurePdf";
 
 /* ------------------------------------------------ */
 /* Constants & Helpers */
@@ -673,6 +674,18 @@ export async function updateStatus(
       input.id,
       updatePayload
     );
+
+  // Generate PDF once at submission
+  if (input.status === "submitted" && !application.disclosurePdfUrl) {
+    try {
+      const pdfUrl = await generateDisclosurePdf(input.id);
+      await applicationRepository.updateApplication(input.id, {
+        disclosurePdfUrl: pdfUrl
+      });
+    } catch (err) {
+      console.error("[APPLICATION] PDF generation failed:", err);
+    }
+  }
 
   // Send Notifications
   sendStatusChangeNotification(input.id, input.status, {
