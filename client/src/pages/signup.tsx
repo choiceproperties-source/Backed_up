@@ -65,7 +65,8 @@ export default function Signup() {
       fullName: "",
       password: "",
       phone: "",
-      role: "renter" as UserRole
+      role: "renter" as UserRole,
+      agreeToTerms: false
     }
   });
 
@@ -301,6 +302,30 @@ export default function Signup() {
                         />
                       </div>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="agreeToTerms"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-2">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary mt-1"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          disabled={loading}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-xs text-muted-foreground">
+                          I agree to the <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
                     </FormItem>
                   )}
                 />
