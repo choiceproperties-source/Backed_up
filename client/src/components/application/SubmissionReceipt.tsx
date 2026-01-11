@@ -10,6 +10,10 @@ interface SubmissionReceiptProps {
 }
 
 export function SubmissionReceipt({ property, applicantName, submissionDate, referenceId }: SubmissionReceiptProps) {
+  const handleDownload = () => {
+    window.open(`/api/v2/applications/${referenceId}/disclosures.pdf`, '_blank');
+  };
+
   return (
     <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-2xl overflow-hidden">
       <div className="bg-green-600 h-2 w-full" />
@@ -74,8 +78,12 @@ export function SubmissionReceipt({ property, applicantName, submissionDate, ref
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
-          <Button variant="outline" className="flex-1 rounded-none h-12 font-black uppercase tracking-widest gap-2">
-            <Download className="h-4 w-4" /> Download PDF
+          <Button 
+            onClick={handleDownload}
+            variant="outline" 
+            className="flex-1 rounded-none h-12 font-black uppercase tracking-widest gap-2"
+          >
+            <Download className="h-4 w-4" /> Download Disclosures
           </Button>
           <Button className="flex-1 rounded-none h-12 font-black uppercase tracking-widest gap-2" asChild>
             <a href="/dashboard">

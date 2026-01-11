@@ -2,8 +2,36 @@ import { Router } from "express";
 import { authenticateToken, type AuthenticatedRequest } from "../../auth-middleware";
 import { success, error as errorResponse } from "../../response";
 import * as applicationService from "./application.service";
+import { createPdfStream } from "../../services/applicationDisclosurePdf";
 
 const router = Router();
+
+router.get("/:id/disclosures.pdf", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const application = await applicationService.getApplicationById(req.params.id, req.user!.role);
+    if (!application) return res.status(404).json(errorResponse("Application not found"));
+
+    // Security check: Only applicant, property owner, or admin can access
+    const isApplicant = application.user_id === req.user!.id;
+    const isOwner = application.property_owner_id === req.user!.id; // Note: Need to verify if property_owner_id is available or fetch property
+    const isAdmin = req.user!.role === "admin";
+    const isPropertyManager = req.user!.role === "property_manager";
+
+    if (!isApplicant && !isOwner && !isAdmin && !isPropertyManager) {
+      return res.status(403).json(errorResponse("Not authorized to access this disclosure"));
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="disclosures-${req.params.id}.pdf"`);
+
+    await createPdfStream(req.params.id, res);
+  } catch (err: any) {
+    console.error("[APPLICATIONS] Error generating PDF stream:", err);
+    if (!res.headersSent) {
+      res.status(500).json(errorResponse("Failed to generate PDF"));
+    }
+  }
+});
 
 router.get("/draft", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {

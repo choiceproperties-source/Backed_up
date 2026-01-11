@@ -68,7 +68,7 @@ export async function createPdfStream(applicationId: string, res: any) {
 
   // LEGAL ATTESTATION
   doc.fontSize(12).text('LEGAL ATTESTATION', { underline: true });
-  doc.fontSize(10).italic().text('“I certify under penalty of perjury that the above information is true and correct.”');
+  doc.fontSize(10).text('“I certify under penalty of perjury that the above information is true and correct.”', { oblique: true });
   doc.moveDown();
 
   // SIGNATURE BLOCK
@@ -77,7 +77,7 @@ export async function createPdfStream(applicationId: string, res: any) {
   doc.moveDown();
 
   // FOOTER
-  doc.fontSize(8).text('This document is legally binding and retained for audit purposes.', { align: 'center', bottom: 50 });
+  doc.fontSize(8).text('This document is legally binding and retained for audit purposes.', { align: 'center' });
 
   doc.end();
 }
