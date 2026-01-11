@@ -131,9 +131,12 @@ export default function Apply() {
     { id: 5, label: "References" },
     { id: 6, label: "Pets & Vehicles" },
     { id: 7, label: "Legal Disclosures" },
-    { id: 8, label: "Property Policies" },
+    { id: 8, label: "Property Rules" },
     { id: 9, label: "Review & Submit" }
   ];
+
+  // Logic to determine if screening is required
+  const requiresScreening = property && (parseFloat(String(property.applicationFee || 0)) > 0 || (property as any).requires_screening);
 
   const { data: draftResponse, isLoading: isLoadingDraft } = useQuery<ApiResponse<any>>({
     queryKey: [`/api/v2/applications/draft?propertyId=${params?.id}`],

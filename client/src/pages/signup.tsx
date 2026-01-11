@@ -97,7 +97,14 @@ export default function Signup() {
         data.fullName,
         data.password,
         data.phone,
-        data.role
+        data.role,
+        {
+          termsVersion: "1.0",
+          privacyVersion: "1.0",
+          acceptedTermsAt: new Date().toISOString(),
+          acceptedPrivacyAt: new Date().toISOString(),
+          acceptedIp: "client-side-captured" // In a real app, this would be captured server-side
+        }
       );
 
       localStorage.setItem("pending_verification_email", data.email);

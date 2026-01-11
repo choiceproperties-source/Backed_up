@@ -245,7 +245,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     name: string,
     password: string,
     phone?: string,
-    role: UserRole = "renter"
+    role: UserRole = "renter",
+    legalConsent?: {
+      termsVersion: string;
+      privacyVersion: string;
+      acceptedTermsAt: string;
+      acceptedPrivacyAt: string;
+      acceptedIp: string;
+    }
   ): Promise<UserRole> => {
     await initPromise;
     
@@ -261,7 +268,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         fullName: name,
         phone,
         role,
-        agreeToTerms: true
+        agreeToTerms: true,
+        ...legalConsent
       })
     });
 
