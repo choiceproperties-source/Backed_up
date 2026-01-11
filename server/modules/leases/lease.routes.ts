@@ -34,8 +34,13 @@ export function registerLeaseRoutes(app: Express): void {
   app.get("/api/v2/leases/:applicationId/download-signed-pdf", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const applicationId = req.params.applicationId;
-      const application = await leaseService.getSignatures(applicationId); // Simplified auth check or add proper ownership check here
+      // Fetch signatures to verify existence and get state_code
+      const signatures = await leaseService.getSignatures(applicationId); 
       
+      if (!signatures || signatures.length === 0) {
+        return res.status(404).json(errorResponse("No signatures found for this lease"));
+      }
+
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename=signed-lease-${applicationId}.pdf`);
       
