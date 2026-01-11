@@ -195,45 +195,50 @@ export default function Apply() {
       setApplicationId(appToLoad.id);
       setCurrentStep(appToLoad.lastSavedStep || 1);
       
-      const details = appToLoad.details || {};
       reset({
         propertyId: params?.id || "",
-        firstName: details.personal?.firstName || "",
-        lastName: details.personal?.lastName || "",
-        email: details.personal?.email || "",
-        phone: details.personal?.phone || "",
-        dateOfBirth: details.personal?.dateOfBirth || "",
-        currentAddress: details.personal?.currentAddress || "",
-        ssn: details.personal?.ssn || "",
-        employerName: details.employment?.employerName || "",
-        jobTitle: details.employment?.jobTitle || "",
-        monthlyIncome: details.employment?.monthlyIncome || "",
-        employmentDuration: details.employment?.employmentDuration || "",
-        emergencyContactName: details.emergency_contact?.name || "",
-        emergencyContactPhone: details.emergency_contact?.phone || "",
-        emergencyContactRelationship: details.emergency_contact?.relationship || "",
-        currentLandlordName: details.rental_history?.currentLandlordName || "",
-        currentLandlordPhone: details.rental_history?.currentLandlordPhone || "",
-        currentRentAmount: details.rental_history?.currentRentAmount || "",
-        reasonForMoving: details.rental_history?.reasonForMoving || "",
-        ref1Name: details.references?.name || "",
-        ref1Phone: details.references?.phone || "",
-        ref1Relation: details.references?.relationship || "",
-        hasPets: details.pets?.hasPets || false,
-        petDetails: details.pets?.details || "",
-        hasVehicles: details.vehicles?.hasVehicles || false,
-        vehicleDetails: details.vehicles?.details || "",
-        hasEvictions: details.disclosures?.hasEvictions || false,
-        hasFelonies: details.disclosures?.hasFelonies || false,
-        hasBankruptcies: details.disclosures?.hasBankruptcies || false,
-        disclosureExplanation: details.disclosures?.explanation || "",
-        acknowledgePetPolicy: details.acknowledgments?.petPolicy || false,
-        acknowledgeSmokingPolicy: details.acknowledgments?.smokingPolicy || false,
-        acknowledgeOccupancyLimit: details.acknowledgments?.occupancyLimit || false,
-        acknowledgeUtilities: details.acknowledgments?.utilities || false,
-        agreeToBackgroundCheck: details.legal_consent?.backgroundCheck || false,
-        agreeToTerms: details.legal_consent?.terms || false,
-        signature: details.signature || "",
+        firstName: appToLoad.personalInfo?.firstName || "",
+        lastName: appToLoad.personalInfo?.lastName || "",
+        email: appToLoad.personalInfo?.email || "",
+        phone: appToLoad.personalInfo?.phone || "",
+        dateOfBirth: appToLoad.personalInfo?.dateOfBirth || "",
+        currentAddress: appToLoad.personalInfo?.currentAddress || "",
+        ssn: appToLoad.personalInfo?.ssn || "",
+        employerName: appToLoad.employment?.employerName || "",
+        jobTitle: appToLoad.employment?.jobTitle || "",
+        monthlyIncome: appToLoad.employment?.monthlyIncome || "",
+        employmentDuration: appToLoad.employment?.employmentDuration || "",
+        emergencyContactName: appToLoad.rentalHistory?.emergencyContact?.name || "",
+        emergencyContactPhone: appToLoad.rentalHistory?.emergencyContact?.phone || "",
+        emergencyContactRelationship: appToLoad.rentalHistory?.emergencyContact?.relationship || "",
+        currentLandlordName: appToLoad.rentalHistory?.currentLandlordName || "",
+        currentLandlordPhone: appToLoad.rentalHistory?.currentLandlordPhone || "",
+        currentRentAmount: appToLoad.rentalHistory?.currentRentAmount || "",
+        reasonForMoving: appToLoad.rentalHistory?.reasonForMoving || "",
+        ref1Name: appToLoad.references?.name || "",
+        ref1Phone: appToLoad.references?.phone || "",
+        ref1Relation: appToLoad.references?.relationship || "",
+        hasPets: appToLoad.rentalHistory?.pets?.hasPets || false,
+        petDetails: appToLoad.rentalHistory?.pets?.details || "",
+        hasVehicles: appToLoad.rentalHistory?.vehicles?.hasVehicles || false,
+        vehicleDetails: appToLoad.rentalHistory?.vehicles?.details || "",
+        hasEvictions: appToLoad.disclosures?.hasEvictions || false,
+        hasFelonies: appToLoad.disclosures?.hasFelonies || false,
+        hasBankruptcies: appToLoad.disclosures?.hasBankruptcies || false,
+        disclosureExplanation: appToLoad.disclosures?.explanation || "",
+        acknowledgePetPolicy: appToLoad.legalDisclosures?.petPolicy || false,
+        acknowledgeSmokingPolicy: appToLoad.legalDisclosures?.smokingPolicy || false,
+        acknowledgeOccupancyLimit: appToLoad.legalDisclosures?.occupancyLimit || false,
+        acknowledgeUtilities: appToLoad.legalDisclosures?.utilities || false,
+        agreeToBackgroundCheck: appToLoad.legalDisclosures?.fcraConsent || false,
+        agreeToTerms: appToLoad.legalDisclosures?.accuracyCertified || false,
+        signature: appToLoad.signature || "",
+        legalDisclosures: appToLoad.legalDisclosures || {
+          fairHousingAcknowledged: false,
+          creditCheckAuthorized: false,
+          accuracyCertified: false,
+          feeAcknowledged: false,
+        },
       });
 
       if (appToLoad.status !== 'draft') {
@@ -249,50 +254,31 @@ export default function Apply() {
     try {
       const payload = {
         propertyId: params.id,
-        lastSavedStep: step,
-        details: {
-          personal: {
-            firstName: values.firstName,
-            lastName: values.lastName,
-            email: values.email,
-            phone: values.phone,
-            dateOfBirth: values.dateOfBirth,
-            currentAddress: values.currentAddress,
-            ssn: values.ssn
-          },
-          employment: {
-            employerName: values.employerName,
-            jobTitle: values.jobTitle,
-            monthlyIncome: values.monthlyIncome,
-            employmentDuration: values.employmentDuration
-          },
-          emergency_contact: {
+        step: step,
+        personalInfo: {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          phone: values.phone,
+          dateOfBirth: values.dateOfBirth,
+          currentAddress: values.currentAddress,
+          ssn: values.ssn
+        },
+        employment: {
+          employerName: values.employerName,
+          jobTitle: values.jobTitle,
+          monthlyIncome: values.monthlyIncome,
+          employmentDuration: values.employmentDuration
+        },
+        rentalHistory: {
+          currentLandlordName: values.currentLandlordName,
+          currentLandlordPhone: values.currentLandlordPhone,
+          currentRentAmount: values.currentRentAmount,
+          reasonForMoving: values.reasonForMoving,
+          emergencyContact: {
             name: values.emergencyContactName,
             phone: values.emergencyContactPhone,
             relationship: values.emergencyContactRelationship
-          },
-          acknowledgments: {
-            petPolicy: values.acknowledgePetPolicy,
-            smokingPolicy: values.acknowledgeSmokingPolicy,
-            occupancyLimit: values.acknowledgeOccupancyLimit,
-            utilities: values.acknowledgeUtilities
-          },
-          rental_history: {
-            currentLandlordName: values.currentLandlordName,
-            currentLandlordPhone: values.currentLandlordPhone,
-            currentRentAmount: values.currentRentAmount,
-            reasonForMoving: values.reasonForMoving
-          },
-          references: {
-            name: values.ref1Name,
-            phone: values.ref1Phone,
-            relationship: values.ref1Relation
-          },
-          disclosures: {
-            hasEvictions: values.hasEvictions,
-            hasFelonies: values.hasFelonies,
-            hasBankruptcies: values.hasBankruptcies,
-            explanation: values.disclosureExplanation
           },
           pets: {
             hasPets: values.hasPets,
@@ -301,12 +287,18 @@ export default function Apply() {
           vehicles: {
             hasVehicles: values.hasVehicles,
             details: values.vehicleDetails
-          },
-          legal_consent: {
-            backgroundCheck: values.agreeToBackgroundCheck,
-            terms: values.agreeToTerms
-          },
-          signature: values.signature
+          }
+        },
+        references: {
+          name: values.ref1Name,
+          phone: values.ref1Phone,
+          relationship: values.ref1Relation
+        },
+        disclosures: {
+          hasEvictions: values.hasEvictions,
+          hasFelonies: values.hasFelonies,
+          hasBankruptcies: values.hasBankruptcies,
+          explanation: values.disclosureExplanation
         },
         legalDisclosures: {
           ...values.legalDisclosures,
@@ -323,18 +315,21 @@ export default function Apply() {
       
       if (!response.ok) throw new Error("Auto-sync failed");
       
-      if (!applicationId) {
-        const data = await response.json();
-        if (data.success) {
-          setApplicationId(data.data.id);
-        }
+      const data = await response.json();
+      if (!applicationId && data.success) {
+        setApplicationId(data.data.id);
       }
+      
       setSaveStatus('saved');
+      toast({
+        title: "Autosaved",
+        description: "Your progress has been saved.",
+      });
     } catch (error) {
       console.error("Autosave failed:", error);
       setSaveStatus('error');
     }
-  }, [params?.id, applicationId]);
+  }, [params?.id, applicationId, toast]);
 
   // Handle autosave on field blur
   const handleBlur = () => {
