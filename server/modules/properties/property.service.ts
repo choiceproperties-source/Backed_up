@@ -49,6 +49,8 @@ export interface CreatePropertyResult {
 
 /**
  * Extract allowlisted rules and filter empty/null values.
+ * Strict integrity check: No Fair Housing or legal disclosures allowed as "rules".
+ * Only owner-defined data is included.
  */
 export function getPropertyRules(property: any): Readonly<Record<string, any>> {
   if (!property) return Object.freeze({});

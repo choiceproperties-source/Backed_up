@@ -17,7 +17,8 @@ import {
   MapPin, Bed, Bath, Heart, Share2, 
   Home, Ruler, Calendar, Check, ExternalLink,
   MessageSquare, Phone, Mail, Info, TrendingUp, Eye, Bookmark,
-  X, ChevronLeft, ChevronRight, CheckCircle2, Star, Building2, ArrowLeft
+  X, ChevronLeft, ChevronRight, CheckCircle2, Star, Building2, ArrowLeft,
+  Shield, PawPrint, Ban
 } from "lucide-react";
 import { 
   Card, 
@@ -28,10 +29,43 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { InteractiveMap } from "@/components/interactive-map";
 import { updateMetaTags, getPropertyStructuredData, addStructuredData, removeStructuredData } from "@/lib/seo";
 import { PropertyDetailsSkeleton } from "@/components/property-details-skeleton";
-import NotFound from "@/pages/not-found";
 
-import { AssignAgentDropdown } from "@/components/property-assign-dropdown";
-import { PostedBy } from "@/components/property/posted-by";
+/**
+ * Extract allowlisted rules and filter empty/null values.
+ * Strict integrity check: No Fair Housing or legal disclosures allowed as "rules".
+ * Only owner-defined data is included.
+ */
+function getPropertyRules(property: any): Readonly<Record<string, any>> {
+  if (!property) return Object.freeze({});
+
+  const allowlist = [
+    "pets_allowed",
+    "smoking_allowed",
+    "parking_available",
+    "utilities_included",
+    "laundry_type",
+    "security_deposit",
+    "lease_term_months",
+    "available_date",
+    "rules_text"
+  ];
+
+  const rules: Record<string, any> = {};
+
+  for (const field of allowlist) {
+    const value = property[field];
+
+    // Filter out: null, empty strings, empty arrays, empty objects
+    if (value === null || value === undefined) continue;
+    if (typeof value === "string" && value.trim() === "") continue;
+    if (Array.isArray(value) && value.length === 0) continue;
+    if (typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0) continue;
+
+    rules[field] = value;
+  }
+
+  return Object.freeze(rules);
+}
 
 export default function PropertyDetails() {
   const [match, params] = useRoute("/property/:id");
@@ -83,7 +117,6 @@ export default function PropertyDetails() {
       
       const structuredData: any = getPropertyStructuredData(property);
       if (isOffMarket) {
-        // Mark availability as Discontinued for off-market properties
         if (!structuredData.offers) {
           structuredData.offers = {
             '@type': 'Offer',
@@ -132,7 +165,7 @@ export default function PropertyDetails() {
     toast({ title: "Copied!", description: "Link copied to clipboard" });
   };
 
-  if (!match) return <NotFound />;
+  if (!match) return <div className="min-h-screen flex items-center justify-center">Property Not Found</div>;
   if (isLoading || !property) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
@@ -240,7 +273,6 @@ export default function PropertyDetails() {
       <Navbar />
 
       <main className="flex-1 w-full max-w-[1440px] mx-auto pb-12">
-        {/* Zillow Style Image Gallery */}
         <section className={`relative group bg-gray-100 dark:bg-gray-900 overflow-hidden md:h-[500px] lg:h-[600px] flex ${isOffMarket ? 'opacity-90 grayscale-[0.2]' : ''}`}>
           {allImages.length > 0 ? (
             <div className="flex w-full h-full gap-1">
@@ -284,19 +316,12 @@ export default function PropertyDetails() {
 
         <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column: Details */}
             <div className="lg:col-span-2 space-y-8">
-                <Card className="p-8 rounded-xl border border-border/50 shadow-xl" data-testid="section-posted-by">
+                <Card className="p-8 rounded-xl border border-border/50 shadow-xl">
                   <div className="mb-6">
                     <div className="flex justify-between items-start mb-4">
                       <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Listing Representative</p>
                       <div className="flex items-center gap-2">
-                        {user && (user.role === 'admin' || user.id === property.owner_id) && (
-                          <AssignAgentDropdown 
-                            propertyId={property.id} 
-                            currentAgentId={(property as any).listing_agent_id} 
-                          />
-                        )}
                         <Badge className={`${isOffMarket ? 'bg-zinc-800' : isComingSoon ? 'bg-amber-500' : 'bg-blue-600'} text-white border-none font-bold py-1 px-3`}>
                           {availabilityText}
                         </Badge>
@@ -313,7 +338,6 @@ export default function PropertyDetails() {
                       variant="outline" 
                       className={`rounded-full h-10 w-10 p-0 ${isFavorited(property.id) ? 'text-red-500 border-red-500 bg-red-50' : ''}`}
                       onClick={() => toggleFavorite(property.id)}
-                      data-testid="button-save-property"
                     >
                       <Heart className={`h-5 w-5 ${isFavorited(property.id) ? 'fill-current' : ''}`} />
                     </Button>
@@ -321,7 +345,6 @@ export default function PropertyDetails() {
                       variant="outline" 
                       className="rounded-full h-10 w-10 p-0"
                       onClick={handleShare}
-                      data-testid="button-share-property"
                     >
                       <Share2 className="h-5 w-5" />
                     </Button>
@@ -335,14 +358,6 @@ export default function PropertyDetails() {
                     </span>
                     <span className="text-sm text-gray-500 font-bold uppercase tracking-wider">/ Month</span>
                   </div>
-                  {property.application_fee && (
-                    <div className="flex flex-col border-l border-gray-200 dark:border-gray-800 pl-8">
-                      <span className="text-xl font-bold text-gray-900 dark:text-white">
-                        ${property.application_fee}
-                      </span>
-                      <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">App Fee</span>
-                    </div>
-                  )}
                   <div className="flex items-center gap-6">
                     <div className="flex flex-col items-center">
                       <span className="text-xl font-bold">{property.bedrooms ?? 0}</span>
@@ -359,15 +374,69 @@ export default function PropertyDetails() {
                   </div>
                 </div>
 
-              {/* Overview Section */}
               <section className="space-y-4">
                 <h3 className="text-xl font-bold border-b-2 border-blue-600 w-fit pb-1">Overview</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed whitespace-pre-wrap" data-testid="text-property-description">
+                <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed whitespace-pre-wrap">
                   {property.description || "No description provided"}
                 </p>
               </section>
 
-              {/* Facts & Features */}
+              {/* Property Rules - Strict Integrity Enforcement */}
+              {Object.keys(getPropertyRules(property)).length > 0 && (
+                <section className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex items-center gap-3 border-b pb-4">
+                    <Shield className="h-6 w-6 text-primary" />
+                    <h2 className="text-xl font-black uppercase tracking-widest">Property Policies</h2>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(property as any).pets_allowed !== null && (property as any).pets_allowed !== undefined && (
+                      <Card className="bg-gray-50/50 dark:bg-gray-900/50 border-gray-100 dark:border-gray-800 rounded-none p-4 hover-elevate transition-all duration-300">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white dark:bg-gray-800 rounded-none shadow-sm">
+                              <PawPrint className="h-4 w-4 text-primary" />
+                            </div>
+                            <span className="text-sm font-black uppercase tracking-widest">Pet Policy</span>
+                          </div>
+                          <Badge variant={(property as any).pets_allowed ? "success" : "destructive"} className="rounded-none uppercase tracking-tighter text-[10px] font-black">
+                            {(property as any).pets_allowed ? "Allowed" : "Not Allowed"}
+                          </Badge>
+                        </div>
+                      </Card>
+                    )}
+
+                    {(property as any).smoking_allowed !== null && (property as any).smoking_allowed !== undefined && (
+                      <Card className="bg-gray-50/50 dark:bg-gray-900/50 border-gray-100 dark:border-gray-800 rounded-none p-4 hover-elevate transition-all duration-300">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white dark:bg-gray-800 rounded-none shadow-sm">
+                              <Ban className="h-4 w-4 text-primary" />
+                            </div>
+                            <span className="text-sm font-black uppercase tracking-widest">Smoking Policy</span>
+                          </div>
+                          <Badge variant={(property as any).smoking_allowed ? "success" : "destructive"} className="rounded-none uppercase tracking-tighter text-[10px] font-black">
+                            {(property as any).smoking_allowed ? "Allowed" : "No Smoking"}
+                          </Badge>
+                        </div>
+                      </Card>
+                    )}
+                  </div>
+
+                  {(property as any).rules_text && (
+                    <div className="p-6 bg-blue-50/30 dark:bg-blue-900/10 border border-blue-100/50 dark:border-blue-900/30 rounded-none">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Info className="h-4 w-4 text-blue-600" />
+                        <h3 className="text-xs font-black uppercase tracking-widest text-blue-600">Additional Rules</h3>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap">
+                        {(property as any).rules_text}
+                      </p>
+                    </div>
+                  )}
+                </section>
+              )}
+
               <section className="space-y-6">
                 <h3 className="text-xl font-bold border-b-2 border-blue-600 w-fit pb-1">Facts & Features</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl">
@@ -389,73 +458,12 @@ export default function PropertyDetails() {
                       </div>
                     </div>
                   )}
-                  {property.lease_term && (
-                    <div className="flex items-start gap-3">
-                      <Info className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase">Lease Term</p>
-                        <p className="font-bold">{property.lease_term}</p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <p className="text-xs text-gray-500 font-bold uppercase">Furnished</p>
-                      <p className="font-bold">{property.furnished ? "Yes" : "No"}</p>
-                    </div>
-                  </div>
-                  {property.pets_allowed !== null && (
-                    <div className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase">Pets Allowed</p>
-                        <p className="font-bold">{property.pets_allowed ? "Yes" : "No"}</p>
-                      </div>
-                    </div>
-                  )}
-                  {property.smoking_allowed !== null && (
-                    <div className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase">Smoking Allowed</p>
-                        <p className="font-bold">{property.smoking_allowed ? "Yes" : "No"}</p>
-                      </div>
-                    </div>
-                  )}
-                  {property.parking_available !== null && (
-                    <div className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase">Parking</p>
-                        <p className="font-bold">{property.parking_available ? "Yes" : "No"}</p>
-                      </div>
-                    </div>
-                  )}
                   {property.lease_term_months && (
                     <div className="flex items-start gap-3">
                       <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
                       <div>
                         <p className="text-xs text-gray-500 font-bold uppercase">Lease Duration</p>
                         <p className="font-bold">{property.lease_term_months} Months</p>
-                      </div>
-                    </div>
-                  )}
-                  {property.security_deposit && (
-                    <div className="flex items-start gap-3">
-                      <Info className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase">Security Deposit</p>
-                        <p className="font-bold">{formatPrice(property.security_deposit)}</p>
-                      </div>
-                    </div>
-                  )}
-                  {property.available_date && (
-                    <div className="flex items-start gap-3">
-                      <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase">Move-in Date</p>
-                        <p className="font-bold">{new Date(property.available_date).toLocaleDateString()}</p>
                       </div>
                     </div>
                   )}
@@ -469,15 +477,6 @@ export default function PropertyDetails() {
                     </div>
                   )}
                 </div>
-
-                {property.rules_text && (
-                  <div className="space-y-3">
-                    <p className="text-sm font-bold uppercase text-gray-500 tracking-wider">Property Rules</p>
-                    <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed whitespace-pre-wrap">
-                      {property.rules_text}
-                    </p>
-                  </div>
-                )}
 
                 {Array.isArray(property.utilities_included) && property.utilities_included.length > 0 && (
                   <div className="space-y-3">
@@ -493,7 +492,6 @@ export default function PropertyDetails() {
                 )}
               </section>
 
-              {/* Amenities Section */}
               {Array.isArray(property.amenities) && property.amenities.length > 0 && (
                 <section className="space-y-4">
                   <h3 className="text-xl font-bold border-b-2 border-blue-600 w-fit pb-1">Amenities</h3>
@@ -508,7 +506,6 @@ export default function PropertyDetails() {
                 </section>
               )}
 
-              {/* Price History & Trust Signals */}
               <section className="space-y-6 bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-bold">Price & Trust</h3>
@@ -517,12 +514,6 @@ export default function PropertyDetails() {
                       <div className="flex items-center gap-1.5 text-gray-500">
                         <Eye className="h-4 w-4" />
                         <span className="text-xs font-bold">{property.view_count} views</span>
-                      </div>
-                    )}
-                    {property.save_count !== undefined && (
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <Bookmark className="h-4 w-4" />
-                        <span className="text-xs font-bold">{property.save_count} saves</span>
                       </div>
                     )}
                   </div>
@@ -542,29 +533,8 @@ export default function PropertyDetails() {
                     </p>
                   </div>
                 </div>
-
-                {Array.isArray(property.price_history) && property.price_history.length > 0 ? (
-                  <div className="space-y-4 pt-2">
-                    <p className="text-sm font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4" /> History Details
-                    </p>
-                    <div className="space-y-2">
-                      {property.price_history.map((h, i) => (
-                        <div key={i} className="flex justify-between items-center text-sm border-b border-gray-100 dark:border-gray-800 pb-2">
-                          <span className="text-gray-600 dark:text-gray-400 font-medium">
-                            {new Date(h.changedAt).toLocaleDateString()}
-                          </span>
-                          <span className="font-bold">{formatPrice(h.price)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 italic text-sm">No price history available for this listing.</p>
-                )}
               </section>
 
-              {/* Location Map */}
               {hasCoordinates && (
                 <section className="space-y-4">
                   <h3 className="text-xl font-bold border-b-2 border-blue-600 w-fit pb-1">Location</h3>
@@ -579,7 +549,6 @@ export default function PropertyDetails() {
               )}
             </div>
 
-            {/* Right Column: Sticky Contact Card */}
             <div className="space-y-6">
               <div className="sticky top-24">
                 <Card className="shadow-xl border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">

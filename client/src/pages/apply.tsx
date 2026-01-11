@@ -542,22 +542,22 @@ export default function Apply() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      {property.pets_allowed !== null && (
+                      {(property as any).pets_allowed !== null && (
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-500 font-medium">Pet Policy</span>
-                          <span className="font-bold">{property.pets_allowed ? "Pets Allowed" : "No Pets"}</span>
+                          <span className="font-bold">{(property as any).pets_allowed ? "Pets Allowed" : "No Pets"}</span>
                         </div>
                       )}
-                      {property.smoking_allowed !== null && (
+                      {(property as any).smoking_allowed !== null && (
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-500 font-medium">Smoking</span>
-                          <span className="font-bold">{property.smoking_allowed ? "Allowed" : "No Smoking"}</span>
+                          <span className="font-bold">{(property as any).smoking_allowed ? "Allowed" : "No Smoking"}</span>
                         </div>
                       )}
-                      {property.rules_text && (
+                      {(property as any).rules_text && (
                         <div className="text-sm border-t pt-2 mt-2">
                           <span className="text-gray-500 font-medium block mb-1">Additional Rules</span>
-                          <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{property.rules_text}</span>
+                          <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{(property as any).rules_text}</span>
                         </div>
                       )}
                     </CardContent>
@@ -649,11 +649,12 @@ export default function Apply() {
                             name="rulesAcknowledged"
                             render={({ field }) => {
                               const rules = [];
-                              if (property.pets_allowed !== null) rules.push(property.pets_allowed ? "Pets Allowed" : "No Pets");
-                              if (property.smoking_allowed !== null) rules.push(property.smoking_allowed ? "Smoking Allowed" : "No Smoking");
-                              if (property.rules_text) rules.push("Property Rules");
+                              const prop = property as any;
+                              if (prop?.pets_allowed !== null && prop?.pets_allowed !== undefined) rules.push(prop.pets_allowed ? "Pets Allowed" : "No Pets");
+                              if (prop?.smoking_allowed !== null && prop?.smoking_allowed !== undefined) rules.push(prop.smoking_allowed ? "Smoking Allowed" : "No Smoking");
+                              if (prop?.rules_text) rules.push("Property Rules");
                               
-                              if (rules.length === 0) return null;
+                              if (rules.length === 0) return <div key="no-rules" />;
 
                               return (
                                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-primary/5 border border-primary/20 rounded-none mb-6">
