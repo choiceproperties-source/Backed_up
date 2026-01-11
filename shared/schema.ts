@@ -56,6 +56,12 @@ export const users = pgTable("users", {
   lastLoginAt: timestamp("last_login_at"),
   failedLoginAttempts: integer("failed_login_attempts").default(0),
   lockedUntil: timestamp("locked_until"),
+  // Legal Consent
+  termsVersion: text("terms_version"),
+  privacyVersion: text("privacy_version"),
+  acceptedTermsAt: timestamp("accepted_terms_at"),
+  acceptedPrivacyAt: timestamp("accepted_privacy_at"),
+  acceptedIp: text("accepted_ip"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
@@ -416,7 +422,12 @@ export const applications = pgTable("applications", {
     feeAcknowledged: boolean;
     fcraConsent: boolean;
     fairHousingAcknowledged: boolean;
+    electronicConsent: boolean;
     acknowledgedAt: string;
+    acceptedIp?: string;
+    termsVersion?: string;
+    backgroundCheckAccepted?: boolean;
+    propertyRulesAccepted?: boolean;
   }>(),
   stateDisclosures: jsonb("state_disclosures").$type<Record<string, {
     acknowledged: boolean;
