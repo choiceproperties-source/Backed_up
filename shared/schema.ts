@@ -401,10 +401,10 @@ export const applications = pgTable("applications", {
   // Legal Disclosures
   disclosurePdfUrl: text("disclosure_pdf_url"),
   leasePdfUrl: text("lease_pdf_url"),
-  leaseGeneratedAt: timestamp("lease_generated_at"),
   // Lease e-signature fields
   leaseSignatureStatus: text("lease_signature_status").default("pending_signature"), // pending_signature, partially_signed, signed
   leaseFullySignedAt: timestamp("lease_fully_signed_at"),
+  leaseGeneratedAtSnapshot: timestamp("lease_generated_at_snapshot"),
   legalDisclosures: jsonb("legal_disclosures").$type<{
     fairHousingAcknowledged: boolean;
     creditCheckAuthorized: boolean;
@@ -464,7 +464,7 @@ export const applicationNotifications = pgTable("application_notifications", {
   content: text("content"),
   sentAt: timestamp("sent_at"),
   readAt: timestamp("read_at"),
-  status: text("status").default("pending"), // pending, sent, failed, read
+  status: text("status").default("pending"), // pending, sent, failed, some_read
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -559,27 +559,6 @@ export const favorites = pgTable("favorites", {
   userPropertyUnique: unique().on(table.userId, table.propertyId),
 }));
 
-export const leaseSignatures = pgTable("lease_signatures", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "cascade" }),
-  signerUserId: uuid("signer_user_id").references(() => users.id, { onDelete: "cascade" }),
-  signerRole: text("signer_role").notNull(), // tenant, landlord
-  signerName: text("signer_name").notNull(),
-  signedAt: timestamp("signed_at").defaultNow(),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  consentElectronic: boolean("consent_electronic").default(true),
-  consentBinding: boolean("consent_binding").default(true),
-});
-
-export const insertLeaseSignatureSchema = createInsertSchema(leaseSignatures).omit({
-  id: true,
-  signedAt: true,
-});
-
-export type LeaseSignature = typeof leaseSignatures.$inferSelect;
-export type InsertLeaseSignature = z.infer<typeof insertLeaseSignatureSchema>;
-
 export const savedSearches = pgTable("saved_searches", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
@@ -592,7 +571,8 @@ export const savedSearches = pgTable("saved_searches", {
 export const newsletterSubscribers = pgTable("newsletter_subscribers", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),
-  subscribedAt: timestamp("subscribed_at").defaultNow(),
+  status: text("status").default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const contactMessages = pgTable("contact_messages", {
@@ -601,481 +581,208 @@ export const contactMessages = pgTable("contact_messages", {
   email: text("email").notNull(),
   subject: text("subject"),
   message: text("message").notNull(),
-  read: boolean("read").default(false),
+  status: text("status").default("pending"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const adminSettings = pgTable("admin_settings", {
+export const agentReviews = pgTable("agent_reviews", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  key: text("key").notNull().unique(),
-  value: text("value"),
+  agentId: uuid("agent_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  reviewerId: uuid("reviewer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  rating: integer("rating").notNull(),
+  comment: text("comment"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const conversations = pgTable("conversations", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "set null" }),
+  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "set null" }),
+  subject: text("subject"),
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const LEASE_ACTIONS = [
-  "lease_created",
-  "lease_edited",
-  "lease_sent",
-  "lease_accepted",
-  "lease_declined",
-  "lease_signed_tenant",
-  "lease_signed_landlord",
-  "move_in_scheduled"
-] as const;
-
-export const IMAGE_AUDIT_ACTIONS = [
-  "image_upload",
-  "image_delete",
-  "image_replace",
-  "image_reorder"
-] as const;
-
-export const AUDIT_ACTIONS = [
-  "create", "update", "delete", "view", "login", "logout", 
-  "2fa_enable", "2fa_disable", "2fa_verify", "password_change",
-  "role_change", "status_change", "document_upload", "document_verify",
-  "application_review", "application_approve", "application_reject",
-  "payment_verify_manual", "payment_attempt", "application_info_request",
-  "application_conditional_approve",
-  ...LEASE_ACTIONS,
-  ...IMAGE_AUDIT_ACTIONS
-] as const;
-
-// Image audit logs for tracking all image operations
-export const imageAuditLogs = pgTable("image_audit_logs", {
+export const conversationParticipants = pgTable("conversation_participants", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  actorId: uuid("actor_id").references(() => users.id, { onDelete: "set null" }),
-  actorRole: text("actor_role").notNull(),
-  action: text("action").notNull(), // upload, delete, replace, reorder
-  photoId: uuid("photo_id"),
-  propertyId: uuid("property_id"),
-  metadata: jsonb("metadata").$type<Record<string, any>>(),
-  timestamp: timestamp("timestamp").defaultNow(),
+  conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  lastReadAt: timestamp("last_read_at"),
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+export const messages = pgTable("messages", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "cascade" }),
+  senderId: uuid("sender_id").references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Payment verification audit trail
-export const paymentVerifications = pgTable("payment_verifications", {
+export const notifications = pgTable("notifications", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "cascade" }),
-  verifiedBy: uuid("verified_by").references(() => users.id, { onDelete: "set null" }),
-  amount: decimal("amount", { precision: 8, scale: 2 }).notNull(),
-  paymentMethod: text("payment_method").notNull(), // cash, check, bank_transfer, wire_transfer, money_order, other
-  receivedAt: timestamp("received_at").notNull(),
-  referenceId: text("reference_id").notNull(),
-  internalNote: text("internal_note"),
-  confirmationChecked: boolean("confirmation_checked").default(false),
-  previousPaymentStatus: text("previous_payment_status"),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  link: text("link"),
+  isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
-
-export const insertPaymentVerificationSchema = createInsertSchema(paymentVerifications).omit({
-  id: true,
-  createdAt: true,
-});
-
-export type InsertPaymentVerification = z.infer<typeof insertPaymentVerificationSchema>;
-export type PaymentVerification = typeof paymentVerifications.$inferSelect;
-export type PaymentVerificationMethod = typeof PAYMENT_VERIFICATION_METHODS[number];
 
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
   action: text("action").notNull(),
   resourceType: text("resource_type").notNull(),
-  resourceId: uuid("resource_id"),
+  resourceId: text("resource_id"),
   previousData: jsonb("previous_data"),
   newData: jsonb("new_data"),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
-  metadata: jsonb("metadata").$type<Record<string, any>>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const sensitiveData = pgTable("sensitive_data", {
+export const applicationLogs = pgTable("application_logs", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
   applicationId: uuid("application_id").references(() => applications.id, { onDelete: "cascade" }),
-  dataType: text("data_type").notNull(),
-  encryptedValue: text("encrypted_value").notNull(),
-  encryptionKeyId: text("encryption_key_id"),
-  accessedBy: jsonb("accessed_by").$type<Array<{ userId: string; accessedAt: string; reason: string }>>(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  action: text("action").notNull(),
+  previousStatus: text("previous_status"),
+  newStatus: text("new_status"),
+  details: text("details"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const ALLOWED_FILE_TYPES = [
-  "image/jpeg", "image/png", "image/gif", "image/webp",
-  "application/pdf",
-  "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-] as const;
-
-export const MAX_FILE_SIZE = 10 * 1024 * 1024;
-
-export const uploadedFiles = pgTable("uploaded_files", {
+export const propertyLogs = pgTable("property_logs", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
-  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "cascade" }),
-  filename: text("filename").notNull(),
-  originalName: text("original_name").notNull(),
-  mimeType: text("mime_type").notNull(),
-  fileSize: integer("file_size").notNull(),
-  storagePath: text("storage_path").notNull(),
-  checksum: text("checksum"),
-  isVerified: boolean("is_verified").default(false),
-  verifiedBy: uuid("verified_by").references(() => users.id),
-  verifiedAt: timestamp("verified_at"),
+  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  action: text("action").notNull(),
+  field: text("field"),
+  previousValue: text("previous_value"),
+  newValue: text("new_value"),
+  details: text("details"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertAdminSettingsSchema = createInsertSchema(adminSettings).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const securityLogs = pgTable("security_logs", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  event: text("event").notNull(),
+  status: text("status").notNull(), // success, failure
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  details: jsonb("details"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
-  id: true,
-  createdAt: true,
+export const leaseLogs = pgTable("lease_logs", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  action: text("action").notNull(),
+  details: text("details"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertSensitiveDataSchema = createInsertSchema(sensitiveData).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const paymentLogs = pgTable("payment_logs", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  action: text("action").notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }),
+  status: text("status"),
+  details: text("details"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
-
-export const insertUploadedFileSchema = createInsertSchema(uploadedFiles).omit({
-  id: true,
-  createdAt: true,
-  isVerified: true,
-  verifiedBy: true,
-  verifiedAt: true,
-});
-
-export type InsertAdminSettings = z.infer<typeof insertAdminSettingsSchema>;
-export type AdminSettings = typeof adminSettings.$inferSelect;
-
-export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
-export type AuditLog = typeof auditLogs.$inferSelect;
-export type AuditAction = typeof AUDIT_ACTIONS[number];
-
-export type InsertSensitiveData = z.infer<typeof insertSensitiveDataSchema>;
-export type SensitiveData = typeof sensitiveData.$inferSelect;
-
-export type InsertUploadedFile = z.infer<typeof insertUploadedFileSchema>;
-export type UploadedFile = typeof uploadedFiles.$inferSelect;
-export type AllowedFileType = typeof ALLOWED_FILE_TYPES[number];
-
-export const TRANSACTION_TYPES = ["sale", "lease", "referral"] as const;
-export const TRANSACTION_STATUSES = ["pending", "in_progress", "completed", "cancelled"] as const;
 
 export const transactions = pgTable("transactions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "set null" }),
-  agentId: uuid("agent_id").references(() => users.id, { onDelete: "set null" }),
-  agencyId: uuid("agency_id").references(() => agencies.id, { onDelete: "set null" }),
-  buyerId: uuid("buyer_id").references(() => users.id, { onDelete: "set null" }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   applicationId: uuid("application_id").references(() => applications.id, { onDelete: "set null" }),
-  transactionType: text("transaction_type").default("lease"),
-  transactionAmount: decimal("transaction_amount", { precision: 12, scale: 2 }),
-  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }),
-  commissionAmount: decimal("commission_amount", { precision: 12, scale: 2 }),
-  agentSplit: decimal("agent_split", { precision: 5, scale: 2 }),
-  agentCommission: decimal("agent_commission", { precision: 12, scale: 2 }),
-  agencyCommission: decimal("agency_commission", { precision: 12, scale: 2 }),
-  status: text("status").default("pending"),
-  closedAt: timestamp("closed_at"),
-  notes: text("notes"),
+  type: text("type").notNull(), // application_fee, rent, deposit
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  currency: text("currency").default("USD"),
+  status: text("status").notNull(), // pending, completed, failed, refunded
+  paymentMethod: text("payment_method"),
+  paymentProvider: text("payment_provider"),
+  providerTransactionId: text("provider_transaction_id"),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const agentReviews = pgTable("agent_reviews", {
+export const paymentVerifications = pgTable("payment_verifications", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  agentId: uuid("agent_id").references(() => users.id, { onDelete: "cascade" }),
-  reviewerId: uuid("reviewer_id").references(() => users.id, { onDelete: "cascade" }),
-  transactionId: uuid("transaction_id").references(() => transactions.id, { onDelete: "set null" }),
-  rating: integer("rating").notNull(),
-  title: text("title"),
-  comment: text("comment"),
-  wouldRecommend: boolean("would_recommend").default(true),
+  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "cascade" }).notNull(),
+  verifiedBy: uuid("verified_by").references(() => users.id, { onDelete: "set null" }),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method").notNull(),
+  receivedAt: timestamp("received_at").notNull(),
+  referenceId: text("reference_id"),
+  internalNote: text("internal_note"),
+  confirmationChecked: boolean("confirmation_checked").default(false),
+  previousPaymentStatus: text("previous_payment_status"),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  reviewerAgentUnique: unique().on(table.reviewerId, table.agentId),
-}));
-
-// Conversations for messaging between users (related to properties or applications)
-export const conversations = pgTable("conversations", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "set null" }),
-  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "set null" }),
-  subject: text("subject"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Participants in a conversation
-export const conversationParticipants = pgTable("conversation_participants", {
+export const pushSubscriptions = pgTable("push_subscriptions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "cascade" }),
-  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
-  lastReadAt: timestamp("last_read_at"),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  deviceType: text("device_type"),
+  browser: text("browser"),
+  os: text("os"),
+  lastUsedAt: timestamp("last_used_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  conversationUserUnique: unique().on(table.conversationId, table.userId),
-}));
-
-// Messages within conversations
-export const messages = pgTable("messages", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "cascade" }),
-  senderId: uuid("sender_id").references(() => users.id, { onDelete: "cascade" }),
-  content: text("content").notNull(),
-  messageType: text("message_type").default("text"), // text, system, attachment
-  attachments: jsonb("attachments").$type<string[]>(),
-  readAt: timestamp("read_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertAgencySchema = createInsertSchema(agencies).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true,
-});
-
+// Zod Schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
   deletedAt: true,
+  lastLoginAt: true,
+  failedLoginAttempts: true,
+  lockedUntil: true,
 });
 
-// FIXED: COMPREHENSIVE PROPERTY INSERT SCHEMA WITH CONSISTENT VALIDATION
-export const insertPropertySchema = createInsertSchema(properties)
-  .omit({
-    id: true,
-    createdAt: true,
-    updatedAt: true,
-    deletedAt: true,
-    listedAt: true,
-    soldAt: true,
-    soldPrice: true,
-    priceHistory: true,
-    viewCount: true,
-    saveCount: true,
-    applicationCount: true,
-    ownerId: true,
-    listingAgentId: true,
-    agencyId: true,
-    addressVerified: true,
-  })
-  .extend({
-    title: z.string()
-      .min(5, "Title must be at least 5 characters")
-      .max(200, "Title must not exceed 200 characters"),
-    address: z.string()
-      .min(5, "Address must be at least 5 characters")
-      .max(500, "Address must not exceed 500 characters"),
-    city: z.string()
-      .min(2, "City must be at least 2 characters")
-      .max(100, "City must not exceed 100 characters")
-      .optional(),
-    state: z.string()
-      .length(2, "State must be a 2-letter code (e.g., CA, NY)")
-      .transform((val) => val.toUpperCase())
-      .optional(),
-    price: z.coerce.number()
-      .positive("Price must be greater than 0")
-      .max(99999999.99, "Price must not exceed $99,999,999.99")
-      .optional(),
-    propertyType: z.string()
-      .min(1, "Property type is required")
-      .optional(),
-    description: z.string()
-      .min(10, "Description must be at least 10 characters if provided")
-      .max(5000, "Description must not exceed 5000 characters")
-      .optional()
-      .default(""),
-    zipCode: z.string()
-      .regex(/^\d{5}(-\d{4})?$/, "ZIP code must be in format 12345 or 12345-6789")
-      .optional()
-      .default(""),
-    bedrooms: z.coerce.number()
-      .int("Bedrooms must be a whole number")
-      .min(0, "Bedrooms cannot be negative")
-      .max(20, "Bedrooms must not exceed 20")
-      .optional()
-      .nullable(),
-    bathrooms: z.coerce.number()
-      .min(0, "Bathrooms cannot be negative")
-      .max(99.9, "Bathrooms must not exceed 99.9")
-      .optional()
-      .nullable(),
-    squareFeet: z.coerce.number()
-      .int("Square feet must be a whole number")
-      .min(0, "Square feet cannot be negative")
-      .max(1000000, "Square feet must not exceed 1,000,000")
-      .optional()
-      .nullable(),
-    amenities: z.array(z.string())
-      .max(50, "Cannot exceed 50 amenities")
-      .optional()
-      .default([]),
-    images: z.array(z.string().url("Image must be a valid URL"))
-      .max(25, "Cannot exceed 25 images")
-      .optional()
-      .default([]),
-    furnished: z.boolean()
-      .optional()
-      .default(false),
-    petsAllowed: z.boolean()
-      .optional()
-      .default(false),
-    latitude: z.coerce.number()
-      .min(-90, "Latitude must be between -90 and 90")
-      .max(90, "Latitude must be between -90 and 90")
-      .optional()
-      .nullable(),
-    longitude: z.coerce.number()
-      .min(-180, "Longitude must be between -180 and 180")
-      .max(180, "Longitude must be between -180 and 180")
-      .optional()
-      .nullable(),
-    leaseTerm: z.string()
-      .min(1, "Lease term is required")
-      .optional()
-      .default(""),
-    utilitiesIncluded: z.array(z.string())
-      .max(20, "Cannot exceed 20 utilities")
-      .optional()
-      .default([]),
-    status: z.enum(['active', 'inactive'] as const)
-      .optional()
-      .default('active'),
-    listingStatus: z.enum([...PROPERTY_LISTING_STATUSES] as [string, ...string[]])
-      .optional()
-      .default('draft'),
-    visibility: z.enum([...PROPERTY_VISIBILITY] as [string, ...string[]])
-      .optional()
-      .default('public'),
-    expiresAt: z.string()
-      .datetime()
-      .optional()
-      .nullable(),
-    scheduledPublishAt: z.string()
-      .datetime()
-      .optional()
-      .nullable(),
-    deposit: z.coerce.number()
-      .min(0, "Deposit cannot be negative")
-      .max(9999999.99, "Deposit must not exceed $9,999,999.99")
-      .optional()
-      .nullable(),
-    hoaFee: z.coerce.number()
-      .min(0, "HOA fee cannot be negative")
-      .max(999999.99, "HOA fee must not exceed $999,999.99")
-      .optional()
-      .nullable(),
-    yearBuilt: z.coerce.number()
-      .int("Year built must be a whole number")
-      .min(1800, "Year built must be after 1800")
-      .max(new Date().getFullYear() + 1, `Year built cannot be after ${new Date().getFullYear() + 1}`)
-      .optional()
-      .nullable(),
-    applicationFee: z.coerce.number()
-      .min(0, "Application fee cannot be negative")
-      .max(999999.99, "Application fee must not exceed $999,999.99")
-      .optional()
-      .nullable(),
-    autoUnpublish: z.boolean()
-      .optional()
-      .default(true),
-    expirationDays: z.coerce.number()
-      .int("Expiration days must be a whole number")
-      .min(1, "Expiration days must be at least 1")
-      .max(365, "Expiration days must not exceed 365")
-      .optional()
-      .default(90),
-  })
-  .refine(
-    (data) => {
-      if (data.price !== undefined && data.price !== null) {
-        return !isNaN(data.price) && data.price > 0;
-      }
-      return true;
-    },
-    {
-      message: "Price must be a valid number greater than 0",
-      path: ["price"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.bedrooms !== undefined && data.bedrooms !== null) {
-        return Number.isInteger(data.bedrooms) && data.bedrooms >= 0;
-      }
-      return true;
-    },
-    {
-      message: "Bedrooms must be a valid whole number",
-      path: ["bedrooms"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.bathrooms !== undefined && data.bathrooms !== null) {
-        const decimalPlaces = data.bathrooms.toString().split('.')[1]?.length || 0;
-        return decimalPlaces <= 1;
-      }
-      return true;
-    },
-    {
-      message: "Bathrooms can only have up to 1 decimal place (e.g., 2.5)",
-      path: ["bathrooms"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.state && data.state.length !== 2) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "State must be a 2-letter code",
-      path: ["state"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.images && data.images.length > 0) {
-        return data.images.every(img => 
-          img.startsWith('http://') || img.startsWith('https://')
-        );
-      }
-      return true;
-    },
-    {
-      message: "All images must be valid URLs starting with http:// or https://",
-      path: ["images"],
-    }
-  );
+export const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
 
-export const insertPropertyNoteSchema = createInsertSchema(properties).omit({
+export const signupSchema = insertUserSchema.extend({
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+export const insertPropertySchema = createInsertSchema(properties).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-});
-
-export const insertPropertyQuestionSchema = createInsertSchema(propertyQuestions).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+  deletedAt: true,
+  viewCount: true,
+  saveCount: true,
+  applicationCount: true,
+  priceHistory: true,
 });
 
 export const insertApplicationSchema = createInsertSchema(applications).omit({
@@ -1088,46 +795,58 @@ export const insertApplicationSchema = createInsertSchema(applications).omit({
   score: true,
   scoreBreakdown: true,
   scoredAt: true,
-  rejectionCategory: true,
-  rejectionReason: true,
-  rejectionDetails: true,
-  expiredAt: true,
   statusHistory: true,
   previousStatus: true,
-});
-
-export const insertCoApplicantSchema = createInsertSchema(coApplicants).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  invitedAt: true,
-  respondedAt: true,
-});
-
-export const insertApplicationCommentSchema = createInsertSchema(applicationComments).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertApplicationNotificationSchema = createInsertSchema(applicationNotifications).omit({
-  id: true,
-  createdAt: true,
-  sentAt: true,
-  readAt: true,
-});
-
-export const insertUserNotificationPreferencesSchema = createInsertSchema(userNotificationPreferences).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertPropertyNotificationSchema = createInsertSchema(propertyNotifications).omit({
-  id: true,
-  createdAt: true,
-  sentAt: true,
-  readAt: true,
+  paymentAttempts: true,
+  paymentPaidAt: true,
+  manualPaymentVerified: true,
+  manualPaymentVerifiedAt: true,
+  manualPaymentVerifiedBy: true,
+  manualPaymentAmount: true,
+  manualPaymentMethod: true,
+  manualPaymentReceivedAt: true,
+  manualPaymentNote: true,
+  manualPaymentReferenceId: true,
+  infoRequestedReason: true,
+  infoRequestedAt: true,
+  infoRequestedBy: true,
+  infoRequestedDueDate: true,
+  conditionalApprovalReason: true,
+  conditionalApprovalAt: true,
+  conditionalApprovalBy: true,
+  conditionalApprovalDueDate: true,
+  conditionalRequirements: true,
+  conditionalDocumentsRequired: true,
+  conditionalDocumentsUploaded: true,
+  leaseStatus: true,
+  leaseVersion: true,
+  leaseDocumentUrl: true,
+  leaseDocumentId: true,
+  leaseTemplateId: true,
+  leaseGeneratedAt: true,
+  leaseSentAt: true,
+  leaseSentBy: true,
+  leaseAcceptedAt: true,
+  leaseDeclineReason: true,
+  leaseSignedAt: true,
+  moveInScheduledAt: true,
+  moveInInstructions: true,
+  rentSnapshot: true,
+  depositSnapshot: true,
+  applicationFeeSnapshot: true,
+  leaseTermSnapshot: true,
+  availableDateSnapshot: true,
+  propertyTitleSnapshot: true,
+  propertyAddressSnapshot: true,
+  propertyTypeSnapshot: true,
+  policiesSnapshot: true,
+  propertyVersionSnapshot: true,
+  propertyStatusAtApplyTime: true,
+  conversationId: true,
+  lastSavedStep: true,
+  leaseSignatureStatus: true,
+  leaseFullySignedAt: true,
+  leaseGeneratedAtSnapshot: true,
 });
 
 export const insertInquirySchema = createInsertSchema(inquiries).omit({
@@ -1163,315 +882,72 @@ export const insertSavedSearchSchema = createInsertSchema(savedSearches).omit({
 
 export const insertNewsletterSubscriberSchema = createInsertSchema(newsletterSubscribers).omit({
   id: true,
-  subscribedAt: true,
+  createdAt: true,
 });
 
 export const insertContactMessageSchema = createInsertSchema(contactMessages).omit({
   id: true,
   createdAt: true,
-  read: true,
+});
+
+export const insertAgentReviewSchema = createInsertSchema(agentReviews).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAgencySchema = createInsertSchema(agencies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
 });
 
 export const insertTransactionSchema = createInsertSchema(transactions).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-  closedAt: true,
 });
 
-export const insertAgentReviewSchema = createInsertSchema(agentReviews).omit({
+export const insertPaymentVerificationSchema = createInsertSchema(paymentVerifications).omit({
   id: true,
   createdAt: true,
-  updatedAt: true,
-});
-
-export const insertConversationSchema = createInsertSchema(conversations).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertConversationParticipantSchema = createInsertSchema(conversationParticipants).omit({
-  id: true,
-  createdAt: true,
-  lastReadAt: true,
-});
-
-export const insertMessageSchema = createInsertSchema(messages).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  readAt: true,
-});
-
-export type InsertAgency = z.infer<typeof insertAgencySchema>;
-export type Agency = typeof agencies.$inferSelect;
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-
-export type InsertProperty = z.infer<typeof insertPropertySchema>;
-export type Property = typeof properties.$inferSelect;
-export type PropertyListingStatus = typeof PROPERTY_LISTING_STATUSES[number];
-export type PropertyVisibility = typeof PROPERTY_VISIBILITY[number];
-
-export type InsertPropertyNote = z.infer<typeof insertPropertyNoteSchema>;
-export type PropertyNote = typeof propertyNotes.$inferSelect;
-
-export type InsertPropertyQuestion = z.infer<typeof insertPropertyQuestionSchema>;
-export type PropertyQuestion = typeof propertyQuestions.$inferSelect;
-
-export type InsertApplication = z.infer<typeof insertApplicationSchema>;
-export type Application = typeof applications.$inferSelect;
-export type LeaseStatus = typeof LEASE_STATUSES[number];
-
-// Lease status update schema with validation
-export const leaseStatusUpdateSchema = z.object({
-  leaseStatus: z.enum([...LEASE_STATUSES] as [string, ...string[]]),
-  leaseDocumentUrl: z.string().url().optional(),
-  leaseVersion: z.number().int().positive().optional(),
-  moveInDate: z.string().datetime().optional(),
-  notes: z.string().optional(),
-});
-
-export type LeaseStatusUpdate = z.infer<typeof leaseStatusUpdateSchema>;
-
-export type InsertCoApplicant = z.infer<typeof insertCoApplicantSchema>;
-export type CoApplicant = typeof coApplicants.$inferSelect;
-
-export type InsertApplicationComment = z.infer<typeof insertApplicationCommentSchema>;
-export type ApplicationComment = typeof applicationComments.$inferSelect;
-
-export type InsertApplicationNotification = z.infer<typeof insertApplicationNotificationSchema>;
-export type ApplicationNotification = typeof applicationNotifications.$inferSelect;
-
-export type InsertUserNotificationPreferences = z.infer<typeof insertUserNotificationPreferencesSchema>;
-export type UserNotificationPreferences = typeof userNotificationPreferences.$inferSelect;
-
-export type InsertPropertyNotification = z.infer<typeof insertPropertyNotificationSchema>;
-export type PropertyNotification = typeof propertyNotifications.$inferSelect;
-
-export type ApplicationStatus = typeof APPLICATION_STATUSES[number];
-export type RejectionCategory = typeof REJECTION_CATEGORIES[number];
-
-export type InsertInquiry = z.infer<typeof insertInquirySchema>;
-export type Inquiry = typeof inquiries.$inferSelect;
-
-export type InsertRequirement = z.infer<typeof insertRequirementSchema>;
-export type Requirement = typeof requirements.$inferSelect;
-
-export type InsertReview = z.infer<typeof insertReviewSchema>;
-export type Review = typeof reviews.$inferSelect;
-
-export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
-export type Favorite = typeof favorites.$inferSelect;
-
-export type InsertSavedSearch = z.infer<typeof insertSavedSearchSchema>;
-export type SavedSearch = typeof savedSearches.$inferSelect;
-
-export type InsertNewsletterSubscriber = z.infer<typeof insertNewsletterSubscriberSchema>;
-export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
-
-export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
-export type ContactMessage = typeof contactMessages.$inferSelect;
-
-export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
-export type Transaction = typeof transactions.$inferSelect;
-export type TransactionType = typeof TRANSACTION_TYPES[number];
-export type TransactionStatus = typeof TRANSACTION_STATUSES[number];
-
-export type InsertAgentReview = z.infer<typeof insertAgentReviewSchema>;
-export type AgentReview = typeof agentReviews.$inferSelect;
-
-export type InsertConversation = z.infer<typeof insertConversationSchema>;
-export type Conversation = typeof conversations.$inferSelect;
-
-export type InsertConversationParticipant = z.infer<typeof insertConversationParticipantSchema>;
-export type ConversationParticipant = typeof conversationParticipants.$inferSelect;
-
-export type InsertMessage = z.infer<typeof insertMessageSchema>;
-export type Message = typeof messages.$inferSelect;
-
-export const signupSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
-  fullName: z.string().min(1, "Full name is required"),
-  phone: z.string()
-    .regex(/^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/, "Please enter a valid phone number")
-    .optional()
-    .or(z.literal("")),
-  role: z.enum(['renter', 'buyer', 'landlord', 'property_manager', 'agent']).optional().default('renter'),
-});
-
-export const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
-});
-
-export type SignupInput = z.infer<typeof signupSchema>;
-export type LoginInput = z.infer<typeof loginSchema>;
-
-// ===================== MODERATION =====================
-
-export const REPORT_TYPES = [
-  "inappropriate_content",
-  "fraudulent_listing",
-  "misleading_information",
-  "duplicate_listing",
-  "spam",
-  "discrimination",
-  "safety_concern",
-  "other"
-] as const;
-
-export const REPORT_STATUSES = ["pending", "under_review", "resolved", "dismissed"] as const;
-
-export const contentReports = pgTable("content_reports", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  reporterId: uuid("reporter_id").references(() => users.id, { onDelete: "set null" }),
-  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "cascade" }),
-  reviewId: uuid("review_id").references(() => reviews.id, { onDelete: "cascade" }),
-  reportType: text("report_type").notNull(),
-  description: text("description"),
-  status: text("status").default("pending"),
-  priority: text("priority").default("normal"),
-  assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
-  resolution: text("resolution"),
-  resolvedBy: uuid("resolved_by").references(() => users.id, { onDelete: "set null" }),
-  resolvedAt: timestamp("resolved_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const DISPUTE_TYPES = [
-  "application_rejection",
-  "payment_issue",
-  "property_condition",
-  "lease_terms",
-  "security_deposit",
-  "maintenance",
-  "communication",
-  "other"
-] as const;
-
-export const DISPUTE_STATUSES = ["open", "under_investigation", "awaiting_response", "resolved", "escalated", "closed"] as const;
-
-export const disputes = pgTable("disputes", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  initiatorId: uuid("initiator_id").references(() => users.id, { onDelete: "set null" }),
-  respondentId: uuid("respondent_id").references(() => users.id, { onDelete: "set null" }),
-  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "set null" }),
-  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "set null" }),
-  disputeType: text("dispute_type").notNull(),
-  subject: text("subject").notNull(),
-  description: text("description").notNull(),
-  status: text("status").default("open"),
-  priority: text("priority").default("normal"),
-  assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
-  resolution: text("resolution"),
-  resolvedBy: uuid("resolved_by").references(() => users.id, { onDelete: "set null" }),
-  resolvedAt: timestamp("resolved_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const disputeMessages = pgTable("dispute_messages", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  disputeId: uuid("dispute_id").references(() => disputes.id, { onDelete: "cascade" }),
-  senderId: uuid("sender_id").references(() => users.id, { onDelete: "set null" }),
-  message: text("message").notNull(),
-  isInternal: boolean("is_internal").default(false),
-  attachments: jsonb("attachments").$type<string[]>(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const DOCUMENT_VERIFICATION_STATUSES = ["pending", "verified", "rejected", "expired"] as const;
-
-export const documentVerifications = pgTable("document_verifications", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
-  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "cascade" }),
-  fileId: uuid("file_id").references(() => uploadedFiles.id, { onDelete: "cascade" }),
-  documentType: text("document_type").notNull(),
-  status: text("status").default("pending"),
-  verifiedBy: uuid("verified_by").references(() => users.id, { onDelete: "set null" }),
-  verifiedAt: timestamp("verified_at"),
-  rejectionReason: text("rejection_reason"),
-  expiresAt: timestamp("expires_at"),
-  notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Moderation insert schemas
-export const insertContentReportSchema = createInsertSchema(contentReports).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  resolvedBy: true,
-  resolvedAt: true,
-});
-
-export const insertDisputeSchema = createInsertSchema(disputes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  resolvedBy: true,
-  resolvedAt: true,
-});
-
-export const insertDisputeMessageSchema = createInsertSchema(disputeMessages).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertDocumentVerificationSchema = createInsertSchema(documentVerifications).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  verifiedBy: true,
-  verifiedAt: true,
-});
-
-// Moderation types
-export type InsertContentReport = z.infer<typeof insertContentReportSchema>;
-export type ContentReport = typeof contentReports.$inferSelect;
-export type ReportType = typeof REPORT_TYPES[number];
-export type ReportStatus = typeof REPORT_STATUSES[number];
-
-export type InsertDispute = z.infer<typeof insertDisputeSchema>;
-export type Dispute = typeof disputes.$inferSelect;
-export type DisputeType = typeof DISPUTE_TYPES[number];
-export type DisputeStatus = typeof DISPUTE_STATUSES[number];
-
-export type InsertDisputeMessage = z.infer<typeof insertDisputeMessageSchema>;
-export type DisputeMessage = typeof disputeMessages.$inferSelect;
-
-export type InsertDocumentVerification = z.infer<typeof insertDocumentVerificationSchema>;
-export type DocumentVerification = typeof documentVerifications.$inferSelect;
-export type DocumentVerificationStatus = typeof DOCUMENT_VERIFICATION_STATUSES[number];
-
-// Push Notification Subscriptions
-export const pushSubscriptions = pgTable("push_subscriptions", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
-  endpoint: text("endpoint").notNull(),
-  p256dh: text("p256dh").notNull(),
-  auth: text("auth").notNull(),
-  userAgent: text("user_agent"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptions).omit({
   id: true,
   createdAt: true,
-  updatedAt: true,
 });
 
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Agency = typeof agencies.$inferSelect;
+export type InsertAgency = z.infer<typeof insertAgencySchema>;
+export type Property = typeof properties.$inferSelect;
+export type InsertProperty = z.infer<typeof insertPropertySchema>;
+export type Application = typeof applications.$inferSelect;
+export type InsertApplication = z.infer<typeof insertApplicationSchema>;
+export type Inquiry = typeof inquiries.$inferSelect;
+export type InsertInquiry = z.infer<typeof insertInquirySchema>;
+export type Requirement = typeof requirements.$inferSelect;
+export type InsertRequirement = z.infer<typeof insertRequirementSchema>;
+export type Review = typeof reviews.$inferSelect;
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
+export type SavedSearch = typeof savedSearches.$inferSelect;
+export type InsertSavedSearch = z.infer<typeof insertSavedSearchSchema>;
+export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
+export type InsertNewsletterSubscriber = z.infer<typeof insertNewsletterSubscriberSchema>;
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
+export type AgentReview = typeof agentReviews.$inferSelect;
+export type InsertAgentReview = z.infer<typeof insertAgentReviewSchema>;
+export type Transaction = typeof transactions.$inferSelect;
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type PaymentVerification = typeof paymentVerifications.$inferSelect;
+export type InsertPaymentVerification = z.infer<typeof insertPaymentVerificationSchema>;
+export type ApplicationStatus = typeof APPLICATION_STATUSES[number];
+export type RejectionCategory = typeof REJECTION_CATEGORIES[number];
 export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 
@@ -1598,11 +1074,14 @@ export const leaseDrafts = pgTable("lease_drafts", {
 export const leaseSignatures = pgTable("lease_signatures", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   applicationId: uuid("application_id").references(() => applications.id, { onDelete: "cascade" }),
-  signerId: uuid("signer_id").references(() => users.id, { onDelete: "cascade" }),
+  signerUserId: uuid("signer_user_id").references(() => users.id, { onDelete: "cascade" }),
   signerRole: text("signer_role").notNull(), // tenant, landlord
-  signatureData: text("signature_data").notNull(), // Base64 encoded signature or digital signature
-  documentHash: text("document_hash"), // Hash of signed document for verification
+  signerName: text("signer_name").notNull(),
   signedAt: timestamp("signed_at").defaultNow(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  consentElectronic: boolean("consent_electronic").default(true),
+  consentBinding: boolean("consent_binding").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -1676,7 +1155,6 @@ export const updateLeaseDraftSchema = z.object({
 export type InsertLeaseDraft = z.infer<typeof insertLeaseDraftSchema>;
 export type UpdateLeaseDraft = z.infer<typeof updateLeaseDraftSchema>;
 export type LeaseDraft = typeof leaseDrafts.$inferSelect;
-export type LeaseSignature = typeof leaseSignatures.$inferSelect;
 
 export const insertLeaseSignatureSchema = createInsertSchema(leaseSignatures).omit({
   id: true,
@@ -1684,6 +1162,7 @@ export const insertLeaseSignatureSchema = createInsertSchema(leaseSignatures).om
   signedAt: true,
 });
 
+export type LeaseSignature = typeof leaseSignatures.$inferSelect;
 export type InsertLeaseSignature = z.infer<typeof insertLeaseSignatureSchema>;
 
 // Lease send schema
