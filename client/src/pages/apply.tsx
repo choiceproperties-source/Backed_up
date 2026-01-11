@@ -19,7 +19,10 @@ import {
   AlertCircle,
   DollarSign,
   CloudUpload,
-  Check
+  Check,
+  PawPrint,
+  Ban,
+  Info
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
