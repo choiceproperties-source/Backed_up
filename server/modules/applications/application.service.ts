@@ -1,4 +1,5 @@
 import { insertApplicationSchema, type ApplicationStatus, type RejectionCategory } from "@shared/schema";
+import { encrypt } from "../../security/encryption";
 import {
   sendEmail,
   getApplicationConfirmationEmailTemplate,
@@ -10,9 +11,8 @@ import * as applicationRepository from "./application.repository";
 /* Constants & Helpers */
 /* ------------------------------------------------ */
 
-const STATUS_TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
-  draft: ["review_pending", "withdrawn"],
-  review_pending: ["submitted", "withdrawn"],
+const STATUS_TRANSITIONS: Record<string, string[]> = {
+  draft: ["submitted", "withdrawn"],
   submitted: ["under_review", "withdrawn"],
   under_review: ["approved", "rejected", "withdrawn"],
   approved: [],
@@ -21,14 +21,14 @@ const STATUS_TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
 };
 
 export function isValidStatusTransition(
-  currentStatus: ApplicationStatus,
-  newStatus: ApplicationStatus
+  currentStatus: string,
+  newStatus: string
 ): boolean {
   const validTransitions = STATUS_TRANSITIONS[currentStatus] || [];
   return validTransitions.includes(newStatus);
 }
 
-export function getValidNextStatuses(currentStatus: ApplicationStatus): ApplicationStatus[] {
+export function getValidNextStatuses(currentStatus: string): string[] {
   return STATUS_TRANSITIONS[currentStatus] || [];
 }
 
@@ -255,6 +255,11 @@ export async function createApplication(
     ...validation.data,
     user_id: input.userId,
     status: "draft",
+    // Encrypt SSN if provided in personalInfo
+    personalInfo: validation.data.personalInfo ? {
+      ...(validation.data.personalInfo as object),
+      ssn: (validation.data.personalInfo as any).ssn ? encrypt((validation.data.personalInfo as any).ssn.toString()) : undefined
+    } : undefined,
     // Snapshot pricing & lease terms
     rentSnapshot: property.price ? property.price.toString() : "0.00",
     depositSnapshot: property.price ? property.price.toString() : "0.00", 
@@ -380,8 +385,17 @@ export async function autosaveApplication(
     return { error: "Autosave is only allowed for draft applications" };
   }
 
+  // Encrypt SSN if provided in personalInfo during autosave
+  const processedBody = { ...body };
+  if (processedBody.personalInfo?.ssn) {
+    processedBody.personalInfo = {
+      ...processedBody.personalInfo,
+      ssn: encrypt(processedBody.personalInfo.ssn.toString())
+    };
+  }
+
   // Partial update without strict validation or status change
-  const data = await applicationRepository.updateApplication(id, body);
+  const data = await applicationRepository.updateApplication(id, processedBody);
 
   return { data };
 }
@@ -390,8 +404,28 @@ export async function autosaveApplication(
 /* Read Operations */
 /* ------------------------------------------------ */
 
-export async function getApplicationById(id: string): Promise<any> {
-  return applicationRepository.findApplicationById(id);
+function redactSensitiveData(application: any, requesterRole: string): any {
+  if (!application) return application;
+  const redacted = { ...application };
+  
+  // Never return SSN to anyone but Admin or if explicitly required for internal processing
+  // Property Managers and Owners should never see the full SSN
+  if (redacted.personalInfo?.ssn) {
+    if (requesterRole !== "admin") {
+      const { ssn, ...rest } = redacted.personalInfo;
+      redacted.personalInfo = {
+        ...rest,
+        ssn_provided: true,
+        ssn: "REDACTED"
+      };
+    }
+  }
+  return redacted;
+}
+
+export async function getApplicationById(id: string, requesterRole: string = "user"): Promise<any> {
+  const application = await applicationRepository.findApplicationById(id);
+  return redactSensitiveData(application, requesterRole);
 }
 
 export async function getApplicationsByUserId(
@@ -403,8 +437,8 @@ export async function getApplicationsByUserId(
     return { error: "Not authorized" };
   }
 
-  const data =
-    await applicationRepository.findApplicationsByUserId(userId);
+  const applications = await applicationRepository.findApplicationsByUserId(userId);
+  const data = applications.map((app: any) => redactSensitiveData(app, requesterRole));
 
   return { data };
 }
@@ -426,13 +460,14 @@ export async function getApplicationsByPropertyId(
 
   if (
     property.owner_id !== requesterUserId &&
-    requesterRole !== "admin"
+    requesterRole !== "admin" &&
+    requesterRole !== "property_manager"
   ) {
     return { error: "Not authorized" };
   }
 
-  const data =
-    await applicationRepository.findApplicationsByPropertyId(propertyId);
+  const applications = await applicationRepository.findApplicationsByPropertyId(propertyId);
+  const data = applications.map((app: any) => redactSensitiveData(app, requesterRole));
 
   return { data };
 }
@@ -467,13 +502,21 @@ export async function updateApplication(
     return { error: "Application is locked and cannot be edited after submission" };
   }
 
+  const processedBody = { ...input.body };
+  if (processedBody.personalInfo?.ssn) {
+    processedBody.personalInfo = {
+      ...processedBody.personalInfo,
+      ssn: encrypt(processedBody.personalInfo.ssn.toString())
+    };
+  }
+
   const data = await applicationRepository.updateApplication(
     input.id,
-    input.body
+    processedBody
   );
 
   // Re-calculate score if employment or personal info changed
-  if (input.body.employment || input.body.personal_info) {
+  if (input.body.employment || input.body.personalInfo) {
     const updatedApp = await applicationRepository.findApplicationById(input.id);
     const scoreBreakdown = await calculateApplicationScore(updatedApp);
     await applicationRepository.updateApplication(input.id, {
@@ -499,22 +542,19 @@ export async function updateStatus(
     return { success: false, error: "Status is required" };
   }
 
-  const application =
-    await applicationRepository.findApplicationById(input.id);
-
+  const application = await applicationRepository.findApplicationById(input.id);
   if (!application) {
     return { success: false, error: "Application not found" };
   }
 
-  const property =
-    await applicationRepository.getProperty(application.property_id);
-
+  const property = await applicationRepository.getProperty(application.property_id);
   const isApplicant = application.user_id === input.userId;
   const isPropertyOwner = property?.owner_id === input.userId;
   const isAdmin = input.userRole === "admin";
+  const isPropertyManager = input.userRole === "property_manager";
 
   // Validate transition
-  if (!isValidStatusTransition(application.status as ApplicationStatus, input.status)) {
+  if (!isValidStatusTransition(application.status as string, input.status)) {
     return {
       success: false,
       error: `Invalid status transition from ${application.status} to ${input.status}`,
@@ -530,15 +570,14 @@ export async function updateStatus(
   }
 
   if (
-    ["approved", "rejected", "under_review", "info_requested", "conditional_approval"].includes(
-      input.status
-    ) &&
+    ["approved", "rejected", "under_review", "info_requested", "conditional_approval"].includes(input.status) &&
     !isPropertyOwner &&
-    !isAdmin
+    !isAdmin &&
+    !isPropertyManager
   ) {
     return {
       success: false,
-      error: "Only the property owner can perform this action",
+      error: "Not authorized to update application status",
     };
   }
 
