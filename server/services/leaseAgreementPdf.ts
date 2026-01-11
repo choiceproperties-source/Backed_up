@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
 import * as applicationRepository from '../modules/applications/application.repository';
+import { getSupabaseOrThrow } from '../supabase';
 
 export async function generateLeasePdf(applicationId: string): Promise<string> {
   const application = await applicationRepository.findApplicationById(applicationId);
@@ -7,7 +8,7 @@ export async function generateLeasePdf(applicationId: string): Promise<string> {
   return `/api/v2/applications/${applicationId}/lease-agreement.pdf`;
 }
 
-export async function createLeasePdfStream(applicationId: string, res: any) {
+export async function createLeasePdfStream(applicationId: string, res: any, isSigned: boolean = false) {
   const application = await applicationRepository.findApplicationById(applicationId);
   if (!application) throw new Error("Application not found");
 
@@ -15,12 +16,25 @@ export async function createLeasePdfStream(applicationId: string, res: any) {
   const user = await applicationRepository.getUser(application.user_id);
   const owner = await applicationRepository.getUser(property?.owner_id);
 
+  // Fetch signatures if signed
+  let signatures: any[] = [];
+  if (isSigned) {
+    const { data, error } = await getSupabaseOrThrow()
+      .from("lease_signatures")
+      .select("*")
+      .eq("application_id", applicationId);
+    if (!error) signatures = data || [];
+  }
+
   const doc = new PDFDocument({ margin: 50 });
   doc.pipe(res);
 
   // HEADER
-  doc.fontSize(18).font('Helvetica-Bold').text('RESIDENTIAL LEASE AGREEMENT', { align: 'center' });
+  doc.fontSize(18).font('Helvetica-Bold').text(isSigned ? 'FINAL RESIDENTIAL LEASE AGREEMENT' : 'RESIDENTIAL LEASE AGREEMENT', { align: 'center' });
   doc.fontSize(12).font('Helvetica').text('Choice Properties Management Platform', { align: 'center' });
+  if (isSigned) {
+    doc.fontSize(10).font('Helvetica-Bold').text('IMMUTABLE SIGNED DOCUMENT', { align: 'center', color: 'red' });
+  }
   doc.fontSize(10).text(`Governing Law: State of ${property?.state || 'N/A'}`, { align: 'center' });
   doc.moveDown(2);
 
@@ -63,23 +77,44 @@ export async function createLeasePdfStream(applicationId: string, res: any) {
   doc.text('FAIR HOUSING: This lease is subject to all Federal and State Fair Housing laws. No discrimination shall be tolerated.', { align: 'justify' });
   doc.moveDown(0.5);
   doc.text('SEVERABILITY: If any part of this lease is found invalid, the remainder shall remain in full force and effect.', { align: 'justify' });
+  
+  if (isSigned) {
+    doc.moveDown();
+    doc.fontSize(12).font('Helvetica-Bold').text('ELECTRONIC SIGNATURE DISCLOSURE', { underline: true });
+    doc.fontSize(8).font('Helvetica').text('By providing an electronic signature, both parties agree that this document is legally binding under the Electronic Signatures in Global and National Commerce (ESIGN) Act. Both parties acknowledge that they have read and understood the terms of this lease agreement.', { align: 'justify' });
+  }
+  
   doc.moveDown();
 
   // 6. SIGNATURES
   doc.fontSize(12).font('Helvetica-Bold').text('6. SIGNATURES', { underline: true });
-  doc.fontSize(10).font('Helvetica').text(`TENANT SIGNATURE (Digital): ${user?.full_name || 'N/A'}`);
-  doc.text(`Date: ${new Date().toLocaleDateString()}`);
+  
+  const tenantSig = signatures.find(s => s.signer_role === 'tenant');
+  const landlordSig = signatures.find(s => s.signer_role === 'landlord');
+
+  doc.fontSize(10).font('Helvetica').text(`TENANT SIGNATURE: ${tenantSig?.signer_name || user?.full_name || 'N/A'}`);
+  doc.text(`Date: ${tenantSig ? new Date(tenantSig.signedAt).toLocaleString() : (isSigned ? 'N/A' : new Date().toLocaleDateString())}`);
+  if (tenantSig) {
+    doc.fontSize(8).text(`IP Address: ${tenantSig.ip_address} | Method: Electronic Consent Verified`, { color: 'grey' });
+  }
+  
   doc.moveDown();
-  doc.text(`LANDLORD SIGNATURE (Digital): ${owner?.full_name || 'Choice Properties Authorized Agent'}`);
-  doc.text(`Date: ${new Date().toLocaleDateString()}`);
+  
+  doc.fontSize(10).font('Helvetica').text(`LANDLORD SIGNATURE: ${landlordSig?.signer_name || owner?.full_name || 'Choice Properties Authorized Agent'}`);
+  doc.text(`Date: ${landlordSig ? new Date(landlordSig.signedAt).toLocaleString() : (isSigned ? 'N/A' : new Date().toLocaleDateString())}`);
+  if (landlordSig) {
+    doc.fontSize(8).text(`IP Address: ${landlordSig.ip_address} | Method: Electronic Consent Verified`, { color: 'grey' });
+  }
+  
   doc.moveDown(2);
 
   // FOOTER
   const range = doc.bufferedPageRange();
   for (let i = range.start; i < range.start + range.count; i++) {
     doc.switchToPage(i);
-    doc.fontSize(8).text(`Application Ref: ${applicationId} | Page ${i + 1} of ${range.count}`, 50, doc.page.height - 50, { align: 'center' });
+    doc.fontSize(8).text(`Application Ref: ${applicationId} | Page ${i + 1} of ${range.count} | ${isSigned ? 'SIGNED FINAL COPY' : 'DRAFT'}`, 50, doc.page.height - 50, { align: 'center' });
   }
 
   doc.end();
 }
+

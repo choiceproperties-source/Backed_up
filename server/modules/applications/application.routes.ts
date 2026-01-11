@@ -34,6 +34,36 @@ router.get("/:id/lease-agreement.pdf", authenticateToken, async (req: Authentica
   }
 });
 
+router.get("/:id/lease-agreement-signed.pdf", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const application = await applicationService.getApplicationById(req.params.id, req.user!.role);
+    if (!application) return res.status(404).json(errorResponse("Application not found"));
+
+    if (application.lease_signature_status !== "signed") {
+      return res.status(400).json(errorResponse("Lease is not fully signed yet"));
+    }
+
+    const isApplicant = application.user_id === req.user!.id;
+    const isOwner = application.property_owner_id === req.user!.id || application.propertySnapshot?.owner_id === req.user!.id; 
+    const isAdmin = req.user!.role === "admin";
+    const isPropertyManager = req.user!.role === "property_manager";
+
+    if (!isApplicant && !isOwner && !isAdmin && !isPropertyManager) {
+      return res.status(403).json(errorResponse("Not authorized to access this signed lease"));
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="lease-signed-${req.params.id}.pdf"`);
+
+    await createLeasePdfStream(req.params.id, res, true);
+  } catch (err: any) {
+    console.error("[APPLICATIONS] Error generating Signed Lease PDF stream:", err);
+    if (!res.headersSent) {
+      res.status(500).json(errorResponse("Failed to generate Signed Lease PDF"));
+    }
+  }
+});
+
 router.get("/:id/disclosures.pdf", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const application = await applicationService.getApplicationById(req.params.id, req.user!.role);

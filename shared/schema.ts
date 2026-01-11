@@ -401,6 +401,7 @@ export const applications = pgTable("applications", {
   // Legal Disclosures
   disclosurePdfUrl: text("disclosure_pdf_url"),
   leasePdfUrl: text("lease_pdf_url"),
+  signedLeasePdfUrl: text("signed_lease_pdf_url"),
   // Lease e-signature fields
   leaseSignatureStatus: text("lease_signature_status").default("pending_signature"), // pending_signature, partially_signed, signed
   leaseFullySignedAt: timestamp("lease_fully_signed_at"),

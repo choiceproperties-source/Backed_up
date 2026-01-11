@@ -118,4 +118,19 @@ export class LeaseRepository {
     if (error) throw error;
     return data;
   }
+
+  async updateApplicationSignedLeaseUrl(applicationId: string, url: string) {
+    const { data, error } = await supabase
+      .from("applications")
+      .update({ 
+        signed_lease_pdf_url: url,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", applicationId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
 }

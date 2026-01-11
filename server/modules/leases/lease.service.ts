@@ -237,6 +237,14 @@ export class LeaseService {
 
     await this.repository.updateLeaseSignatureStatus(applicationId, newStatus, fullySignedAt);
 
+    // If fully signed, update the signed lease URL
+    if (newStatus === "signed") {
+      await this.repository.updateApplicationSignedLeaseUrl(
+        applicationId, 
+        `/api/v2/applications/${applicationId}/lease-agreement-signed.pdf`
+      );
+    }
+
     // Audit log
     await logAuditEvent({
       userId,
