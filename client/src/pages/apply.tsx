@@ -121,19 +121,19 @@ export default function Apply() {
     { id: 9, label: "Review & Submit" }
   ];
 
+  const { data: draftResponse, isLoading: isLoadingDraft } = useQuery<ApiResponse<any>>({
+    queryKey: [`/api/v2/applications/draft?propertyId=${params?.id}`],
+    enabled: !!params?.id && !applicationId
+  });
+
+  const draft = draftResponse?.data;
+
   const { data: propertyResponse, isLoading: isLoadingProperty } = useQuery<ApiResponse<Property>>({
     queryKey: [`/api/v2/properties/${params?.id}`],
     enabled: !!params?.id
   });
 
   const property = propertyResponse?.data;
-
-  const { data: applicationResponse } = useQuery<ApiResponse<any>>({
-    queryKey: [`/api/v2/applications/property/${params?.id}`],
-    enabled: !!params?.id
-  });
-
-  const application = applicationResponse?.data;
 
   const form = useForm<ApplyFormValues>({
     resolver: zodResolver(applyFormSchema),
@@ -181,11 +181,12 @@ export default function Apply() {
   const { reset, getValues } = form;
 
   useEffect(() => {
-    if (application) {
-      setApplicationId(application.id);
-      setCurrentStep(application.lastSavedStep || 1);
+    const appToLoad = draft;
+    if (appToLoad) {
+      setApplicationId(appToLoad.id);
+      setCurrentStep(appToLoad.lastSavedStep || 1);
       
-      const details = application.details || {};
+      const details = appToLoad.details || {};
       reset({
         propertyId: params?.id || "",
         firstName: details.personal?.firstName || "",
@@ -226,11 +227,11 @@ export default function Apply() {
         signature: details.signature || "",
       });
 
-      if (application.status !== 'draft') {
+      if (appToLoad.status !== 'draft') {
         setIsSubmitted(true);
       }
     }
-  }, [application, reset, params?.id]);
+  }, [draft, reset, params?.id]);
 
   const autosave = useCallback(async (values: ApplyFormValues, step: number) => {
     if (!params?.id) return;
@@ -300,6 +301,7 @@ export default function Apply() {
         }
       };
 
+      let response;
       if (applicationId) {
         response = await apiRequest("PATCH", `/api/v2/applications/${applicationId}/autosave`, payload);
       } else {
@@ -318,84 +320,27 @@ export default function Apply() {
     } catch (error) {
       console.error("Autosave failed:", error);
       setSaveStatus('error');
-      toast({
-        title: "Connection Issue",
-        description: "Draft sync interrupted. We'll try again on your next move.",
-        variant: "destructive"
-      });
     }
   }, [params?.id, applicationId]);
+
+  // Handle autosave on field blur
+  const handleBlur = () => {
+    autosave(getValues(), currentStep);
+  };
 
   const onSubmit = async (values: ApplyFormValues) => {
     setIsProcessing(true);
     try {
-      const payload = {
-        propertyId: values.propertyId,
-        details: {
-          personal: {
-            firstName: values.firstName,
-            lastName: values.lastName,
-            email: values.email,
-            phone: values.phone,
-            dateOfBirth: values.dateOfBirth,
-            currentAddress: values.currentAddress,
-            ssn: values.ssn
-          },
-          employment: {
-            employerName: values.employerName,
-            jobTitle: values.jobTitle,
-            monthlyIncome: values.monthlyIncome,
-            employmentDuration: values.employmentDuration
-          },
-          emergency_contact: {
-            name: values.emergencyContactName,
-            phone: values.emergencyContactPhone,
-            relationship: values.emergencyContactRelationship
-          },
-          acknowledgments: {
-            petPolicy: values.acknowledgePetPolicy,
-            smokingPolicy: values.acknowledgeSmokingPolicy,
-            occupancyLimit: values.acknowledgeOccupancyLimit,
-            utilities: values.acknowledgeUtilities
-          },
-          rental_history: {
-            currentLandlordName: values.currentLandlordName,
-            currentLandlordPhone: values.currentLandlordPhone,
-            currentRentAmount: values.currentRentAmount,
-            reasonForMoving: values.reasonForMoving
-          },
-          references: {
-            name: values.ref1Name,
-            phone: values.ref1Phone,
-            relationship: values.ref1Relation
-          },
-          disclosures: {
-            hasEvictions: values.hasEvictions,
-            hasFelonies: values.hasFelonies,
-            hasBankruptcies: values.hasBankruptcies,
-            explanation: values.disclosureExplanation
-          },
-          pets: {
-            hasPets: values.hasPets,
-            details: values.petDetails
-          },
-          vehicles: {
-            hasVehicles: values.hasVehicles,
-            details: values.vehicleDetails
-          },
-          legal_consent: {
-            backgroundCheck: values.agreeToBackgroundCheck,
-            terms: values.agreeToTerms
-          },
-          signature: values.signature
-        }
-      };
+      // 1. Ensure latest data is saved as draft first
+      await autosave(values, currentStep);
+      
+      // 2. Explicitly submit
+      const submitResponse = await apiRequest("PATCH", `/api/v2/applications/${applicationId}/status`, { 
+        status: "submitted" 
+      });
 
-      if (applicationId) {
-        await apiRequest("PATCH", `/api/v2/applications/${applicationId}/autosave`, payload);
-        await apiRequest("PATCH", `/api/v2/applications/${applicationId}/status`, { status: "submitted" });
-      } else {
-        await apiRequest("POST", "/api/v2/applications", { ...payload, status: "submitted" });
+      if (!submitResponse.ok) {
+        throw new Error("Final submission failed. Your draft is saved.");
       }
 
       setIsSubmitted(true);
@@ -405,7 +350,7 @@ export default function Apply() {
       });
     } catch (error: any) {
       toast({
-        title: "Submission Failed",
+        title: "Submission Issue",
         description: error.message || "There was an error submitting your application.",
         variant: "destructive",
       });
@@ -414,7 +359,7 @@ export default function Apply() {
     }
   };
 
-  if (isLoadingProperty) {
+  if (isLoadingProperty || isLoadingDraft) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -595,7 +540,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">First Name</FormLabel>
                               <FormControl>
-                                <Input placeholder="Enter your first name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="Enter your first name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} onBlur={handleBlur} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -608,7 +553,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Last Name</FormLabel>
                               <FormControl>
-                                <Input placeholder="Enter your last name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="Enter your last name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} onBlur={handleBlur} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -624,7 +569,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Email Address</FormLabel>
                               <FormControl>
-                                <Input placeholder="your.email@example.com" type="email" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="your.email@example.com" type="email" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} onBlur={handleBlur} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -637,7 +582,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Phone Number</FormLabel>
                               <FormControl>
-                                <Input placeholder="(555) 000-0000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="(555) 000-0000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} onBlur={handleBlur} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -653,7 +598,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Date of Birth</FormLabel>
                               <FormControl>
-                                <Input type="date" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input type="date" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} onBlur={handleBlur} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -669,7 +614,7 @@ export default function Apply() {
                                 <Shield className="h-3 w-3 text-green-500" />
                               </FormLabel>
                               <FormControl>
-                                <Input placeholder="XXX-XX-XXXX" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="XXX-XX-XXXX" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} onBlur={handleBlur} />
                               </FormControl>
                               <FormDescription className="text-[10px]">Encrypted & Secure</FormDescription>
                               <FormMessage />
@@ -685,7 +630,7 @@ export default function Apply() {
                           <FormItem>
                             <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Current Residential Address</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter your current street address, city, state, zip" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              <Input placeholder="Enter your current street address, city, state, zip" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} onBlur={handleBlur} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

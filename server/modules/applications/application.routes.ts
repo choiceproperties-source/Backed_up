@@ -5,6 +5,25 @@ import * as applicationService from "./application.service";
 
 const router = Router();
 
+router.get("/draft", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { propertyId } = req.query;
+    if (!propertyId) {
+      return res.status(400).json(errorResponse("propertyId query parameter is required"));
+    }
+
+    const result = await applicationService.getLatestDraftByPropertyId(
+      propertyId as string,
+      req.user!.id
+    );
+
+    return res.json(success(result.data, "Draft fetched successfully"));
+  } catch (err: any) {
+    console.error("[APPLICATIONS] Error fetching draft:", err);
+    return res.status(500).json(errorResponse("Failed to fetch draft"));
+  }
+});
+
 router.post("/", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user) {

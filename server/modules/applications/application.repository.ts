@@ -103,6 +103,24 @@ export async function checkDuplicateApplication(
   return { exists: (data?.length ?? 0) > 0 };
 }
 
+export async function findLatestDraftByPropertyId(propertyId: string, userId: string) {
+  const supabase = getSupabaseOrThrow();
+
+  const { data, error } = await supabase
+    .from("applications")
+    .select("*")
+    .eq("property_id", propertyId)
+    .eq("user_id", userId)
+    .eq("status", "draft")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  throwIfError(error, "findLatestDraftByPropertyId");
+
+  return data;
+}
+
 export async function createApplication(
   applicationData: Record<string, any>
 ) {

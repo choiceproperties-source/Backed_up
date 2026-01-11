@@ -1,0 +1,144 @@
+ROLE:
+You are a Senior Full-Stack SaaS Engineer auditing and improving a rental application system.
+Your task is LIMITED to application draft recovery, autosave stability, and user trust UX.
+DO NOT refactor unrelated systems.
+DO NOT add new steps, payments, or scoring logic.
+DO NOT require Autonomous Mode.
+
+GOAL:
+Make the rental application system feel bulletproof, recoverable, and professional.
+Users must NEVER lose progress.
+Applications must ALWAYS resume correctly.
+Autosave must be reliable, visible, and non-destructive.
+
+========================================
+SECTION 1 — READ-ONLY AUDIT (DO NOT CHANGE CODE YET)
+========================================
+Scan the following areas and report findings inline before implementing fixes:
+
+1. Frontend Wizard
+   - File: client/src/pages/apply.tsx
+   - Identify:
+     • how steps are tracked
+     • how autosave is triggered
+     • how lastSavedStep is handled
+     • why the wizard stalls near 75%
+
+2. Backend Application Logic
+   - File: server/modules/applications/application.service.ts
+   - Identify:
+     • when status changes from draft → submitted
+     • why autosave fails after submission
+     • whether PATCH vs POST is enforced
+
+3. Database Schema
+   - File: shared/schema.ts
+   - Confirm:
+     • last_saved_step exists
+     • status enum includes draft
+     • JSONB fields match frontend payload shape
+
+DO NOT implement yet.
+Only confirm issues.
+
+========================================
+SECTION 2 — APPLICATION DRAFT RESUME (IMPLEMENT)
+========================================
+Implement application resume logic with minimal changes.
+
+REQUIREMENTS:
+1. If a user has an existing application with:
+   - status = 'draft'
+   - matching property_id
+Then:
+   - Load it automatically
+   - Resume the wizard at last_saved_step
+   - Pre-fill ALL previously entered data
+
+2. Add backend support:
+   - Create or confirm a GET /api/v2/applications/draft?propertyId=
+   - Must return the latest draft for the authenticated user
+
+3. Frontend behavior:
+   - On apply page load:
+     • Check for existing draft
+     • If found, resume silently
+     • If not, start fresh
+
+DO NOT create new UI screens.
+This must feel automatic and seamless.
+
+========================================
+SECTION 3 — AUTOSAVE STABILITY (IMPLEMENT)
+========================================
+Fix autosave so it NEVER fails for drafts.
+
+REQUIREMENTS:
+1. Create a dedicated autosave endpoint:
+   - PATCH /api/v2/applications/:id/autosave
+   - This endpoint MUST:
+     • Ignore status transitions
+     • Allow saving while status = draft only
+     • Update last_saved_step correctly
+
+2. Frontend autosave:
+   - Trigger on step change and field blur
+   - Send nested payloads matching backend schema
+   - NEVER change application status
+
+3. Failure handling:
+   - Autosave failures must NOT:
+     • clear the form
+     • reset the wizard
+     • block the user
+
+========================================
+SECTION 4 — TRUST UX FEEDBACK (IMPLEMENT)
+========================================
+Add minimal but professional autosave feedback.
+
+Frontend only:
+1. Display autosave state:
+   - "Saving…" while request in flight
+   - "Saved" with timestamp on success
+   - "Retrying…" on failure (silent retry)
+
+2. Do NOT use modals.
+3. Do NOT block navigation.
+
+This is informational only.
+
+========================================
+SECTION 5 — FINAL SUBMIT GUARDRAILS (IMPLEMENT)
+========================================
+Fix the 75% stall by enforcing clean submission logic.
+
+REQUIREMENTS:
+1. Final submission MUST:
+   - Only be allowed from the final step
+   - Explicitly change status from draft → submitted
+   - Lock autosave after submission
+
+2. After submit:
+   - Show confirmation state
+   - Prevent accidental resubmission
+
+========================================
+SECTION 6 — CONSTRAINTS (VERY IMPORTANT)
+========================================
+- DO NOT add new application steps
+- DO NOT add payment logic
+- DO NOT modify scoring
+- DO NOT change database schema unless strictly required
+- DO NOT refactor unrelated files
+- Keep all changes minimal and isolated
+
+========================================
+EXPECTED OUTCOME:
+• Applications NEVER disappear
+• Users can refresh and continue
+• Autosave never fails silently
+• Wizard no longer stalls
+• System feels production-ready and trustworthy
+
+Proceed step-by-step and explain each change briefly.

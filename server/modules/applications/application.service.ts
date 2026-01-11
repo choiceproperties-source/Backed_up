@@ -366,6 +366,14 @@ export async function createApplication(
   return { data: application };
 }
 
+export async function getLatestDraftByPropertyId(
+  propertyId: string,
+  userId: string
+): Promise<{ data?: any; error?: string }> {
+  const application = await applicationRepository.findLatestDraftByPropertyId(propertyId, userId);
+  return { data: application };
+}
+
 export async function autosaveApplication(
   id: string,
   body: Record<string, any>,
@@ -381,12 +389,17 @@ export async function autosaveApplication(
     return { error: "Not authorized" };
   }
 
+  // ALLOW autosave ONLY if status is draft
   if (application.status !== "draft") {
-    return { error: "Autosave is only allowed for draft applications" };
+    return { error: "Application is already submitted and cannot be edited" };
   }
 
   // Encrypt SSN if provided in personalInfo during autosave
   const processedBody = { ...body };
+  
+  // Ensure we don't accidentally change status during autosave
+  delete processedBody.status;
+
   if (processedBody.personalInfo?.ssn) {
     processedBody.personalInfo = {
       ...processedBody.personalInfo,
@@ -394,7 +407,7 @@ export async function autosaveApplication(
     };
   }
 
-  // Partial update without strict validation or status change
+  // Partial update without strict validation
   const data = await applicationRepository.updateApplication(id, processedBody);
 
   return { data };
