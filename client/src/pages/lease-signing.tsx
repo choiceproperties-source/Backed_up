@@ -17,6 +17,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 const signatureSchema = z.object({
   signerName: z.string().min(2, "Full legal name is required"),
   signatureData: z.string().min(100, "Please provide your signature"),
+  petPolicyAcknowledged: z.boolean().refine(val => val === true, "You must acknowledge the pet policy"),
+  vehicleDisclosureAcknowledged: z.boolean().refine(val => val === true, "You must acknowledge the vehicle policy"),
+  damageDisclosureAcknowledged: z.boolean().refine(val => val === true, "You must acknowledge the damage disclosure"),
   consentElectronic: z.boolean().refine(val => val === true, "You must agree to sign electronically"),
   consentBinding: z.boolean().refine(val => val === true, "You must acknowledge this is legally binding"),
   stateDisclosureAcknowledged: z.boolean().refine(val => val === true, "You must acknowledge the state-specific disclosure"),
@@ -162,6 +165,9 @@ export default function LeaseSigning() {
       signerName: "",
       signatureData: "",
       consentElectronic: false,
+      petPolicyAcknowledged: false,
+      vehicleDisclosureAcknowledged: false,
+      damageDisclosureAcknowledged: false,
       consentBinding: false,
       stateDisclosureAcknowledged: false,
       attestationAcknowledged: false,
@@ -375,6 +381,72 @@ export default function LeaseSigning() {
                           <FormLabel className="text-primary font-semibold">I acknowledge the state disclosure above</FormLabel>
                           <p className="text-xs text-muted-foreground">
                             Required by {propertyState} law for electronic transactions.
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="petPolicyAcknowledged"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={signLeaseMutation.isPending}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Pet Policy Disclosure</FormLabel>
+                          <p className="text-xs text-muted-foreground">
+                            I acknowledge the property's pet policy as stated in the lease.
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vehicleDisclosureAcknowledged"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={signLeaseMutation.isPending}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Vehicle & Parking Disclosure</FormLabel>
+                          <p className="text-xs text-muted-foreground">
+                            I acknowledge the rules regarding vehicle storage and parking.
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="damageDisclosureAcknowledged"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={signLeaseMutation.isPending}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Property Damage Disclosure</FormLabel>
+                          <p className="text-xs text-muted-foreground">
+                            I accept responsibility for any damages beyond normal wear and tear.
                           </p>
                         </div>
                       </FormItem>

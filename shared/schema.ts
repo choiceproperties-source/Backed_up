@@ -413,6 +413,8 @@ export const applications = pgTable("applications", {
     creditCheckAuthorized: boolean;
     accuracyCertified: boolean;
     feeAcknowledged: boolean;
+    fcraConsent: boolean;
+    fairHousingAcknowledged: boolean;
     acknowledgedAt: string;
   }>(),
   stateDisclosures: jsonb("state_disclosures").$type<Record<string, {
