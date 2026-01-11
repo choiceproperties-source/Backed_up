@@ -27,6 +27,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useFavorites } from "@/hooks/use-favorites";
 import { InteractiveMap } from "@/components/interactive-map";
+import { PostedBy } from "@/components/property/posted-by";
 import { updateMetaTags, getPropertyStructuredData, addStructuredData, removeStructuredData } from "@/lib/seo";
 import { PropertyDetailsSkeleton } from "@/components/property-details-skeleton";
 
