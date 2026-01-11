@@ -93,6 +93,7 @@ const applyFormSchema = z.object({
   acknowledgeSmokingPolicy: z.boolean().refine(val => val === true, "You must acknowledge the smoking policy"),
   acknowledgeOccupancyLimit: z.boolean().refine(val => val === true, "You must acknowledge the occupancy limit"),
   acknowledgeUtilities: z.boolean().refine(val => val === true, "You must acknowledge the utilities policy"),
+  rulesAcknowledged: z.boolean().refine(val => val === true, "You must acknowledge the property rules"),
   agreeToBackgroundCheck: z.boolean().refine(val => val === true, "You must agree to the background check"),
   agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms"),
   signature: z.string().min(2, "Electronic signature is required"),
