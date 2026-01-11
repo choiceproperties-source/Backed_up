@@ -270,14 +270,14 @@ export default function Admin() {
   // COMPLETE: Form states with all fields
   const [newProperty, setNewProperty] = useState<NewPropertyFormData>({
     title: '',
-    price: null,
+    price: 0,
     address: '',
     city: '',
     state: '',
     zip_code: '',
-    bedrooms: null,
-    bathrooms: null,
-    square_feet: null,
+    bedrooms: 0,
+    bathrooms: 0,
+    square_feet: 0,
     property_type: 'house',
     description: '',
     furnished: false,

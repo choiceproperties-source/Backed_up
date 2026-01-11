@@ -100,7 +100,7 @@ export default function NotificationsPage() {
     }
     
     // Check for deep-linking actionUrl in metadata or root
-    let targetUrl = (notification.metadata as any)?.actionUrl || notification.actionUrl;
+    let targetUrl = (notification as any).metadata?.actionUrl || notification.actionUrl;
     
     if (!targetUrl && notification.application_id) {
       targetUrl = `/applications/${notification.application_id}`;

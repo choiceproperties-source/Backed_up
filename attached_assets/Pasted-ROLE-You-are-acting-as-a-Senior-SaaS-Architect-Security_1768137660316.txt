@@ -1,0 +1,81 @@
+ROLE:
+You are acting as a Senior SaaS Architect, Security Auditor, and Compliance Systems Reviewer.
+
+PROJECT CONTEXT:
+This is a multi-role real estate SaaS platform (Choice Properties) with tenants, landlords, agents, and admins. The goal of this task is to AUDIT ONLY the Admin / Super Admin capabilities that currently exist in the project.
+
+IMPORTANT RULES:
+- DO NOT implement new features
+- DO NOT refactor code
+- DO NOT change logic
+- DO NOT add files
+- DO NOT assume missing features exist
+- This is a READ-ONLY AUDIT
+
+OBJECTIVE:
+Scan the entire codebase and produce a detailed audit of all ADMIN and SUPER ADMIN capabilities, permissions, access paths, and gaps.
+
+SCOPE OF AUDIT:
+Focus ONLY on admin-level functionality, including but not limited to:
+
+1. ROLE & PERMISSION MODEL
+- Identify all roles defined in the system (admin, landlord, agent, tenant, etc.)
+- Determine if there is a distinct “super admin” or “master admin” role
+- Document how admin permissions are enforced (middleware, service checks, RLS, etc.)
+- Identify any hardcoded role checks or implicit admin access
+
+2. ADMIN ACCESS POINTS
+- Identify any admin-only routes (API + frontend)
+- Identify admin dashboards, panels, or hidden routes
+- Verify how access is restricted (route guards, backend validation)
+- Identify any admin routes that lack proper protection
+
+3. ADMIN OVERRIDE CAPABILITIES (IF ANY)
+Audit whether admins can currently:
+- Override application status
+- Reopen or modify submitted applications
+- Override scoring decisions
+- Modify lease states
+- Disable or suspend users
+- Edit or delete properties they do not own
+If these do NOT exist, clearly state they are missing.
+
+4. COMPLIANCE & AUDIT TOOLS
+Check for the existence of:
+- Application status history visibility for admins
+- Lease signing logs (timestamps, IP, user agent)
+- Disclosure acceptance tracking
+- Payment audit logs
+- Admin-readable activity logs
+Clearly note what is visible to admins vs landlords vs agents.
+
+5. DATA VISIBILITY & SAFETY
+- Determine what sensitive data admins can see (SSN, documents, payments)
+- Verify if access is logged or restricted
+- Identify any privacy risks or overexposure
+
+6. UI / UX FOR ADMINS
+- Identify any admin-facing UI components
+- Determine if admin actions are distinguishable from landlord actions
+- Identify missing UI indicators for “admin override” actions
+
+7. SECURITY & RISK ANALYSIS
+- Identify risks related to admin abuse or lack of audit trails
+- Identify missing safeguards (approval requirements, logging, confirmations)
+- Identify any admin actions that are irreversible or untracked
+
+DELIVERABLE FORMAT:
+Produce a structured audit report with the following sections:
+- What Admin Capabilities Currently Exist
+- What Is Missing or Incomplete
+- Security & Compliance Risks
+- Architectural Observations
+- Readiness Level (Prototype / Beta / Production-Ready)
+
+FINAL INSTRUCTION:
+This is an AUDIT ONLY.
+Do not propose solutions or implementation steps unless explicitly identifying gaps.
+Do not write code.
+Do not modify files.
+
+END OF PROMPT
