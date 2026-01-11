@@ -189,8 +189,8 @@ export async function sendStatusChangeNotification(
 }
 
 // Get subject line for status
-function getStatusSubject(status: ApplicationStatus): string {
-  const subjects: Record<ApplicationStatus, string> = {
+function getStatusSubject(status: string): string {
+  const subjects: Record<string, string> = {
     draft: "Application Draft Saved",
     pending_payment: "Payment Required for Your Application",
     payment_verified: "Payment Verified",

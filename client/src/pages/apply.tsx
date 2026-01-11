@@ -100,6 +100,37 @@ export default function Apply() {
   const [, params] = useRoute("/apply/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [applicationId, setApplicationId] = useState<string | null>(null);
+
+  const steps = [
+    { id: 1, label: "Personal Info" },
+    { id: 2, label: "Employment" },
+    { id: 3, label: "Emergency Contact" },
+    { id: 4, label: "Rental History" },
+    { id: 5, label: "References" },
+    { id: 6, label: "Pets & Vehicles" },
+    { id: 7, label: "Legal Disclosures" },
+    { id: 8, label: "Property Policies" },
+    { id: 9, label: "Review & Submit" }
+  ];
+
+  const { data: propertyResponse, isLoading: isLoadingProperty } = useQuery<ApiResponse<Property>>({
+    queryKey: [`/api/v2/properties/${params?.id}`],
+    enabled: !!params?.id
+  });
+
+  const property = propertyResponse?.data;
+
+  const { data: applicationResponse } = useQuery<ApiResponse<any>>({
+    queryKey: [`/api/v2/applications/property/${params?.id}`],
+    enabled: !!params?.id
+  });
+
+  const application = applicationResponse?.data;
 
   const form = useForm<ApplyFormValues>({
     resolver: zodResolver(applyFormSchema),
@@ -144,292 +175,212 @@ export default function Apply() {
     },
   });
 
-  const { formState, trigger, getValues, reset, setValue, control, handleSubmit } = form;
-
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [applicationId, setApplicationId] = useState<string | null>(null);
-  const [lastSavedStep, setLastSavedStep] = useState<number>(1);
-  const lastSavedData = useRef<string>("");
-
-  const propertyId = params?.id;
-
-  const { data: propertyResponse, isLoading: isLoadingProperty } = useQuery<ApiResponse<Property>>({
-    queryKey: ["/api/v2/properties", propertyId],
-    enabled: !!propertyId,
-  });
-  
-  const property = propertyResponse?.data;
-
-  // Resume logic
-  const { data: userAppsResponse } = useQuery<ApiResponse<any[]>>({
-    queryKey: ["/api/v2/applications/user/me"],
-  });
+  const { reset, getValues } = form;
 
   useEffect(() => {
-    if (userAppsResponse?.data && propertyId) {
-      const existingDraft = userAppsResponse.data.find(
-        app => app.property_id === propertyId && app.status === "draft"
-      );
-      if (existingDraft) {
-        setApplicationId(existingDraft.id);
-        const savedStep = existingDraft.last_saved_step || 1;
-        setLastSavedStep(savedStep);
-        setCurrentStep(savedStep);
-        
-        // Populate form with saved data exactly from draft
-        reset({
-          ...getValues(),
-          firstName: existingDraft.personal_info?.firstName || "",
-          lastName: existingDraft.personal_info?.lastName || "",
-          email: existingDraft.personal_info?.email || "",
-          phone: existingDraft.personal_info?.phone || "",
-          dateOfBirth: existingDraft.personal_info?.dateOfBirth || "",
-          currentAddress: existingDraft.personal_info?.currentAddress || "",
-          ssn: existingDraft.personal_info?.ssn || "",
-          employerName: existingDraft.employment?.employerName || "",
-          jobTitle: existingDraft.employment?.jobTitle || "",
-          monthlyIncome: existingDraft.employment?.monthlyIncome || "",
-          employmentDuration: existingDraft.employment?.employmentDuration || "",
-          // New sections
-          currentLandlordName: existingDraft.rental_history?.currentLandlordName || "",
-          currentLandlordPhone: existingDraft.rental_history?.currentLandlordPhone || "",
-          currentRentAmount: existingDraft.rental_history?.currentRentAmount || "",
-          reasonForMoving: existingDraft.rental_history?.reasonForMoving || "",
-          ref1Name: existingDraft.references?.name || "",
-          ref1Phone: existingDraft.references?.phone || "",
-          ref1Relation: existingDraft.references?.relationship || "",
-          hasPets: existingDraft.pets?.hasPets || false,
-          petDetails: existingDraft.pets?.details || "",
-          hasVehicles: existingDraft.vehicles?.hasVehicles || false,
-          vehicleDetails: existingDraft.vehicles?.details || "",
-          hasEvictions: existingDraft.disclosures?.hasEvictions || false,
-          hasFelonies: existingDraft.disclosures?.hasFelonies || false,
-          hasBankruptcies: existingDraft.disclosures?.hasBankruptcies || false,
-          disclosureExplanation: existingDraft.disclosures?.explanation || "",
-        });
+    if (application) {
+      setApplicationId(application.id);
+      setCurrentStep(application.lastSavedStep || 1);
+      
+      const details = application.details || {};
+      reset({
+        propertyId: params?.id || "",
+        firstName: details.personal?.firstName || "",
+        lastName: details.personal?.lastName || "",
+        email: details.personal?.email || "",
+        phone: details.personal?.phone || "",
+        dateOfBirth: details.personal?.dateOfBirth || "",
+        currentAddress: details.personal?.currentAddress || "",
+        ssn: details.personal?.ssn || "",
+        employerName: details.employment?.employerName || "",
+        jobTitle: details.employment?.jobTitle || "",
+        monthlyIncome: details.employment?.monthlyIncome || "",
+        employmentDuration: details.employment?.employmentDuration || "",
+        emergencyContactName: details.emergency_contact?.name || "",
+        emergencyContactPhone: details.emergency_contact?.phone || "",
+        emergencyContactRelationship: details.emergency_contact?.relationship || "",
+        currentLandlordName: details.rental_history?.currentLandlordName || "",
+        currentLandlordPhone: details.rental_history?.currentLandlordPhone || "",
+        currentRentAmount: details.rental_history?.currentRentAmount || "",
+        reasonForMoving: details.rental_history?.reasonForMoving || "",
+        ref1Name: details.references?.name || "",
+        ref1Phone: details.references?.phone || "",
+        ref1Relation: details.references?.relationship || "",
+        hasPets: details.pets?.hasPets || false,
+        petDetails: details.pets?.details || "",
+        hasVehicles: details.vehicles?.hasVehicles || false,
+        vehicleDetails: details.vehicles?.details || "",
+        hasEvictions: details.disclosures?.hasEvictions || false,
+        hasFelonies: details.disclosures?.hasFelonies || false,
+        hasBankruptcies: details.disclosures?.hasBankruptcies || false,
+        disclosureExplanation: details.disclosures?.explanation || "",
+        acknowledgePetPolicy: details.acknowledgments?.petPolicy || false,
+        acknowledgeSmokingPolicy: details.acknowledgments?.smokingPolicy || false,
+        acknowledgeOccupancyLimit: details.acknowledgments?.occupancyLimit || false,
+        acknowledgeUtilities: details.acknowledgments?.utilities || false,
+        agreeToBackgroundCheck: details.legal_consent?.backgroundCheck || false,
+        agreeToTerms: details.legal_consent?.terms || false,
+        signature: details.signature || "",
+      });
+
+      if (application.status !== 'draft') {
+        setIsSubmitted(true);
       }
     }
-  }, [userAppsResponse, propertyId, reset, getValues]);
+  }, [application, reset, params?.id]);
 
-  const formValues = useWatch({ control });
-
-  const performAutosave = useCallback(async (values: Partial<ApplyFormValues>, step: number) => {
-    if (isSubmitted || !propertyId) return;
+  const autosave = useCallback(async (values: ApplyFormValues, step: number) => {
+    if (!params?.id) return;
     
-    // Construct exact payload required by backend schema
-    const payload = {
-      property_id: propertyId,
-      last_saved_step: step,
-      personal_info: {
-        firstName: values.firstName || "",
-        lastName: values.lastName || "",
-        email: values.email || "",
-        phone: values.phone || "",
-        dateOfBirth: values.dateOfBirth || "",
-        currentAddress: values.currentAddress || "",
-        ssn: values.ssn || ""
-      },
-      employment: {
-        employerName: values.employerName || "",
-        jobTitle: values.jobTitle || "",
-        monthlyIncome: values.monthlyIncome || "",
-        employmentDuration: values.employmentDuration || ""
-      },
-      rental_history: {
-        currentLandlordName: values.currentLandlordName || "",
-        currentLandlordPhone: values.currentLandlordPhone || "",
-        currentRentAmount: values.currentRentAmount || "",
-        reasonForMoving: values.reasonForMoving || ""
-      },
-      references: {
-        name: values.ref1Name || "",
-        phone: values.ref1Phone || "",
-        relationship: values.ref1Relation || ""
-      },
-      disclosures: {
-        hasEvictions: values.hasEvictions || false,
-        hasFelonies: values.hasFelonies || false,
-        hasBankruptcies: values.hasBankruptcies || false,
-        explanation: values.disclosureExplanation || ""
-      },
-      pets: {
-        hasPets: values.hasPets || false,
-        details: values.petDetails || ""
-      },
-      vehicles: {
-        hasVehicles: values.hasVehicles || false,
-        details: values.vehicleDetails || ""
-      }
-    };
-
-    // Only save if data actually changed
-    const currentDataStr = JSON.stringify(payload);
-    if (currentDataStr === lastSavedData.current) return;
-
     setSaveStatus('saving');
     try {
-      if (!applicationId) {
-        const response = await apiRequest("POST", "/api/v2/applications", payload);
+      const payload = {
+        propertyId: params.id,
+        lastSavedStep: step,
+        details: {
+          personal: {
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: values.email,
+            phone: values.phone,
+            dateOfBirth: values.dateOfBirth,
+            currentAddress: values.currentAddress,
+            ssn: values.ssn
+          },
+          employment: {
+            employerName: values.employerName,
+            jobTitle: values.jobTitle,
+            monthlyIncome: values.monthlyIncome,
+            employmentDuration: values.employmentDuration
+          },
+          emergency_contact: {
+            name: values.emergencyContactName,
+            phone: values.emergencyContactPhone,
+            relationship: values.emergencyContactRelationship
+          },
+          acknowledgments: {
+            petPolicy: values.acknowledgePetPolicy,
+            smokingPolicy: values.acknowledgeSmokingPolicy,
+            occupancyLimit: values.acknowledgeOccupancyLimit,
+            utilities: values.acknowledgeUtilities
+          },
+          rental_history: {
+            currentLandlordName: values.currentLandlordName,
+            currentLandlordPhone: values.currentLandlordPhone,
+            currentRentAmount: values.currentRentAmount,
+            reasonForMoving: values.reasonForMoving
+          },
+          references: {
+            name: values.ref1Name,
+            phone: values.ref1Phone,
+            relationship: values.ref1Relation
+          },
+          disclosures: {
+            hasEvictions: values.hasEvictions,
+            hasFelonies: values.hasFelonies,
+            hasBankruptcies: values.hasBankruptcies,
+            explanation: values.disclosureExplanation
+          },
+          pets: {
+            hasPets: values.hasPets,
+            details: values.petDetails
+          },
+          vehicles: {
+            hasVehicles: values.hasVehicles,
+            details: values.vehicleDetails
+          },
+          legal_consent: {
+            backgroundCheck: values.agreeToBackgroundCheck,
+            terms: values.agreeToTerms
+          },
+          signature: values.signature
+        }
+      };
+
+      let response;
+      if (applicationId) {
+        response = await apiRequest("PATCH", `/api/v2/applications/${applicationId}/autosave`, payload);
+      } else {
+        response = await apiRequest("POST", "/api/v2/applications", { ...payload, status: 'draft' });
         const data = await response.json();
-        if (data.success && data.data?.id) {
+        if (data.success) {
           setApplicationId(data.data.id);
         }
-      } else {
-        // Use PATCH for the specific autosave endpoint
-        await apiRequest("PATCH", `/api/v2/applications/${applicationId}/autosave`, payload);
       }
-      
-      lastSavedData.current = currentDataStr;
       setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (error) {
       console.error("Autosave failed:", error);
       setSaveStatus('error');
     }
-  }, [isSubmitted, propertyId, applicationId]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Logic for background autosave while typing
-      if (formState.isDirty) {
-        performAutosave(getValues() as any, currentStep);
-      }
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [formValues, formState.isDirty, performAutosave, currentStep, getValues]);
-
-  useEffect(() => {
-    if (propertyId) {
-      setValue("propertyId", propertyId);
-    }
-  }, [propertyId, setValue]);
-
-  const steps = [
-    { id: 1, label: "Personal Information" },
-    { id: 2, label: "Employment & Income" },
-    { id: 3, label: "Emergency Contact" },
-    { id: 4, label: "Rental History" },
-    { id: 5, label: "References" },
-    { id: 6, label: "Pets & Vehicles" },
-    { id: 7, label: "Legal Disclosures" },
-    { id: 8, label: "Property Policies" },
-    { id: 9, label: "Review & Submit" },
-  ];
-
-  const nextStep = async () => {
-    const fieldsToValidate = getFieldsForStep(currentStep);
-    const isValid = await trigger(fieldsToValidate as any);
-    if (isValid) {
-      const next = Math.min(currentStep + 1, steps.length);
-      setCurrentStep(next);
-      setLastSavedStep(next);
-      // Force autosave on step change with current values
-      const currentValues = getValues();
-      performAutosave(currentValues as any, next);
-      window.scrollTo(0, 0);
-    }
-  };
-
-  const prevStep = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
-    window.scrollTo(0, 0);
-  };
-
-  const getFieldsForStep = (step: number) => {
-    switch (step) {
-      case 1:
-        return ["firstName", "lastName", "email", "phone", "dateOfBirth", "currentAddress", "ssn"];
-      case 2:
-        return ["employerName", "jobTitle", "monthlyIncome", "employmentDuration"];
-      case 3:
-        return ["emergencyContactName", "emergencyContactPhone", "emergencyContactRelationship"];
-      case 4:
-        return ["currentLandlordName", "currentLandlordPhone", "currentRentAmount", "reasonForMoving"];
-      case 5:
-        return ["ref1Name", "ref1Phone", "ref1Relation"];
-      case 6:
-        return ["hasPets", "petDetails", "hasVehicles", "vehicleDetails"];
-      case 7:
-        return ["hasEvictions", "hasFelonies", "hasBankruptcies", "disclosureExplanation"];
-      case 8:
-        return ["acknowledgePetPolicy", "acknowledgeSmokingPolicy", "acknowledgeOccupancyLimit", "acknowledgeUtilities"];
-      default:
-        return [];
-    }
-  };
+  }, [params?.id, applicationId]);
 
   const onSubmit = async (values: ApplyFormValues) => {
     setIsProcessing(true);
     try {
       const payload = {
-        status: "submitted",
-        property_id: values.propertyId,
-        personal_info: {
-          firstName: values.firstName,
-          lastName: values.lastName,
-          email: values.email,
-          phone: values.phone,
-          dateOfBirth: values.dateOfBirth,
-          currentAddress: values.currentAddress,
-          ssn: values.ssn
-        },
-        employment: {
-          employerName: values.employerName,
-          jobTitle: values.jobTitle,
-          monthlyIncome: values.monthlyIncome,
-          employmentDuration: values.employmentDuration
-        },
-        emergency_contact: {
-          name: values.emergencyContactName,
-          phone: values.emergencyContactPhone,
-          relationship: values.emergencyContactRelationship
-        },
-        acknowledgments: {
-          petPolicy: values.acknowledgePetPolicy,
-          smokingPolicy: values.acknowledgeSmokingPolicy,
-          occupancyLimit: values.acknowledgeOccupancyLimit,
-          utilities: values.acknowledgeUtilities
-        },
-        rental_history: {
-          currentLandlordName: values.currentLandlordName,
-          currentLandlordPhone: values.currentLandlordPhone,
-          currentRentAmount: values.currentRentAmount,
-          reasonForMoving: values.reasonForMoving
-        },
-        references: {
-          name: values.ref1Name,
-          phone: values.ref1Phone,
-          relationship: values.ref1Relation
-        },
-        disclosures: {
-          hasEvictions: values.hasEvictions,
-          hasFelonies: values.hasFelonies,
-          hasBankruptcies: values.hasBankruptcies,
-          explanation: values.disclosureExplanation
-        },
-        pets: {
-          hasPets: values.hasPets,
-          details: values.petDetails
-        },
-        vehicles: {
-          hasVehicles: values.hasVehicles,
-          details: values.vehicleDetails
-        },
-        legal_consent: {
-          backgroundCheck: values.agreeToBackgroundCheck,
-          terms: values.agreeToTerms
-        },
-        signature: values.signature
+        propertyId: values.propertyId,
+        details: {
+          personal: {
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: values.email,
+            phone: values.phone,
+            dateOfBirth: values.dateOfBirth,
+            currentAddress: values.currentAddress,
+            ssn: values.ssn
+          },
+          employment: {
+            employerName: values.employerName,
+            jobTitle: values.jobTitle,
+            monthlyIncome: values.monthlyIncome,
+            employmentDuration: values.employmentDuration
+          },
+          emergency_contact: {
+            name: values.emergencyContactName,
+            phone: values.emergencyContactPhone,
+            relationship: values.emergencyContactRelationship
+          },
+          acknowledgments: {
+            petPolicy: values.acknowledgePetPolicy,
+            smokingPolicy: values.acknowledgeSmokingPolicy,
+            occupancyLimit: values.acknowledgeOccupancyLimit,
+            utilities: values.acknowledgeUtilities
+          },
+          rental_history: {
+            currentLandlordName: values.currentLandlordName,
+            currentLandlordPhone: values.currentLandlordPhone,
+            currentRentAmount: values.currentRentAmount,
+            reasonForMoving: values.reasonForMoving
+          },
+          references: {
+            name: values.ref1Name,
+            phone: values.ref1Phone,
+            relationship: values.ref1Relation
+          },
+          disclosures: {
+            hasEvictions: values.hasEvictions,
+            hasFelonies: values.hasFelonies,
+            hasBankruptcies: values.hasBankruptcies,
+            explanation: values.disclosureExplanation
+          },
+          pets: {
+            hasPets: values.hasPets,
+            details: values.petDetails
+          },
+          vehicles: {
+            hasVehicles: values.hasVehicles,
+            details: values.vehicleDetails
+          },
+          legal_consent: {
+            backgroundCheck: values.agreeToBackgroundCheck,
+            terms: values.agreeToTerms
+          },
+          signature: values.signature
+        }
       };
 
       if (applicationId) {
-        // First ensure all data is saved
         await apiRequest("PATCH", `/api/v2/applications/${applicationId}/autosave`, payload);
-        // Then submit
         await apiRequest("PATCH", `/api/v2/applications/${applicationId}/status`, { status: "submitted" });
       } else {
         await apiRequest("POST", "/api/v2/applications", { ...payload, status: "submitted" });
@@ -440,9 +391,6 @@ export default function Apply() {
         title: "Application Submitted",
         description: "Your rental application has been received successfully.",
       });
-      setTimeout(() => {
-        setLocation("/dashboard");
-      }, 3000);
     } catch (error: any) {
       toast({
         title: "Submission Failed",
@@ -464,13 +412,38 @@ export default function Apply() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <CheckCircle2 className="h-20 w-20 text-green-500 mb-6" />
-        <h1 className="text-3xl font-bold mb-2">Application Received!</h1>
-        <p className="text-muted-foreground mb-8 text-center max-w-md">
-          Thank you for applying for {property?.title}. We've sent a confirmation email to {getValues("email")}.
-        </p>
-        <Button onClick={() => setLocation("/dashboard")}>Go to Dashboard</Button>
+      <div className="min-h-screen bg-gray-50/30 dark:bg-gray-950 flex flex-col">
+        <Navbar />
+        <div className="flex-1 container max-w-4xl mx-auto py-20 px-4">
+          <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-2xl text-center p-12">
+            <div className="flex justify-center mb-6">
+              <div className="h-20 w-20 bg-green-50 dark:bg-green-950/30 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="h-10 w-10 text-green-600" />
+              </div>
+            </div>
+            <CardTitle className="text-3xl font-black tracking-tight mb-4">Application Submitted!</CardTitle>
+            <CardDescription className="text-gray-500 text-lg mb-8">
+              Your application for <strong>{property?.title}</strong> has been received and is currently under review.
+            </CardDescription>
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 p-6 mb-8 inline-block text-left max-w-md mx-auto">
+              <h3 className="text-sm font-black uppercase tracking-widest text-blue-900 dark:text-blue-100 mb-2">What happens next?</h3>
+              <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-2 list-disc pl-4">
+                <li>The property manager will review your information.</li>
+                <li>You'll receive an email notification when the status changes.</li>
+                <li>You can track progress on your tenant dashboard.</li>
+              </ul>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button onClick={() => setLocation("/dashboard")} className="h-12 px-8 rounded-none font-black uppercase tracking-widest">
+                Go to Dashboard
+              </Button>
+              <Button variant="outline" onClick={() => setLocation(`/properties/${property?.id}`)} className="h-12 px-8 rounded-none font-black uppercase tracking-widest">
+                View Listing
+              </Button>
+            </div>
+          </Card>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -747,19 +720,15 @@ export default function Apply() {
                         )}
                       />
                     </CardContent>
-                    <CardFooter className="justify-end pt-6 border-t bg-gray-50/50 dark:bg-gray-900/50">
-                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-12 px-8 rounded-none">
-                        Next Step <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </CardFooter>
                   </Card>
                 )}
 
+                {/* Step 2: Employment */}
                 {currentStep === 2 && (
-                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl">
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
                     <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
-                      <CardTitle className="text-2xl font-black tracking-tight">Employment & Income</CardTitle>
-                      <CardDescription className="text-gray-500 font-medium">Verify your ability to pay rent.</CardDescription>
+                      <CardTitle className="text-2xl font-black tracking-tight">Employment Information</CardTitle>
+                      <CardDescription className="text-gray-500 font-medium">Verify your income and employment stability.</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-8 space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -768,9 +737,9 @@ export default function Apply() {
                           name="employerName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Employer Name</FormLabel>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Current Employer</FormLabel>
                               <FormControl>
-                                <Input placeholder="Current Company" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="Company Name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -783,7 +752,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Job Title</FormLabel>
                               <FormControl>
-                                <Input placeholder="Software Engineer" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="Your Position" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -798,7 +767,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Gross Monthly Income</FormLabel>
                               <FormControl>
-                                <Input placeholder="5000" type="number" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="e.g. 5000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -809,9 +778,9 @@ export default function Apply() {
                           name="employmentDuration"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Duration (Years/Months)</FormLabel>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Time at Company</FormLabel>
                               <FormControl>
-                                <Input placeholder="2 Years" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="e.g. 2 years" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -819,38 +788,31 @@ export default function Apply() {
                         />
                       </div>
                     </CardContent>
-                    <CardFooter className="justify-between pt-6 border-t bg-gray-50/50 dark:bg-gray-900/50">
-                      <Button type="button" variant="outline" onClick={prevStep} className="font-black uppercase tracking-widest h-12 rounded-none">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                      </Button>
-                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-12 px-8 rounded-none">
-                        Next Step <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </CardFooter>
                   </Card>
                 )}
 
+                {/* Step 3: Emergency Contact */}
                 {currentStep === 3 && (
-                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl">
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
                     <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
                       <CardTitle className="text-2xl font-black tracking-tight">Emergency Contact</CardTitle>
                       <CardDescription className="text-gray-500 font-medium">Who should we contact in case of an emergency?</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-8 space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="emergencyContactName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Full Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Contact's full name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField
-                          control={form.control}
-                          name="emergencyContactName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Contact Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Full name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
                         <FormField
                           control={form.control}
                           name="emergencyContactPhone"
@@ -864,37 +826,30 @@ export default function Apply() {
                             </FormItem>
                           )}
                         />
+                        <FormField
+                          control={form.control}
+                          name="emergencyContactRelationship"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Relationship</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. Spouse, Parent, Friend" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
-                      <FormField
-                        control={form.control}
-                        name="emergencyContactRelationship"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Relationship</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g. Spouse, Parent, Friend" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                     </CardContent>
-                    <CardFooter className="justify-between pt-6 border-t bg-gray-50/50 dark:bg-gray-900/50">
-                      <Button type="button" variant="outline" onClick={prevStep} className="font-black uppercase tracking-widest h-12 rounded-none">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                      </Button>
-                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-12 px-8 rounded-none">
-                        Next Step <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </CardFooter>
                   </Card>
                 )}
 
+                {/* Step 4: Rental History */}
                 {currentStep === 4 && (
-                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl">
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
                     <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
                       <CardTitle className="text-2xl font-black tracking-tight">Rental History</CardTitle>
-                      <CardDescription className="text-gray-500 font-medium">Details about your current residence.</CardDescription>
+                      <CardDescription className="text-gray-500 font-medium">Tell us about your current or most recent living situation.</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-8 space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -903,9 +858,9 @@ export default function Apply() {
                           name="currentLandlordName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Landlord Name</FormLabel>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Current Landlord/Manager</FormLabel>
                               <FormControl>
-                                <Input placeholder="Name of landlord or management" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="Name of landlord or company" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -931,7 +886,7 @@ export default function Apply() {
                           name="currentRentAmount"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Current Monthly Rent</FormLabel>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Current Rent Paid</FormLabel>
                               <FormControl>
                                 <Input placeholder="e.g. 1500" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
                               </FormControl>
@@ -946,7 +901,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Reason for Moving</FormLabel>
                               <FormControl>
-                                <Input placeholder="e.g. Relocating for work" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="Short explanation" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -954,44 +909,37 @@ export default function Apply() {
                         />
                       </div>
                     </CardContent>
-                    <CardFooter className="justify-between pt-6 border-t bg-gray-50/50 dark:bg-gray-900/50">
-                      <Button type="button" variant="outline" onClick={prevStep} className="font-black uppercase tracking-widest h-12 rounded-none">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                      </Button>
-                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-12 px-8 rounded-none">
-                        Next Step <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </CardFooter>
                   </Card>
                 )}
 
+                {/* Step 5: References */}
                 {currentStep === 5 && (
-                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl">
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
                     <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
-                      <CardTitle className="text-2xl font-black tracking-tight">Professional References</CardTitle>
-                      <CardDescription className="text-gray-500 font-medium">Please provide at least one professional or personal reference.</CardDescription>
+                      <CardTitle className="text-2xl font-black tracking-tight">Personal References</CardTitle>
+                      <CardDescription className="text-gray-500 font-medium">Please provide a professional or personal reference who is not a relative.</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-8 space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="ref1Name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Reference Full Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Full name of reference" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField
-                          control={form.control}
-                          name="ref1Name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Reference Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Full name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
                         <FormField
                           control={form.control}
                           name="ref1Phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Phone Number</FormLabel>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Reference Phone</FormLabel>
                               <FormControl>
                                 <Input placeholder="(555) 000-0000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
                               </FormControl>
@@ -999,57 +947,53 @@ export default function Apply() {
                             </FormItem>
                           )}
                         />
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="ref1Relation"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Relationship</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g. Former Landlord, Manager" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                    <CardFooter className="justify-between pt-6 border-t bg-gray-50/50 dark:bg-gray-900/50">
-                      <Button type="button" variant="outline" onClick={prevStep} className="font-black uppercase tracking-widest h-12 rounded-none">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                      </Button>
-                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-12 px-8 rounded-none">
-                        Next Step <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                )}
-
-                {currentStep === 6 && (
-                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl">
-                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
-                      <CardTitle className="text-2xl font-black tracking-tight">Pets & Vehicles</CardTitle>
-                      <CardDescription className="text-gray-500 font-medium">Do you have any pets or vehicles to disclose?</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-8 space-y-8">
-                      <div className="space-y-4">
                         <FormField
                           control={form.control}
-                          name="hasPets"
+                          name="ref1Relation"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-none">
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Relationship</FormLabel>
                               <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
+                                <Input placeholder="e.g. Former Manager, Colleague" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
                               </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-bold">I have pets</FormLabel>
-                              </div>
+                              <FormMessage />
                             </FormItem>
                           )}
                         />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Step 6: Pets & Vehicles */}
+                {currentStep === 6 && (
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
+                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
+                      <CardTitle className="text-2xl font-black tracking-tight">Pets & Vehicles</CardTitle>
+                      <CardDescription className="text-gray-500 font-medium">Help us understand your space and parking needs.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-8 space-y-6">
+                      <div className="space-y-6">
+                        <div className="flex items-center space-x-2">
+                          <FormField
+                            control={form.control}
+                            name="hasPets"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-gray-50/50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-none w-full">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel className="font-bold">I have pets</FormLabel>
+                                  <FormDescription>Check this if you plan to keep pets at the property.</FormDescription>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                         {form.watch("hasPets") && (
                           <FormField
                             control={form.control}
@@ -1058,33 +1002,36 @@ export default function Apply() {
                               <FormItem>
                                 <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Pet Details</FormLabel>
                                 <FormControl>
-                                  <Textarea placeholder="Type, breed, weight, etc." className="bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 rounded-none" {...field} />
+                                  <Input placeholder="Breed, weight, and age of each pet" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                         )}
-                      </div>
 
-                      <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                        <FormField
-                          control={form.control}
-                          name="hasVehicles"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-none">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-bold">I have vehicles</FormLabel>
-                              </div>
-                            </FormItem>
-                          )}
-                        />
+                        <Separator className="my-6" />
+
+                        <div className="flex items-center space-x-2">
+                          <FormField
+                            control={form.control}
+                            name="hasVehicles"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-gray-50/50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-none w-full">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel className="font-bold">I have vehicles</FormLabel>
+                                  <FormDescription>Check this if you require parking space for any vehicles.</FormDescription>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                         {form.watch("hasVehicles") && (
                           <FormField
                             control={form.control}
@@ -1093,7 +1040,7 @@ export default function Apply() {
                               <FormItem>
                                 <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Vehicle Details</FormLabel>
                                 <FormControl>
-                                  <Textarea placeholder="Make, model, year, plate #" className="bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 rounded-none" {...field} />
+                                  <Input placeholder="Make, model, and year for each vehicle" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1102,35 +1049,28 @@ export default function Apply() {
                         )}
                       </div>
                     </CardContent>
-                    <CardFooter className="justify-between pt-6 border-t bg-gray-50/50 dark:bg-gray-900/50">
-                      <Button type="button" variant="outline" onClick={prevStep} className="font-black uppercase tracking-widest h-12 rounded-none">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                      </Button>
-                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-12 px-8 rounded-none">
-                        Next Step <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </CardFooter>
                   </Card>
                 )}
 
+                {/* Step 7: Legal Disclosures */}
                 {currentStep === 7 && (
-                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl">
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
                     <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
                       <CardTitle className="text-2xl font-black tracking-tight">Legal Disclosures</CardTitle>
-                      <CardDescription className="text-gray-500 font-medium">Please answer the following legal disclosures truthfully.</CardDescription>
+                      <CardDescription className="text-gray-500 font-medium">Please answer the following questions truthfully.</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-8 space-y-6">
-                      <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-4">
                         <FormField
                           control={form.control}
                           name="hasEvictions"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-none">
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-100 dark:border-gray-800 rounded-none">
                               <FormControl>
                                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-bold">Have you ever been evicted?</FormLabel>
+                                <FormLabel className="font-bold">Have you ever been evicted?</FormLabel>
                               </div>
                             </FormItem>
                           )}
@@ -1139,12 +1079,12 @@ export default function Apply() {
                           control={form.control}
                           name="hasFelonies"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-none">
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-100 dark:border-gray-800 rounded-none">
                               <FormControl>
                                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-bold">Have you ever been convicted of a felony?</FormLabel>
+                                <FormLabel className="font-bold">Have you ever been convicted of a felony?</FormLabel>
                               </div>
                             </FormItem>
                           )}
@@ -1153,256 +1093,26 @@ export default function Apply() {
                           control={form.control}
                           name="hasBankruptcies"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-none">
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-100 dark:border-gray-800 rounded-none">
                               <FormControl>
                                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-bold">Have you ever filed for bankruptcy?</FormLabel>
+                                <FormLabel className="font-bold">Have you ever filed for bankruptcy?</FormLabel>
                               </div>
                             </FormItem>
                           )}
                         />
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="disclosureExplanation"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Explanation (if applicable)</FormLabel>
-                            <FormControl>
-                              <Textarea placeholder="Please provide details for any 'Yes' answers above." className="bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 rounded-none" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                    <CardFooter className="justify-between pt-6 border-t bg-gray-50/50 dark:bg-gray-900/50">
-                      <Button type="button" variant="outline" onClick={prevStep} className="font-black uppercase tracking-widest h-12 rounded-none">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                      </Button>
-                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-12 px-8 rounded-none">
-                        Next Step <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                )}
-
-                {currentStep === 8 && property && (
-                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl">
-                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
-                      <CardTitle className="text-2xl font-black tracking-tight">Property Policies & Rules</CardTitle>
-                      <CardDescription className="text-gray-500 font-medium">Please acknowledge and agree to the property policies before proceeding.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-8 space-y-4">
-                      <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 p-4 rounded-md mb-6">
-                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                          These terms are locked at the time of application submission. Future changes to the property listing will not affect your application.
-                        </p>
-                      </div>
-                      
-                      <FormField
-                        control={form.control}
-                        name="acknowledgePetPolicy"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 border border-gray-100 dark:border-gray-800 p-4">
-                            <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-pet-policy" />
-                            </FormControl>
-                            <div className="space-y-1 leading-none flex-1">
-                              <FormLabel className="text-sm font-semibold">Pet Policy</FormLabel>
-                              <FormDescription className="text-xs">
-                                {property.petsAllowed 
-                                  ? "Pets are allowed at this property. You acknowledge and agree to any additional pet-related fees or restrictions."
-                                  : "No pets are allowed at this property. You acknowledge and agree to this policy."}
-                              </FormDescription>
-                              <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="acknowledgeSmokingPolicy"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 border border-gray-100 dark:border-gray-800 p-4">
-                            <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-smoking-policy" />
-                            </FormControl>
-                            <div className="space-y-1 leading-none flex-1">
-                              <FormLabel className="text-sm font-semibold">Smoking Policy</FormLabel>
-                              <FormDescription className="text-xs">
-                                This is a non-smoking property. You acknowledge and agree to this policy and understand that violations may result in lease termination.
-                              </FormDescription>
-                              <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="acknowledgeOccupancyLimit"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 border border-gray-100 dark:border-gray-800 p-4">
-                            <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-occupancy-limit" />
-                            </FormControl>
-                            <div className="space-y-1 leading-none flex-1">
-                              <FormLabel className="text-sm font-semibold">Occupancy Limit</FormLabel>
-                              <FormDescription className="text-xs">
-                                The maximum occupancy limit for this property is 2 persons. You acknowledge and agree that additional occupants will require written approval from the property owner.
-                              </FormDescription>
-                              <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="acknowledgeUtilities"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 border border-gray-100 dark:border-gray-800 p-4">
-                            <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-utilities" />
-                            </FormControl>
-                            <div className="space-y-1 leading-none flex-1">
-                              <FormLabel className="text-sm font-semibold">Utilities & Services</FormLabel>
-                              <FormDescription className="text-xs">
-                                {property.utilitiesIncluded && Array.isArray(property.utilitiesIncluded) && property.utilitiesIncluded.length > 0
-                                  ? `The following utilities are included: ${property.utilitiesIncluded.join(", ")}. You are responsible for any utilities not listed.`
-                                  : "All utilities and services are the tenant's responsibility. You acknowledge and agree to pay for all utility bills."}
-                              </FormDescription>
-                              <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                    <CardFooter className="justify-between pt-6 border-t bg-gray-50/50 dark:bg-gray-900/50">
-                      <Button type="button" variant="outline" onClick={prevStep} disabled={isProcessing} className="font-black uppercase tracking-widest h-12 rounded-none" data-testid="button-back-policies">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                      </Button>
-                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-12 px-8 rounded-none" data-testid="button-next-review">
-                        Next Step <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                )}
-
-                {currentStep === 9 && (
-                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl">
-                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
-                      <CardTitle className="text-2xl font-black tracking-tight">Review & Submit</CardTitle>
-                      <CardDescription className="text-gray-500 font-medium">Please review all information before submitting.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-8 space-y-8">
-                      {/* Read-only Summary Sections */}
-                      <div className="space-y-6">
-                        <section>
-                          <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
-                            <Shield className="h-4 w-4" /> Personal Information
-                          </h3>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm bg-gray-50 dark:bg-gray-900/50 p-4 border border-gray-100 dark:border-gray-800">
-                            <div>
-                              <p className="text-[10px] font-black uppercase text-gray-400">Name</p>
-                              <p className="font-bold">{getValues("firstName")} {getValues("lastName")}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-black uppercase text-gray-400">Email</p>
-                              <p className="font-bold truncate">{getValues("email")}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-black uppercase text-gray-400">Phone</p>
-                              <p className="font-bold">{getValues("phone")}</p>
-                            </div>
-                          </div>
-                        </section>
-
-                        <section>
-                          <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
-                            <DollarSign className="h-4 w-4" /> Employment & Income
-                          </h3>
-                          <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 dark:bg-gray-900/50 p-4 border border-gray-100 dark:border-gray-800">
-                            <div>
-                              <p className="text-[10px] font-black uppercase text-gray-400">Employer</p>
-                              <p className="font-bold">{getValues("employerName")}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-black uppercase text-gray-400">Monthly Income</p>
-                              <p className="font-bold text-green-600">${getValues("monthlyIncome")}</p>
-                            </div>
-                          </div>
-                        </section>
-
-                        <section>
-                          <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
-                            <MapPin className="h-4 w-4" /> Rental History
-                          </h3>
-                          <div className="text-sm bg-gray-50 dark:bg-gray-900/50 p-4 border border-gray-100 dark:border-gray-800">
-                            <p className="text-[10px] font-black uppercase text-gray-400">Reason for Moving</p>
-                            <p className="font-bold">{getValues("reasonForMoving") || "Not provided"}</p>
-                          </div>
-                        </section>
-                      </div>
-
-                      <Separator className="my-8" />
-
-                      <div className="space-y-6">
                         <FormField
                           control={form.control}
-                          name="agreeToBackgroundCheck"
+                          name="disclosureExplanation"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Explanation (If Yes to any)</FormLabel>
                               <FormControl>
-                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                                  Background Check Authorization
-                                  <Shield className="h-3 w-3 text-primary" />
-                                </FormLabel>
-                                <FormDescription className="text-[10px]">
-                                  I authorize Choice Properties to conduct a thorough background investigation, including criminal records, credit history, and employment verification.
-                                </FormDescription>
-                                <FormMessage />
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="agreeToTerms"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                              <FormControl>
-                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel className="text-xs font-black uppercase tracking-widest">Attestation & Terms</FormLabel>
-                                <FormDescription className="text-[10px]">
-                                  I certify that all information provided in this application is true, complete, and accurate to the best of my knowledge. I understand that any false statements or omissions may result in immediate rejection or lease termination.
-                                </FormDescription>
-                                <FormMessage />
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="signature"
-                          render={({ field }) => (
-                            <FormItem className="pt-4">
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Electronic Signature (Full Legal Name)</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  placeholder="Type your full legal name as it appears on your ID" 
-                                  className="h-14 bg-gray-50/50 dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 focus:border-primary rounded-none italic text-lg" 
+                                <Textarea 
+                                  placeholder="Provide details for any checked boxes above..." 
+                                  className="min-h-[100px] bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none resize-none" 
                                   {...field} 
                                 />
                               </FormControl>
@@ -1412,36 +1122,233 @@ export default function Apply() {
                         />
                       </div>
                     </CardContent>
-                    <CardFooter className="justify-between pt-8 border-t bg-gray-50/50 dark:bg-gray-900/50 px-8 py-6">
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        onClick={prevStep} 
-                        disabled={isProcessing} 
-                        className="font-black uppercase tracking-widest h-12 rounded-none hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-                      >
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Edit Sections
-                      </Button>
-                      <Button 
-                        type="submit" 
-                        disabled={isProcessing} 
-                        className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-14 px-12 rounded-none shadow-lg shadow-primary/20 transition-all active:scale-95"
-                      >
-                        {isProcessing ? (
-                          <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Finalizing...</>
-                        ) : (
-                          <>Complete & Submit <CheckCircle2 className="ml-2 h-5 w-5" /></>
-                        )}
-                      </Button>
-                    </CardFooter>
                   </Card>
                 )}
+
+                {/* Step 8: Property Policies */}
+                {currentStep === 8 && (
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
+                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
+                      <CardTitle className="text-2xl font-black tracking-tight">Policies & Acknowledgments</CardTitle>
+                      <CardDescription className="text-gray-500 font-medium">Review and agree to the property-specific rules.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-8 space-y-6">
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="acknowledgePetPolicy"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-100 dark:border-gray-800 rounded-none">
+                              <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="font-bold">I acknowledge the Pet Policy</FormLabel>
+                                <FormDescription className="text-[10px]">{property?.petsAllowed ? "Pets are permitted with additional deposit." : "No pets are allowed at this property."}</FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="acknowledgeSmokingPolicy"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-100 dark:border-gray-800 rounded-none">
+                              <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="font-bold">I acknowledge the Smoking Policy</FormLabel>
+                                <FormDescription className="text-[10px]">No smoking is allowed inside the unit.</FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="acknowledgeOccupancyLimit"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-100 dark:border-gray-800 rounded-none">
+                              <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="font-bold">I acknowledge the Occupancy Limit</FormLabel>
+                                <FormDescription className="text-[10px]">Max 2 persons per bedroom.</FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="acknowledgeUtilities"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-100 dark:border-gray-800 rounded-none">
+                              <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="font-bold">I acknowledge the Utilities Policy</FormLabel>
+                                <FormDescription className="text-[10px]">Tenant is responsible for electric and water.</FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Step 9: Review & Submit */}
+                {currentStep === 9 && (
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
+                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
+                      <CardTitle className="text-2xl font-black tracking-tight">Final Review & Submission</CardTitle>
+                      <CardDescription className="text-gray-500 font-medium">Please verify all information before submitting your application.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-8 space-y-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-black uppercase tracking-widest text-primary border-b pb-2">Applicant Profile</h3>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <span className="text-gray-500">Full Name:</span>
+                            <span className="font-bold text-right">{getValues("firstName")} {getValues("lastName")}</span>
+                            <span className="text-gray-500">Email:</span>
+                            <span className="font-bold text-right truncate">{getValues("email")}</span>
+                            <span className="text-gray-500">Phone:</span>
+                            <span className="font-bold text-right">{getValues("phone")}</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-black uppercase tracking-widest text-primary border-b pb-2">Employment</h3>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <span className="text-gray-500">Employer:</span>
+                            <span className="font-bold text-right">{getValues("employerName")}</span>
+                            <span className="text-gray-500">Income:</span>
+                            <span className="font-bold text-right">${getValues("monthlyIncome")}/mo</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-none space-y-6">
+                        <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-4">Legal Consent & Attestation</h3>
+                        
+                        <FormField
+                          control={form.control}
+                          name="agreeToBackgroundCheck"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="font-bold">Background & Credit Authorization</FormLabel>
+                                <FormDescription className="text-[10px]">
+                                  I authorize Choice Properties to obtain my consumer credit report, criminal background check, and eviction history for the purpose of evaluating this rental application.
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="agreeToTerms"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="font-bold">Attestation of Truthfulness</FormLabel>
+                                <FormDescription className="text-[10px]">
+                                  I certify that all information provided in this application is true, complete, and correct. I understand that any false statements or omissions may result in denial of application or termination of lease.
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        <Separator />
+
+                        <FormField
+                          control={form.control}
+                          name="signature"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Electronic Signature (Full Legal Name)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Type your full legal name to sign" className="h-12 bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 font-signature text-xl italic rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <div className="flex justify-between items-center gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const prevStep = currentStep - 1;
+                      setCurrentStep(prevStep);
+                      autosave(getValues(), prevStep);
+                    }}
+                    disabled={currentStep === 1 || isProcessing}
+                    className="h-12 px-8 rounded-none font-black uppercase tracking-widest"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Previous
+                  </Button>
+
+                  {currentStep < 9 ? (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        const nextStep = currentStep + 1;
+                        setCurrentStep(nextStep);
+                        autosave(getValues(), nextStep);
+                      }}
+                      disabled={isProcessing}
+                      className="h-12 px-8 rounded-none font-black uppercase tracking-widest"
+                    >
+                      Next Step
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={isProcessing}
+                      className="h-12 px-12 bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        "Submit Final Application"
+                      )}
+                    </Button>
+                  )}
+                </div>
               </form>
             </Form>
+
+            <div className="mt-12 text-center space-y-4">
+              <SecurityBadges />
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">
+                Securely processed by Choice Properties Application System
+              </p>
+            </div>
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );
