@@ -13,7 +13,8 @@ router.get("/:id/lease-agreement.pdf", authenticateToken, async (req: Authentica
     if (!application) return res.status(404).json(errorResponse("Application not found"));
 
     const isApplicant = application.user_id === req.user!.id;
-    const isOwner = application.property_owner_id === req.user!.id;
+    // Fix: check ownerId from property snapshot or fetch property
+    const isOwner = application.property_owner_id === req.user!.id || application.propertySnapshot?.owner_id === req.user!.id; 
     const isAdmin = req.user!.role === "admin";
     const isPropertyManager = req.user!.role === "property_manager";
 
