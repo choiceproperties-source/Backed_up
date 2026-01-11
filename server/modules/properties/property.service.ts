@@ -48,6 +48,41 @@ export interface CreatePropertyResult {
 /* ------------------------------------------------ */
 
 /**
+ * Extract allowlisted rules and filter empty/null values.
+ */
+export function getPropertyRules(property: any): Readonly<Record<string, any>> {
+  if (!property) return Object.freeze({});
+
+  const allowlist = [
+    "pets_allowed",
+    "smoking_allowed",
+    "parking_available",
+    "utilities_included",
+    "laundry_type",
+    "security_deposit",
+    "lease_term_months",
+    "available_date",
+    "rules_text"
+  ];
+
+  const rules: Record<string, any> = {};
+
+  for (const field of allowlist) {
+    const value = property[field];
+
+    // Filter out: null, empty strings, empty arrays, empty objects
+    if (value === null || value === undefined) continue;
+    if (typeof value === "string" && value.trim() === "") continue;
+    if (Array.isArray(value) && value.length === 0) continue;
+    if (typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0) continue;
+
+    rules[field] = value;
+  }
+
+  return Object.freeze(rules);
+}
+
+/**
  * Normalize image input from frontend / ImageKit
  * Accepts:
  * - string URLs
