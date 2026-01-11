@@ -1,7 +1,8 @@
-import { supabase } from "../../supabase";
+import { getSupabaseOrThrow } from "../../supabase";
 
 export class LeaseRepository {
   async getLeaseById(leaseId: string): Promise<any> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("leases")
       .select("id, landlord_id, tenant_id, monthly_rent, security_deposit_amount, applications(property_id, properties(title, address))")
@@ -13,6 +14,7 @@ export class LeaseRepository {
   }
 
   async getLeaseWithDates(leaseId: string): Promise<any> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("leases")
       .select("id, tenant_id, landlord_id, monthly_rent, rent_due_day, lease_start_date, lease_end_date")
@@ -24,6 +26,7 @@ export class LeaseRepository {
   }
 
   async getLeaseForRentPayments(leaseId: string): Promise<any> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("leases")
       .select("tenant_id, landlord_id")
@@ -35,6 +38,7 @@ export class LeaseRepository {
   }
 
   async getPaymentsForLease(leaseId: string): Promise<any[]> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("payments")
       .select("*, verified_by_user:users!payments_verified_by_fkey(full_name)")
@@ -46,6 +50,7 @@ export class LeaseRepository {
   }
 
   async getRentPaymentsForLease(leaseId: string): Promise<any[]> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("payments")
       .select("*")
@@ -58,6 +63,7 @@ export class LeaseRepository {
   }
 
   async getExistingRentPayments(leaseId: string): Promise<any[]> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("payments")
       .select("due_date, type")
@@ -69,6 +75,7 @@ export class LeaseRepository {
   }
 
   async createRentPayments(paymentsToCreate: any[]): Promise<any[]> {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("payments")
       .insert(paymentsToCreate)
@@ -79,6 +86,7 @@ export class LeaseRepository {
   }
 
   async findSignaturesByApplicationId(applicationId: string) {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("lease_signatures")
       .select("*")
@@ -89,6 +97,7 @@ export class LeaseRepository {
   }
 
   async recordSignature(signature: any) {
+    const supabase = getSupabaseOrThrow();
     // Prevent modification by setting is_locked: true
     const { data, error } = await supabase
       .from("lease_signatures")
@@ -101,6 +110,7 @@ export class LeaseRepository {
   }
 
   async updateLeaseSignatureStatus(applicationId: string, status: string, fullySignedAt?: string) {
+    const supabase = getSupabaseOrThrow();
     const updateData: any = { 
       lease_signature_status: status,
       updated_at: new Date().toISOString()
@@ -121,6 +131,7 @@ export class LeaseRepository {
   }
 
   async updateApplicationSignedLeaseUrl(applicationId: string, url: string) {
+    const supabase = getSupabaseOrThrow();
     const { data, error } = await supabase
       .from("applications")
       .update({ 
