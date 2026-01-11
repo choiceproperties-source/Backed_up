@@ -35,11 +35,11 @@ export default function LeaseSigning() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<any>({
     queryKey: ["/api/v2/auth/me"],
   });
 
-  const { data: application, isLoading: isLoadingApp } = useQuery({
+  const { data: application, isLoading: isLoadingApp } = useQuery<any>({
     queryKey: [`/api/v2/applications/${applicationId}`],
     enabled: !!applicationId,
   });
