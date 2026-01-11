@@ -95,6 +95,12 @@ const applyFormSchema = z.object({
   agreeToBackgroundCheck: z.boolean().refine(val => val === true, "You must agree to the background check"),
   agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms"),
   signature: z.string().min(2, "Electronic signature is required"),
+  legalDisclosures: z.object({
+    fairHousingAcknowledged: z.boolean().refine(val => val === true, "Required"),
+    creditCheckAuthorized: z.boolean().refine(val => val === true, "Required"),
+    accuracyCertified: z.boolean().refine(val => val === true, "Required"),
+    feeAcknowledged: z.boolean().refine(val => val === true, "Required"),
+  }),
 });
 
 type ApplyFormValues = z.infer<typeof applyFormSchema>;
@@ -298,6 +304,10 @@ export default function Apply() {
             terms: values.agreeToTerms
           },
           signature: values.signature
+        },
+        legalDisclosures: {
+          ...values.legalDisclosures,
+          acknowledgedAt: new Date().toISOString()
         }
       };
 
@@ -1203,6 +1213,84 @@ export default function Apply() {
                           )}
                         />
                       </div>
+
+                      <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-none space-y-6 border border-gray-200 dark:border-gray-700">
+                        <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-4">Required Legal Disclosures</h3>
+                        
+                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                          <FormField
+                            control={form.control}
+                            name="legalDisclosures.fairHousingAcknowledged"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-background border border-gray-200 dark:border-gray-700 rounded-none">
+                                <FormControl>
+                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel className="font-bold">Fair Housing Act Acknowledgment</FormLabel>
+                                  <FormDescription className="text-xs">
+                                    I understand that this property is offered in compliance with the Fair Housing Act and that no applicant will be discriminated against based on race, color, religion, sex, disability, familial status, or national origin.
+                                  </FormDescription>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="legalDisclosures.creditCheckAuthorized"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-background border border-gray-200 dark:border-gray-700 rounded-none">
+                                <FormControl>
+                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel className="font-bold">Background & Credit Check Authorization (FCRA)</FormLabel>
+                                  <FormDescription className="text-xs">
+                                    I authorize the property owner or their agent to obtain consumer reports, including credit, criminal, and eviction history, as permitted under the Fair Credit Reporting Act.
+                                  </FormDescription>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="legalDisclosures.accuracyCertified"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-background border border-gray-200 dark:border-gray-700 rounded-none">
+                                <FormControl>
+                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel className="font-bold">Application Accuracy & Fraud Warning</FormLabel>
+                                  <FormDescription className="text-xs">
+                                    I certify that all information provided is true and complete. I understand that false or misleading information may result in denial of my application or termination of tenancy.
+                                  </FormDescription>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="legalDisclosures.feeAcknowledged"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-background border border-gray-200 dark:border-gray-700 rounded-none">
+                                <FormControl>
+                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel className="font-bold">Non-Refundable Application Fee Disclosure</FormLabel>
+                                  <FormDescription className="text-xs">
+                                    I understand that the application fee, if charged, is non-refundable once processing begins.
+                                  </FormDescription>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
@@ -1240,8 +1328,14 @@ export default function Apply() {
                   ) : (
                     <Button
                       type="submit"
-                      disabled={isProcessing}
-                      className="h-12 px-12 bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                      disabled={
+                        isProcessing || 
+                        !form.watch("legalDisclosures.fairHousingAcknowledged") ||
+                        !form.watch("legalDisclosures.creditCheckAuthorized") ||
+                        !form.watch("legalDisclosures.accuracyCertified") ||
+                        !form.watch("legalDisclosures.feeAcknowledged")
+                      }
+                      className="h-12 px-12 bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isProcessing ? (
                         <>

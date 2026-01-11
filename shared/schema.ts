@@ -398,6 +398,14 @@ export const applications = pgTable("applications", {
   conversationId: uuid("conversation_id"),
   // Last step saved for auto-save tracking
   lastSavedStep: integer("last_saved_step").default(0),
+  // Legal Disclosures
+  legalDisclosures: jsonb("legal_disclosures").$type<{
+    fairHousingAcknowledged: boolean;
+    creditCheckAuthorized: boolean;
+    accuracyCertified: boolean;
+    feeAcknowledged: boolean;
+    acknowledgedAt: string;
+  }>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),

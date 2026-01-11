@@ -1,0 +1,130 @@
+ROLE:
+You are a Senior SaaS Engineer and Legal Workflow Implementer for a rental platform.
+You specialize in compliance-grade application flows used by real property management companies.
+This task is LIMITED to legal disclosures only.
+
+DO NOT refactor unrelated systems.
+DO NOT add payments or scoring logic.
+DO NOT require Autonomous Mode.
+
+GOAL:
+Make the rental application system legally legitimate, trustworthy, and professional.
+Applicants must clearly understand what they are consenting to.
+All disclosures must be explicit, auditable, and enforceable.
+
+========================================
+SECTION 1 — READ-ONLY AUDIT (NO CODE CHANGES YET)
+========================================
+Scan and confirm the current state of disclosures.
+
+Files to inspect:
+- client/src/pages/apply.tsx
+- shared/schema.ts
+- server/modules/applications/application.service.ts
+
+Identify:
+1. Where acknowledgements currently exist (checkboxes, text, or JSON fields)
+2. Whether any disclosures are implied but not explicitly shown to the user
+3. How acknowledgements are stored (boolean vs timestamped consent)
+
+DO NOT implement in this section.
+Only report findings inline.
+
+========================================
+SECTION 2 — REQUIRED LEGAL DISCLOSURES (IMPLEMENT)
+========================================
+Implement the following disclosures as REQUIRED steps before final submission.
+
+Each disclosure MUST:
+- Be shown explicitly in the UI
+- Require an unchecked → checked action
+- Store timestamped consent in the database
+- Be immutable after submission
+
+REQUIRED DISCLOSURES:
+
+1. Fair Housing Act Acknowledgment
+Text (exact meaning, wording may be adjusted):
+"I understand that this property is offered in compliance with the Fair Housing Act and that no applicant will be discriminated against based on race, color, religion, sex, disability, familial status, or national origin."
+
+2. Background & Credit Check Authorization (FCRA)
+Text:
+"I authorize the property owner or their agent to obtain consumer reports, including credit, criminal, and eviction history, as permitted under the Fair Credit Reporting Act."
+
+3. Application Accuracy & Fraud Warning
+Text:
+"I certify that all information provided is true and complete. I understand that false or misleading information may result in denial of my application or termination of tenancy."
+
+4. Non-Refundable Application Fee Disclosure
+Text:
+"I understand that the application fee, if charged, is non-refundable once processing begins."
+
+========================================
+SECTION 3 — DATA MODEL & STORAGE (IMPLEMENT)
+========================================
+Store disclosures in a structured, auditable format.
+
+Backend requirements:
+1. Add (or confirm existence of) a disclosures JSONB field on the application record:
+   - fair_housing_acknowledged: boolean
+   - credit_check_authorized: boolean
+   - accuracy_certified: boolean
+   - fee_acknowledged: boolean
+   - acknowledged_at: ISO timestamp
+
+2. Enforce:
+   - All values MUST be true before submission
+   - Submission must fail with a clear error if any are missing
+
+DO NOT store disclosures as plain text strings.
+
+========================================
+SECTION 4 — UI INTEGRATION (IMPLEMENT)
+========================================
+Frontend behavior in apply.tsx:
+
+1. Disclosures must appear:
+   - On the final review step
+   - Immediately before the Submit Application button
+
+2. UX rules:
+   - Each disclosure has its own checkbox
+   - Submit button is disabled until all are checked
+   - Legal text is scrollable if long
+   - No modal popups
+
+3. Visual style:
+   - Neutral, professional tone
+   - Small “Legal Disclosure” header
+   - Use subtle borders or background to separate from form fields
+
+========================================
+SECTION 5 — ENFORCEMENT & IMMUTABILITY (IMPLEMENT)
+========================================
+Backend enforcement:
+1. Once application status = submitted:
+   - Disclosures become read-only
+   - Any attempt to modify them is rejected
+
+2. Disclosure data must be included in:
+   - Landlord application view
+   - Admin application audit view (read-only)
+
+========================================
+SECTION 6 — CONSTRAINTS (STRICT)
+========================================
+- DO NOT add new application steps
+- DO NOT add payment collection
+- DO NOT modify scoring logic
+- DO NOT require user signatures or drawings
+- DO NOT add external APIs
+
+========================================
+EXPECTED OUTCOME:
+• Application feels legally legitimate
+• Applicants clearly understand consent
+• Owners are legally protected
+• System is audit-ready
+• No disruption to existing flow
+
+Proceed carefully and explain each implementation briefly.

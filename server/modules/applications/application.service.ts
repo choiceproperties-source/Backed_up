@@ -394,6 +394,12 @@ export async function autosaveApplication(
     return { error: "Application is already submitted and cannot be edited" };
   }
 
+  // Enforce immutability of legal disclosures after initial set if status is not draft
+  // (though the above check already handles it, we be explicit)
+  if (body.legalDisclosures && application.status !== "draft") {
+    return { error: "Legal disclosures cannot be modified after submission" };
+  }
+
   // Encrypt SSN if provided in personalInfo during autosave
   const processedBody = { ...body };
   
@@ -599,6 +605,18 @@ export async function updateStatus(
       success: false,
       error: "Only the applicant can submit the application",
     };
+  }
+
+  if (input.status === "submitted") {
+    if (!application.legalDisclosures?.fairHousingAcknowledged ||
+        !application.legalDisclosures?.creditCheckAuthorized ||
+        !application.legalDisclosures?.accuracyCertified ||
+        !application.legalDisclosures?.feeAcknowledged) {
+      return {
+        success: false,
+        error: "All legal disclosures must be acknowledged before submission",
+      };
+    }
   }
 
   // Enforce one-way transitions for critical states
