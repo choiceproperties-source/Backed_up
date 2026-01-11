@@ -257,9 +257,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({
         email,
         password,
+        confirmPassword: password,
         fullName: name,
         phone,
-        role
+        role,
+        agreeToTerms: true
       })
     });
 

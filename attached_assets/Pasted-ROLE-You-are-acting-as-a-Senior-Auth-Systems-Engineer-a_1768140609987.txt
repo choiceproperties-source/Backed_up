@@ -1,0 +1,63 @@
+ROLE:
+You are acting as a Senior Auth Systems Engineer and Validation Debugger.
+
+TASK TYPE:
+Audit + Fix (Scoped, non-autonomous)
+
+PROBLEM STATEMENT:
+Renter (tenant) signup is failing with a generic error:
+"failed to sign up, unable to proceed, required"
+The UI does not show what is required, and signup cannot complete.
+
+OBJECTIVE:
+Scan the full signup flow and identify exactly why renter signup fails, then implement precise fixes so renter signup works reliably and displays clear validation errors.
+
+SCOPE:
+Focus ONLY on signup (not login).
+
+FILES TO AUDIT:
+- client/src/pages/signup.tsx
+- client/src/lib/auth-context.tsx
+- server/modules/auth/auth.routes.ts
+- server/modules/auth/auth.service.ts
+- server/modules/auth/auth.repository.ts
+- shared/schema.ts (users table)
+- Any Zod or validation schemas related to signup
+
+AUDIT CHECKLIST:
+1. Frontend
+- Verify what fields are collected for renter signup
+- Verify role value sent (tenant vs renter)
+- Confirm required fields match backend expectations
+- Check how errors are caught and displayed
+
+2. Backend
+- Identify required fields when creating a user profile
+- Confirm role-based requirements (tenant vs landlord vs agent)
+- Identify which required field is missing during renter signup
+- Verify Supabase auth user creation vs profile insertion order
+
+3. Validation
+- Check Zod or schema validation rules
+- Ensure renter role has minimal required fields
+- Remove landlord/agent-only requirements from renter signup
+
+4. Error Handling
+- Ensure backend returns clear error messages
+- Ensure frontend displays the exact backend error
+- Remove generic "failed to sign up" masking
+
+IMPLEMENTATION REQUIREMENTS:
+- Renter signup must only require renter-appropriate fields
+- Role-based validation must be explicit
+- Error messages must clearly state which field is missing
+- Do NOT change business logic unrelated to signup
+- Do NOT introduce autonomous refactors
+
+SUCCESS CRITERIA:
+- Renter signup completes successfully
+- Missing fields show specific error messages
+- No silent failures
+- No partial Supabase users created
+
+END TASK

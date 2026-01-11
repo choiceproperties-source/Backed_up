@@ -20,8 +20,9 @@ export function registerAuthRoutes(app: Express): void {
     try {
       const validation = signupSchema.safeParse(req.body);
       if (!validation.success) {
-        console.error("[AUTH] Validation failed:", validation.error.format());
-        return res.status(400).json(apiError(validation.error.errors[0].message));
+        const errorDetails = validation.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+        console.error("[AUTH] Validation failed:", errorDetails);
+        return res.status(400).json(apiError(errorDetails));
       }
 
       const { email, password, fullName, phone, role } = validation.data;
