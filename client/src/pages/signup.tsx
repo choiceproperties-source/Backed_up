@@ -91,6 +91,7 @@ export default function Signup() {
   const onSubmit = async (data: any) => {
     setLoading(true);
     try {
+      console.log("[Signup] Submitting:", { ...data, password: "...", confirmPassword: "..." });
       await signup(
         data.email,
         data.fullName,
