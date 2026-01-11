@@ -59,4 +59,25 @@ export function registerLeaseRoutes(app: Express): void {
       return res.status(500).json(errorResponse("Failed to retrieve rent payments"));
     }
   });
+
+  // POST /api/v2/leases/:applicationId/sign - Sign lease agreement
+  app.post("/api/v2/leases/:applicationId/sign", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const result = await leaseService.signLease(
+        req.params.applicationId,
+        req.user!.id,
+        req.user!.role,
+        req.body,
+        req
+      );
+
+      return res.json(success(result, "Lease signed successfully"));
+    } catch (err: any) {
+      if (err.status) {
+        return res.status(err.status).json({ error: err.message });
+      }
+      console.error("[LEASES] Sign lease error:", err);
+      return res.status(500).json(errorResponse("Failed to sign lease"));
+    }
+  });
 }

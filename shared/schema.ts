@@ -951,6 +951,10 @@ export type RejectionCategory = typeof REJECTION_CATEGORIES[number];
 export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 
+// File Upload related constants
+export const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
 // Payment types and statuses
 export const PAYMENT_TYPES = ["rent", "security_deposit"] as const;
 export const PAYMENT_STATUSES = ["pending", "paid", "overdue", "verified"] as const;
@@ -1232,6 +1236,11 @@ export const moveInChecklistUpdateSchema = z.object({
     id: z.string(),
     completed: z.boolean(),
   })).min(1),
+});
+
+export const leaseStatusUpdateSchema = z.object({
+  status: z.enum(LEASE_STATUSES),
+  reason: z.string().optional(),
 });
 
 export type MoveInPrepare = z.infer<typeof moveInPrepareSchema>;

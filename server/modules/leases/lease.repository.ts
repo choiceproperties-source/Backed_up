@@ -77,4 +77,45 @@ export class LeaseRepository {
     if (error) throw error;
     return data || [];
   }
+
+  async findSignaturesByApplicationId(applicationId: string) {
+    const { data, error } = await supabase
+      .from("lease_signatures")
+      .select("*")
+      .eq("application_id", applicationId);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async recordSignature(signature: any) {
+    const { data, error } = await supabase
+      .from("lease_signatures")
+      .insert([signature])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async updateLeaseSignatureStatus(applicationId: string, status: string, fullySignedAt?: string) {
+    const updateData: any = { 
+      lease_signature_status: status,
+      updated_at: new Date().toISOString()
+    };
+    if (fullySignedAt) {
+      updateData.lease_fully_signed_at = fullySignedAt;
+    }
+
+    const { data, error } = await supabase
+      .from("applications")
+      .update(updateData)
+      .eq("id", applicationId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
 }

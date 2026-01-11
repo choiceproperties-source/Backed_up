@@ -1,5 +1,6 @@
 import { LeaseRepository } from "./lease.repository";
 import { logAuditEvent } from "../../security/audit-logger";
+import { insertLeaseSignatureSchema } from "@shared/schema";
 
 export class LeaseService {
   private repository: LeaseRepository;
@@ -182,5 +183,74 @@ export class LeaseService {
     };
 
     return { payments: grouped, stats };
+  }
+
+  async signLease(applicationId: string, userId: string, userRole: string, signatureData: any, req: any): Promise<any> {
+    const signatures = await this.repository.findSignaturesByApplicationId(applicationId);
+    
+    // 1. Validate role & identity
+    // Map roles to normalized 'tenant' or 'landlord'
+    let signerRole = "";
+    if (userRole === "renter") signerRole = "tenant";
+    else if (userRole === "owner" || userRole === "landlord") signerRole = "landlord";
+    else if (userRole === "admin") signerRole = "landlord"; // Admin can sign as landlord if needed, or we might need specific logic
+    
+    if (!signerRole) {
+      throw { status: 403, message: "Only tenants and landlords can sign leases" };
+    }
+
+    // 2. Check for existing signature by this role
+    if (signatures.some((s: any) => s.signer_role === signerRole)) {
+      throw { status: 400, message: `The ${signerRole} has already signed this lease` };
+    }
+
+    // 3. Enforce signing order (Tenant first)
+    if (signerRole === "landlord") {
+      const tenantSigned = signatures.some((s: any) => s.signer_role === "tenant");
+      if (!tenantSigned) {
+        throw { status: 400, message: "The tenant must sign the lease before the landlord" };
+      }
+    }
+
+    // 4. Record signature
+    const signatureRecord = {
+      application_id: applicationId,
+      signer_user_id: userId,
+      signer_role: signerRole,
+      signer_name: signatureData.signerName,
+      ip_address: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+      user_agent: req.headers['user-agent'],
+      consent_electronic: signatureData.consentElectronic ?? true,
+      consent_binding: signatureData.consentBinding ?? true,
+    };
+
+    const recorded = await this.repository.recordSignature(signatureRecord);
+
+    // 5. Update lease_status
+    let newStatus = "partially_signed";
+    let fullySignedAt = undefined;
+
+    if (signerRole === "landlord") {
+      newStatus = "signed";
+      fullySignedAt = new Date().toISOString();
+    }
+
+    await this.repository.updateLeaseSignatureStatus(applicationId, newStatus, fullySignedAt);
+
+    // Audit log
+    await logAuditEvent({
+      userId,
+      action: "lease_sign",
+      resourceType: "application",
+      resourceId: applicationId,
+      newData: { role: signerRole, status: newStatus },
+      req
+    });
+
+    return {
+      success: true,
+      status: newStatus,
+      signature: recorded
+    };
   }
 }
