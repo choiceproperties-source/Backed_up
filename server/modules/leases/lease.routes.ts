@@ -1,3 +1,4 @@
+import { supabase } from "../../lib/supabase";
 import type { Express } from "express";
 import type { AuthenticatedRequest } from "../../auth-middleware";
 import { authenticateToken } from "../../auth-middleware";

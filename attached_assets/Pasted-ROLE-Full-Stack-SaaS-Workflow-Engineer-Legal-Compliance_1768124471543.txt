@@ -1,0 +1,95 @@
+ROLE:
+Full-Stack SaaS Workflow Engineer & Legal Compliance Specialist
+
+TASK:
+Implement a **fully integrated rental application and lease management workflow** including:
+- PDF lease generation
+- E-signature capture
+- Legal disclosure collection
+- Real-time notifications and reminders for unsigned applications/leases
+- Deep-linking to pending actions
+- Audit and privacy compliance
+
+SECTIONS:
+
+1. PDF Lease Generation:
+   - Generate a downloadable lease PDF for every approved application.
+   - Include:
+     - Property details (title, address, unit)
+     - Tenant name and contact
+     - Landlord/agent name and contact
+     - Lease terms (start/end date, rent, application fees)
+     - Legal disclosures (state-specific, FCRA, Fair Housing, confidentiality)
+     - Signature placeholders
+   - Store generated PDFs in Supabase Storage or designated backend directory.
+   - API Endpoint: `/api/v2/leases/generate-pdf` accepting `application_id` and returning signed URL.
+
+2. E-Signature Implementation:
+   - Capture signature digitally in the frontend (canvas or third-party library).
+   - Save signature as Base64 or file in Supabase Storage.
+   - Update database fields: `signed_at`, `signed_by_user_id`, `signature_file_url`.
+   - Provide an **autosave** mechanism while signing to prevent loss of progress.
+   - Ensure signature is legally binding with:
+     - User attestation: "I certify under penalty of perjury that this is my legal signature."
+     - Timestamp and IP recording in database.
+
+3. Legal Disclosures:
+   - Collect acknowledgments for:
+     - Fair Housing Act compliance
+     - FCRA/credit background consent
+     - Property-specific disclosures (pets, vehicles, damages)
+   - Add required checkboxes to application and lease wizard.
+   - Ensure acknowledgments are **stored with timestamps** in the database for audit.
+
+4. Notifications & Reminders:
+   - Trigger reminders for:
+     - Unsigned leases (`signed_at = NULL`)
+     - Incomplete applications (`last_saved_step < total_steps`)
+   - Channels:
+     - Email (SendGrid, Choice Properties branding)
+     - In-app via `UnifiedNotificationBell` with "Action Required"
+     - Optional SMS/push notifications
+   - Scheduling:
+     - Cron job or queue every hour
+     - Limit reminders to 1 per user per 24 hours
+     - Track `last_reminder_sent_at` in database
+   - Deep-links:
+     - Include direct links to the exact step in the wizard or lease signature page.
+
+5. Backend & Database Logic:
+   - Extend `applications` and `leases` tables:
+     - `signed_at`, `signature_file_url`, `legal_acknowledged_at`
+   - Service Layer:
+     - `leaseService.generatePdf(application_id)`
+     - `leaseService.saveSignature(application_id, signatureData)`
+     - `applicationService.autosaveStep(application_id, stepData)`
+     - `notificationService.sendReminder(user_id, type)`
+   - Sanitize sensitive info (`display_email`, `display_phone`) before sending notifications.
+
+6. Frontend Integration:
+   - Application Wizard:
+     - Multi-step with autosave for every step
+     - Include legal disclosures and document uploads
+   - Lease Page:
+     - PDF preview
+     - E-signature canvas
+     - Submit/Finalize button that marks `signed_at` and triggers notifications
+   - Dashboard:
+     - Display status badges: Draft, Pending Signature, Signed
+     - Deep-link buttons to resume incomplete actions
+
+7. Audit & Logging:
+   - Log every action:
+     - PDF generated
+     - Signature captured
+     - Notifications sent
+     - Legal acknowledgments
+   - Maintain a `status_history` JSONB array per application for legal traceability.
+
+OUTPUT:
+- Users can complete rental applications fully online with legal disclosures.
+- Lease PDFs are generated and downloadable.
+- Users can e-sign leases securely, with autosave and timestamped records.
+- Notifications remind users of pending actions and incomplete applications.
+- Landlords and agents see real-time updates in their dashboards.
+- Full compliance with legal and privacy standards.

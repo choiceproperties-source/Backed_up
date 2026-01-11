@@ -202,6 +202,11 @@ export class LeaseService {
       throw { status: 400, message: "You must acknowledge the state-specific e-signature disclosure" };
     }
 
+    // Validate attestation for legal compliance
+    if (!signatureData.attestationAcknowledged) {
+      throw { status: 400, message: "You must certify that this is your legal signature" };
+    }
+
     // 1. Validate role & identity
     // Map roles to normalized 'tenant' or 'landlord'
     let signerRole = "";
@@ -232,12 +237,15 @@ export class LeaseService {
       signer_user_id: userId,
       signer_role: signerRole,
       signer_name: signatureData.signerName,
+      signature_data: signatureData.signatureData,
       ip_address: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress,
       user_agent: req.headers['user-agent'],
       consent_esign: signatureData.consentElectronic ?? true,
       consent_terms: signatureData.consentBinding ?? true,
       state_code: signatureData.stateCode,
       state_disclosure_acknowledged: signatureData.stateDisclosureAcknowledged,
+      attestation_text: signatureData.attestationText || "I certify under penalty of perjury that this is my legal signature.",
+      signed_at: new Date().toISOString(),
       is_locked: true,
     };
 

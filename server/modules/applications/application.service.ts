@@ -416,6 +416,11 @@ export async function autosaveApplication(
     };
   }
 
+  // Track lastSavedStep
+  if (processedBody.step !== undefined) {
+    processedBody.last_saved_step = processedBody.step;
+  }
+
   // Partial update without strict validation
   const data = await applicationRepository.updateApplication(id, processedBody);
 
