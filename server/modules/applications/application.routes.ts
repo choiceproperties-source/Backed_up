@@ -3,8 +3,35 @@ import { authenticateToken, type AuthenticatedRequest } from "../../auth-middlew
 import { success, error as errorResponse } from "../../response";
 import * as applicationService from "./application.service";
 import { createPdfStream } from "../../services/applicationDisclosurePdf";
+import { createLeasePdfStream } from "../../services/leaseAgreementPdf";
 
 const router = Router();
+
+router.get("/:id/lease-agreement.pdf", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const application = await applicationService.getApplicationById(req.params.id, req.user!.role);
+    if (!application) return res.status(404).json(errorResponse("Application not found"));
+
+    const isApplicant = application.user_id === req.user!.id;
+    const isOwner = application.property_owner_id === req.user!.id;
+    const isAdmin = req.user!.role === "admin";
+    const isPropertyManager = req.user!.role === "property_manager";
+
+    if (!isApplicant && !isOwner && !isAdmin && !isPropertyManager) {
+      return res.status(403).json(errorResponse("Not authorized to access this lease"));
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="lease-${req.params.id}.pdf"`);
+
+    await createLeasePdfStream(req.params.id, res);
+  } catch (err: any) {
+    console.error("[APPLICATIONS] Error generating Lease PDF stream:", err);
+    if (!res.headersSent) {
+      res.status(500).json(errorResponse("Failed to generate Lease PDF"));
+    }
+  }
+});
 
 router.get("/:id/disclosures.pdf", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {

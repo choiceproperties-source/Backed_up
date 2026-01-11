@@ -1,0 +1,223 @@
+ROLE:
+You are a Senior SaaS Engineer and Real Estate Legal Workflow Architect.
+You are implementing LEASE AGREEMENT PDF GENERATION for a rental platform.
+This must meet professional property management and legal standards.
+
+DO NOT refactor unrelated systems.
+DO NOT require Autonomous Mode.
+DO NOT alter application scoring or approval logic.
+
+GOAL:
+Generate a legally binding, downloadable Lease Agreement PDF
+after an application is approved and accepted by both parties.
+
+========================================
+SECTION 1 — READ-ONLY AUDIT (NO CHANGES)
+========================================
+Scan and confirm existing structure:
+
+Files:
+- shared/schema.ts
+- server/modules/applications/application.service.ts
+- server/modules/properties/property.service.ts
+- client/src/pages/application-review.tsx
+- client/src/pages/lease.tsx (if exists)
+- server/email.ts
+- Supabase storage buckets
+
+Confirm:
+1. How application status transitions to APPROVED
+2. Where rent, deposit, lease term, and property snapshot are stored
+3. Whether lease terms are stored per property or globally
+4. Existing document storage structure (application-documents bucket)
+
+Report findings briefly before implementation.
+
+========================================
+SECTION 2 — LEASE AGREEMENT TRIGGER
+========================================
+Lease PDF generation must occur ONLY when:
+
+Conditions:
+- Application status = approved
+- Applicant accepts offer
+- Landlord finalizes lease terms
+
+DO NOT:
+- Generate during application
+- Generate before approval
+- Auto-generate without acceptance
+
+========================================
+SECTION 3 — LEASE DATA SOURCES
+========================================
+Lease content must be assembled from:
+
+APPLICANT:
+- Full legal name
+- Email
+
+LANDLORD / OWNER:
+- Name (individual or organization)
+- Role (Property Owner / Management Company)
+
+PROPERTY:
+- Full address
+- Unit number (if applicable)
+- Rent amount
+- Security deposit
+- Application fee (informational only)
+- Lease start date
+- Lease end date or term length
+
+LEASE TERMS:
+- Monthly rent
+- Due date
+- Late fee rules
+- Utilities responsibility
+- Pet policy
+- Maintenance responsibility
+- Termination clause
+- Governing state law
+
+Use SNAPSHOT data — never live property values.
+
+========================================
+SECTION 4 — PDF CONTENT STRUCTURE
+========================================
+Each Lease Agreement PDF must include:
+
+HEADER:
+- “Residential Lease Agreement”
+- Choice Properties (branding text only)
+- State of governing law
+
+PARTIES:
+- Landlord / Management Entity
+- Tenant(s)
+
+PROPERTY DESCRIPTION:
+- Address
+- Unit
+- Included amenities
+
+FINANCIAL TERMS:
+- Rent
+- Deposit
+- Fees
+
+LEASE TERM:
+- Start date
+- End date
+- Renewal clause
+
+LEGAL CLAUSES:
+- Use of premises
+- Maintenance & repairs
+- Entry rights
+- Default & remedies
+- Fair Housing compliance
+- Severability
+- Entire agreement
+
+SIGNATURE SECTION:
+- Tenant signature (typed)
+- Landlord signature (typed)
+- Dates
+- IP address (if available)
+
+FOOTER:
+- Page numbers
+- Application ID reference
+
+========================================
+SECTION 5 — BACKEND IMPLEMENTATION
+========================================
+Create:
+server/services/leaseAgreementPdf.ts
+
+Responsibilities:
+1. Accept applicationId
+2. Fetch approved application + property snapshot
+3. Compile lease content
+4. Generate immutable PDF
+5. Save to Supabase Storage:
+   Bucket: application-documents
+   Path: applications/{applicationId}/lease-agreement.pdf
+6. Return secure file URL
+
+Rules:
+- Generate ONCE
+- Never overwrite existing lease
+- Regenerate only via admin override (future feature)
+
+========================================
+SECTION 6 — DATABASE LINKING
+========================================
+Extend applications metadata only:
+
+Add:
+- lease_pdf_url (nullable string)
+- lease_generated_at (timestamp)
+
+No schema redesign.
+No breaking changes.
+
+========================================
+SECTION 7 — FRONTEND ACCESS
+========================================
+Add “Download Lease Agreement” button:
+
+Visible to:
+- Tenant (after acceptance)
+- Landlord
+- Assigned Agent
+- Admin
+
+Behavior:
+- Opens PDF in new tab
+- Disabled until lease exists
+- Shows loading state
+
+========================================
+SECTION 8 — EMAIL NOTIFICATIONS
+========================================
+After lease generation:
+- Email tenant: “Your Lease Agreement is Ready”
+- Email landlord: “Lease Agreement Generated”
+
+Attach:
+- PDF OR secure download link
+
+DO NOT send unsecured public URLs.
+
+========================================
+SECTION 9 — SECURITY & COMPLIANCE
+========================================
+Enforce:
+- Access control via role + ownership
+- Signed URLs or Supabase policies
+- No public access
+
+Retention:
+- Lease PDFs retained indefinitely
+- No delete UI
+
+========================================
+SECTION 10 — CONSTRAINTS (STRICT)
+========================================
+- DO NOT allow edits after generation
+- DO NOT include SSN data
+- DO NOT include payment tokens
+- DO NOT regenerate on property edits
+- DO NOT expose storage paths
+
+========================================
+EXPECTED RESULT:
+• Legally valid lease PDFs
+• Professional landlord workflow
+• Tenant-ready documentation
+• Audit-safe records
+• Zero disruption to existing systems
+
+Proceed carefully and document changes briefly.

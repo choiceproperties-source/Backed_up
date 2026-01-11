@@ -8,6 +8,7 @@ import { notifyOwnerOfNewApplication, sendStatusChangeNotification, notifyOwnerO
 import * as applicationRepository from "./application.repository";
 import { getRequiredDisclosures } from "@shared/state-disclosures";
 import { generateDisclosurePdf } from "../../services/applicationDisclosurePdf";
+import { generateLeasePdf } from "../../services/leaseAgreementPdf";
 
 /* ------------------------------------------------ */
 /* Constants & Helpers */
@@ -674,6 +675,19 @@ export async function updateStatus(
       input.id,
       updatePayload
     );
+
+  // Generate Lease PDF once approved
+  if (input.status === "approved" && !application.leasePdfUrl) {
+    try {
+      const leaseUrl = await generateLeasePdf(input.id);
+      await applicationRepository.updateApplication(input.id, {
+        leasePdfUrl: leaseUrl,
+        leaseGeneratedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error("[APPLICATION] Lease PDF generation failed:", err);
+    }
+  }
 
   // Generate PDF once at submission
   if (input.status === "submitted" && !application.disclosurePdfUrl) {
