@@ -1,0 +1,72 @@
+TASK: Implement Professional Legal Terms, Disclosures, and Consent Logic
+
+GOAL:
+Add platform-level Terms & Privacy acceptance and application-level legal acknowledgments to the rental application system in a professional, compliant, and auditable way.
+
+SCOPE:
+This task applies ONLY to legal content, consent logic, UI checkboxes, and data storage. Do NOT modify business logic, scoring logic, or unrelated UI.
+
+IMPLEMENTATION REQUIREMENTS:
+
+1. PLATFORM-LEVEL TERMS & PRIVACY
+- Add Terms of Service and Privacy Policy content.
+- Require acceptance during account signup.
+- Store acceptance in the user record with:
+  - terms_version
+  - privacy_version
+  - accepted_at timestamp
+  - accepted_ip
+- Do not auto-check or assume consent.
+
+2. APPLICATION-LEVEL LEGAL CHECKBOXES
+On the final step of the rental application wizard:
+- Add required checkboxes for:
+  - Accuracy & Certification
+  - Authorization to Verify Information
+  - Fair Housing Acknowledgment
+  - Electronic Consent & Signature
+- These must be REQUIRED before submission.
+- Disable submit button until all required boxes are checked.
+
+3. CONDITIONAL DISCLOSURES
+- Show Background/Credit Check disclosures ONLY if:
+  - application requires screening OR application_fee > 0
+- Include:
+  - FCRA Authorization
+  - Adverse Action Acknowledgment
+  - Application Fee Disclosure
+
+4. PROPERTY RULES ACKNOWLEDGMENT
+- Display property rules fetched ONLY from the property record.
+- Do NOT inject platform-generated rules.
+- If rules exist, require acknowledgment checkbox.
+- If no rules exist, do not show the checkbox.
+
+5. DATA STORAGE
+For each submitted application, store:
+- accepted_terms: boolean
+- accepted_privacy: boolean
+- accepted_application_disclosures: boolean
+- accepted_background_check: boolean (if applicable)
+- accepted_property_rules: boolean (if applicable)
+- accepted_at timestamp
+- accepted_ip address
+- terms_version used at submission
+
+6. IMMUTABILITY
+- Once application status transitions from draft → submitted:
+  - Legal acceptance fields become read-only
+  - No edits allowed
+
+7. UI & UX RULES
+- No pre-checked boxes
+- Clear error messages if consent is missing
+- Professional language only
+- No placeholder text
+
+OUTPUT:
+- Legal content rendered cleanly in the UI
+- Full audit trail stored in database
+- Submission blocked until all required legal consents are completed
+
+END TASK
