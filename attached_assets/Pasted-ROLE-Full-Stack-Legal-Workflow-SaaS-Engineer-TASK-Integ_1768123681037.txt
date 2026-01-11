@@ -1,0 +1,67 @@
+ROLE:
+Full-Stack Legal Workflow & SaaS Engineer
+
+TASK:
+Integrate e-signatures into the property rental application and lease workflow, ensuring **legal compliance, autosave, and PDF generation**.
+
+SECTIONS:
+
+1. E-Signature Capture:
+   - Capture **full name, email, and signature** via canvas or input component.
+   - Store the signature **securely** in the backend as:
+     - Base64 image OR
+     - Encrypted PDF annotation
+   - Link signature to the **specific application or lease ID**.
+   - Include **timestamp** of signature.
+
+2. Autosave Integration:
+   - During multi-step application or lease signing:
+     - Save signature and other form data **periodically** using a dedicated endpoint `/api/v2/applications/:id/autosave` or `/api/v2/leases/:id/autosave`.
+     - Ensure **drafts remain editable** and status transitions are not prematurely triggered.
+     - Track **lastSavedStep** for resuming later.
+
+3. Legal Disclosures:
+   - Fetch **state-specific disclosures** based on user’s property state (state_code).
+   - Include disclosures in:
+     - Application preview
+     - Lease PDF
+   - Ensure all disclosures are **acknowledged** before allowing final signature.
+
+4. PDF Generation:
+   - After signature completion:
+     - Generate **downloadable PDF** of application or lease.
+     - Include:
+       - Signature image
+       - Name, date, timestamp
+       - State-specific disclosures
+       - Any attached documents uploaded by the user (ID, paystub, etc.)
+     - Mark PDF as **final and read-only**.
+
+5. Backend Endpoints:
+   - `/api/v2/applications/:id/signature` → submit signature + legal acknowledgments
+   - `/api/v2/applications/:id/download-pdf` → generate full PDF including signature + disclosures
+   - `/api/v2/leases/:id/signature` → submit lease signature + disclosures
+   - `/api/v2/leases/:id/download-pdf` → generate final lease PDF
+
+6. Frontend Flow:
+   - Multi-step wizard for application or lease:
+     1. Fill required fields
+     2. Upload documents (optional)
+     3. Review disclosures (must acknowledge)
+     4. Sign electronically
+     5. **Download signed PDF**
+   - Autosave occurs at each step
+   - Signed PDF preview shows **disclosures + signature + timestamp**
+
+7. Security & Compliance:
+   - Ensure **encrypted storage** for signature images
+   - Verify **timestamp integrity**
+   - Confirm all disclosures are **acknowledged** before final submission
+
+OUTPUT:
+- Fully functional e-signature workflow for applications and leases
+- Autosave on multi-step forms
+- Legal disclosures tied to state
+- PDF generation with signatures and acknowledgments
+- Frontend download button for signed PDFs
+- Backend endpoints for signature submission and PDF download
