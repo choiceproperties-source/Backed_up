@@ -539,18 +539,24 @@ export default function Apply() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500 font-medium">Pet Policy</span>
-                        <span className="font-bold">{property.petsAllowed ? "Pets Allowed" : "No Pets"}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500 font-medium">Smoking</span>
-                        <span className="font-bold">No Smoking</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500 font-medium">Occupancy Limit</span>
-                        <span className="font-bold">2 Persons</span>
-                      </div>
+                      {property.pets_allowed !== null && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500 font-medium">Pet Policy</span>
+                          <span className="font-bold">{property.pets_allowed ? "Pets Allowed" : "No Pets"}</span>
+                        </div>
+                      )}
+                      {property.smoking_allowed !== null && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500 font-medium">Smoking</span>
+                          <span className="font-bold">{property.smoking_allowed ? "Allowed" : "No Smoking"}</span>
+                        </div>
+                      )}
+                      {property.rules_text && (
+                        <div className="text-sm border-t pt-2 mt-2">
+                          <span className="text-gray-500 font-medium block mb-1">Additional Rules</span>
+                          <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{property.rules_text}</span>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -638,19 +644,28 @@ export default function Apply() {
                           <FormField
                             control={form.control}
                             name="rulesAcknowledged"
-                            render={({ field }) => (
-                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-primary/5 border border-primary/20 rounded-none mb-6">
-                                <FormControl>
-                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                  <FormLabel className="font-bold text-primary">I have read and agree to the property rules and requirements listed above.</FormLabel>
-                                  <FormDescription className="text-xs">
-                                    Acknowledgment is required to submit your application.
-                                  </FormDescription>
-                                </div>
-                              </FormItem>
-                            )}
+                            render={({ field }) => {
+                              const rules = [];
+                              if (property.pets_allowed !== null) rules.push(property.pets_allowed ? "Pets Allowed" : "No Pets");
+                              if (property.smoking_allowed !== null) rules.push(property.smoking_allowed ? "Smoking Allowed" : "No Smoking");
+                              if (property.rules_text) rules.push("Property Rules");
+                              
+                              if (rules.length === 0) return null;
+
+                              return (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-primary/5 border border-primary/20 rounded-none mb-6">
+                                  <FormControl>
+                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                  </FormControl>
+                                  <div className="space-y-1 leading-none">
+                                    <FormLabel className="font-bold text-primary">I have read and agree to the property rules and requirements ({rules.join(", ")}) listed above.</FormLabel>
+                                    <FormDescription className="text-xs">
+                                      Acknowledgment is required to submit your application.
+                                    </FormDescription>
+                                  </div>
+                                </FormItem>
+                              );
+                            }}
                           />
 
                           <FormField

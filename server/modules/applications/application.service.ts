@@ -273,13 +273,13 @@ export async function createApplication(
     propertyTitleSnapshot: property.title,
     propertyAddressSnapshot: property.address,
     propertyTypeSnapshot: property.property_type || "Residential",
-    // Rules & Policies
+    // Rules & Policies snapshot
     policiesSnapshot: {
-      petPolicy: property.pets_allowed ? "Pets Allowed" : "No Pets",
-      smokingPolicy: "No Smoking",
-      occupancyLimit: 2,
+      petPolicy: property.pets_allowed ? "Pets Allowed" : (property.pets_allowed === false ? "No Pets" : null),
+      smokingPolicy: property.smoking_allowed ? "Smoking Allowed" : (property.smoking_allowed === false ? "No Smoking" : null),
+      occupancyLimit: (property as any).occupancy_limit || 2,
       utilitiesIncluded: property.utilities_included || [],
-      hoaRules: null,
+      rulesText: property.rules_text || null,
     },
     propertyVersionSnapshot: property.version || 1,
     propertyStatusAtApplyTime: property.listing_status || property.status || "available",
