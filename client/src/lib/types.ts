@@ -79,6 +79,12 @@ export interface Property {
   save_count: number | null;
   application_fee: string | null;
   available_from: string | null;
+  rules_text: string | null;
+  smoking_allowed: boolean | null;
+  parking_available: boolean | null;
+  security_deposit: string | null;
+  lease_term_months: number | null;
+  available_date: string | null;
   created_at: string;
   updated_at: string | null;
   owner?: Owner;

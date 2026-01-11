@@ -405,13 +405,60 @@ export default function PropertyDetails() {
                       <p className="font-bold">{property.furnished ? "Yes" : "No"}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <p className="text-xs text-gray-500 font-bold uppercase">Pets Allowed</p>
-                      <p className="font-bold">{property.pets_allowed ? "Yes" : "No"}</p>
+                  {property.pets_allowed !== null && (
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-gray-500 font-bold uppercase">Pets Allowed</p>
+                        <p className="font-bold">{property.pets_allowed ? "Yes" : "No"}</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
+                  {property.smoking_allowed !== null && (
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-gray-500 font-bold uppercase">Smoking Allowed</p>
+                        <p className="font-bold">{property.smoking_allowed ? "Yes" : "No"}</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.parking_available !== null && (
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-gray-500 font-bold uppercase">Parking</p>
+                        <p className="font-bold">{property.parking_available ? "Yes" : "No"}</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.lease_term_months && (
+                    <div className="flex items-start gap-3">
+                      <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-gray-500 font-bold uppercase">Lease Duration</p>
+                        <p className="font-bold">{property.lease_term_months} Months</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.security_deposit && (
+                    <div className="flex items-start gap-3">
+                      <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-gray-500 font-bold uppercase">Security Deposit</p>
+                        <p className="font-bold">{formatPrice(property.security_deposit)}</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.available_date && (
+                    <div className="flex items-start gap-3">
+                      <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-gray-500 font-bold uppercase">Move-in Date</p>
+                        <p className="font-bold">{new Date(property.available_date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  )}
                   {property.square_feet && (
                     <div className="flex items-start gap-3">
                       <Ruler className="h-5 w-5 text-blue-600 mt-0.5" />
@@ -422,6 +469,15 @@ export default function PropertyDetails() {
                     </div>
                   )}
                 </div>
+
+                {property.rules_text && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold uppercase text-gray-500 tracking-wider">Property Rules</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed whitespace-pre-wrap">
+                      {property.rules_text}
+                    </p>
+                  </div>
+                )}
 
                 {Array.isArray(property.utilities_included) && property.utilities_included.length > 0 && (
                   <div className="space-y-3">
