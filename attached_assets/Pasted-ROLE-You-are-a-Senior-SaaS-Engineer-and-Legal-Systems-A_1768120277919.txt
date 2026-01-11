@@ -1,0 +1,165 @@
+ROLE:
+You are a Senior SaaS Engineer and Legal Systems Architect specializing in e-signatures and contract compliance.
+
+TASK:
+Implement a secure, legally valid E-SIGNATURE system for Lease Agreements.
+
+DO NOT refactor unrelated code.
+DO NOT require Autonomous Mode.
+DO NOT use third-party paid signature services (DocuSign, HelloSign).
+Use an internal typed + intent-based signature model compliant with ESIGN & UETA.
+
+====================================
+1. LEGAL BASIS (REQUIRED)
+====================================
+
+The e-signature must comply with:
+- U.S. ESIGN Act
+- UETA (state-level)
+
+Legal requirements to satisfy:
+- Intent to sign
+- Consent to do business electronically
+- Clear attribution of signature
+- Audit trail
+- Record retention
+
+====================================
+2. SIGNING FLOW
+====================================
+
+Trigger conditions:
+- Lease PDF already generated
+- Application status = APPROVED
+- Lease status = PENDING_SIGNATURE
+
+Signing order:
+1. Tenant signs first
+2. Landlord signs second
+3. Lease becomes FINALIZED
+
+No parallel signing.
+
+====================================
+3. SIGNATURE CAPTURE (FRONTEND)
+====================================
+
+UI location:
+client/src/pages/lease-signing.tsx
+
+Signature method:
+- Typed full legal name
+- Required checkbox:
+  “I agree to sign this lease electronically”
+- Required checkbox:
+  “I acknowledge this signature is legally binding”
+- Auto-capture:
+  - Timestamp
+  - IP address
+  - User ID
+  - Role (tenant / landlord)
+
+Disable submit unless:
+- Name matches account legal name
+- Both checkboxes checked
+
+====================================
+4. BACKEND SIGNATURE RECORDING
+====================================
+
+Create:
+server/services/leaseSignature.service.ts
+
+API:
+POST /api/leases/:applicationId/sign
+
+Responsibilities:
+- Validate role & signing order
+- Validate lease exists
+- Append signature record (immutable)
+- Update lease status
+
+====================================
+5. DATABASE STRUCTURE (MINIMAL)
+====================================
+
+Add table:
+lease_signatures
+
+Fields:
+- id
+- application_id
+- signer_user_id
+- signer_role
+- signer_name
+- signed_at
+- ip_address
+- user_agent
+
+Add to applications:
+- lease_status (pending_signature | partially_signed | signed)
+- lease_fully_signed_at
+
+====================================
+6. PDF FINALIZATION
+====================================
+
+After BOTH signatures:
+- Generate FINAL lease PDF
+- Embed:
+  - Signature names
+  - Dates
+  - “Electronically signed under ESIGN Act”
+- Store as:
+  applications/{applicationId}/lease-agreement-signed.pdf
+
+Original unsigned lease remains immutable.
+
+====================================
+7. AUDIT TRAIL
+====================================
+
+Persist:
+- Signature order
+- Timestamps
+- IP addresses
+- Consent flags
+
+Expose read-only audit data to:
+- Admin
+- Legal review (future)
+
+====================================
+8. UI STATES
+====================================
+
+Tenant view:
+- “Sign Lease” button
+- Status badge: Awaiting Landlord Signature
+
+Landlord view:
+- “Sign Lease” button appears only after tenant signs
+
+All views:
+- Download Signed Lease (once complete)
+
+====================================
+9. SECURITY RULES
+====================================
+
+- No edits after signing
+- No re-signing
+- One signature per role
+- Role-based API guards
+- Secure PDF access only
+
+====================================
+EXPECTED RESULT
+====================================
+
+• Legally valid e-signatures  
+• Clear signing intent & consent  
+• Immutable audit trail  
+• Professional SaaS-grade lease workflow  
+
+Implement step-by-step with brief comments.
