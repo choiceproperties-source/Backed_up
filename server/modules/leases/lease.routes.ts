@@ -8,6 +8,28 @@ import { createLeasePdfStream } from "../../services/leaseAgreementPdf";
 const leaseService = new LeaseService();
 
 export function registerLeaseRoutes(app: Express): void {
+  // PATCH /api/v2/leases/:id/autosave - Autosave lease draft
+  app.patch("/api/v2/leases/:id/autosave", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { step, data } = req.body;
+      const { data: updated, error } = await supabase
+        .from("applications") // Leases are currently tracked via applications table status in this project
+        .update({
+          ...data,
+          last_saved_step: step,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", req.params.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return res.json(success(updated, "Lease autosaved"));
+    } catch (err: any) {
+      return res.status(500).json(errorResponse("Autosave failed"));
+    }
+  });
+
   // GET /api/v2/leases/:applicationId/download-signed-pdf - Download signed lease PDF
   app.get("/api/v2/leases/:applicationId/download-signed-pdf", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {

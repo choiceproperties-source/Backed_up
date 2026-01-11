@@ -68,6 +68,20 @@ export default function LeaseSigning() {
     },
   });
 
+  // Autosave logic
+  const autosaveMutation = useMutation({
+    mutationFn: async (step: number) => {
+      await apiRequest("PATCH", `/api/v2/leases/${applicationId}/autosave`, {
+        step,
+        data: form.getValues(),
+      });
+    },
+  });
+
+  const onStepChange = (step: number) => {
+    autosaveMutation.mutate(step);
+  };
+
   const form = useForm<SignatureFormValues>({
     resolver: zodResolver(signatureSchema),
     defaultValues: {
