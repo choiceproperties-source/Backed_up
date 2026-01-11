@@ -121,6 +121,52 @@ export function registerLeaseRoutes(app: Express): void {
     }
   });
 
+  // POST /api/v2/leases/generate-pdf - Generate lease PDF for approved application
+  app.post("/api/v2/leases/generate-pdf", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { application_id } = req.body;
+      if (!application_id) return res.status(400).json(errorResponse("application_id is required"));
+
+      // Verify application status and ownership (simplified for now)
+      const { data: application, error: fetchError } = await supabase
+        .from("applications")
+        .select("*")
+        .eq("id", application_id)
+        .single();
+
+      if (fetchError || !application) return res.status(404).json(errorResponse("Application not found"));
+      if (application.status !== "approved" && application.status !== "move_in_ready") {
+        return res.status(400).json(errorResponse("Lease PDF can only be generated for approved applications"));
+      }
+
+      // In a real app, we might upload to Supabase Storage and return a signed URL.
+      // For now, we return a direct link to the stream endpoint.
+      const signedUrl = `/api/v2/leases/${application_id}/download-pdf`;
+      
+      return res.json(success({ signedUrl }, "Lease PDF generated successfully"));
+    } catch (err: any) {
+      console.error("[LEASES] Generate PDF error:", err);
+      return res.status(500).json(errorResponse("Failed to generate lease PDF"));
+    }
+  });
+
+  // GET /api/v2/leases/:applicationId/download-pdf - Stream lease PDF (Draft or Final)
+  app.get("/api/v2/leases/:applicationId/download-pdf", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const applicationId = req.params.applicationId;
+      const { data: application } = await supabase.from("applications").select("lease_signature_status").eq("id", applicationId).single();
+      const isSigned = application?.lease_signature_status === "signed";
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=lease-${applicationId}.pdf`);
+      
+      await createLeasePdfStream(applicationId, res, isSigned);
+    } catch (err: any) {
+      console.error("[LEASES] Download PDF error:", err);
+      if (!res.headersSent) res.status(500).json(errorResponse("Failed to stream PDF"));
+    }
+  });
+
   // GET /api/v2/leases/:applicationId/download-signed-pdf - Download signed lease PDF
   app.get("/api/v2/leases/:applicationId/download-signed-pdf", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
