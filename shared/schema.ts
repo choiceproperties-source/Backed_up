@@ -406,6 +406,8 @@ export const applications = pgTable("applications", {
   leaseSignatureStatus: text("lease_signature_status").default("pending_signature"), // pending_signature, partially_signed, signed
   leaseFullySignedAt: timestamp("lease_fully_signed_at"),
   leaseGeneratedAtSnapshot: timestamp("lease_generated_at_snapshot"),
+  stateCode: text("state_code"), // The state where the property is located
+  stateDisclosureAcknowledged: boolean("state_disclosure_acknowledged").default(false),
   legalDisclosures: jsonb("legal_disclosures").$type<{
     fairHousingAcknowledged: boolean;
     creditCheckAuthorized: boolean;

@@ -101,7 +101,12 @@ export class LeaseRepository {
     // Prevent modification by setting is_locked: true
     const { data, error } = await supabase
       .from("lease_signatures")
-      .insert([{ ...signature, is_locked: true }])
+      .insert([{ 
+        ...signature, 
+        is_locked: true,
+        state_code: signature.state_code,
+        state_disclosure_acknowledged: signature.state_disclosure_acknowledged
+      }])
       .select()
       .single();
 
