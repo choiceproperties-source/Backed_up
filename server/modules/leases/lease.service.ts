@@ -188,6 +188,20 @@ export class LeaseService {
   async signLease(applicationId: string, userId: string, userRole: string, signatureData: any, req: any): Promise<any> {
     const signatures = await this.repository.findSignaturesByApplicationId(applicationId);
     
+    // Fetch state disclosures logic (e.g. from properties table or hardcoded lookup)
+    const stateDisclosuresLookup: Record<string, string> = {
+      "CA": "California E-Signature Disclosure: You agree that your electronic signature is the legal equivalent of your manual signature on this Agreement. Under the California Uniform Electronic Transactions Act (UETA), this Agreement is legally binding.",
+      "NY": "New York E-Signature Disclosure: This document is being signed electronically pursuant to the New York Electronic Signatures and Records Act (ESRA). Your electronic signature has the same validity and enforceability as a handwritten signature.",
+      "TX": "Texas E-Signature Disclosure: You acknowledge that your electronic signature on this Agreement is legally binding under the Texas Uniform Electronic Transactions Act.",
+    };
+
+    const stateDisclosureText = stateDisclosuresLookup[signatureData.stateCode] || "Standard E-Signature Disclosure: By signing this document, you agree that your electronic signature is legally binding and has the same effect as a handwritten signature.";
+
+    // Validate state disclosure acknowledgment
+    if (!signatureData.stateCode || !signatureData.stateDisclosureAcknowledged) {
+      throw { status: 400, message: "You must acknowledge the state-specific e-signature disclosure" };
+    }
+
     // 1. Validate role & identity
     // Map roles to normalized 'tenant' or 'landlord'
     let signerRole = "";
@@ -222,6 +236,8 @@ export class LeaseService {
       user_agent: req.headers['user-agent'],
       consent_esign: signatureData.consentElectronic ?? true,
       consent_terms: signatureData.consentBinding ?? true,
+      state_code: signatureData.stateCode,
+      state_disclosure_acknowledged: signatureData.stateDisclosureAcknowledged,
       is_locked: true,
     };
 

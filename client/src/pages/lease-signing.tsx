@@ -18,9 +18,16 @@ const signatureSchema = z.object({
   signerName: z.string().min(2, "Full legal name is required"),
   consentElectronic: z.boolean().refine(val => val === true, "You must agree to sign electronically"),
   consentBinding: z.boolean().refine(val => val === true, "You must acknowledge this is legally binding"),
+  stateDisclosureAcknowledged: z.boolean().refine(val => val === true, "You must acknowledge the state-specific disclosure"),
 });
 
 type SignatureFormValues = z.infer<typeof signatureSchema>;
+
+const STATE_DISCLOSURES: Record<string, string> = {
+  "CA": "California E-Signature Disclosure: You agree that your electronic signature is the legal equivalent of your manual signature on this Agreement. Under the California Uniform Electronic Transactions Act (UETA), this Agreement is legally binding.",
+  "NY": "New York E-Signature Disclosure: This document is being signed electronically pursuant to the New York Electronic Signatures and Records Act (ESRA). Your electronic signature has the same validity and enforceability as a handwritten signature.",
+  "TX": "Texas E-Signature Disclosure: You acknowledge that your electronic signature on this Agreement is legally binding under the Texas Uniform Electronic Transactions Act.",
+};
 
 export default function LeaseSigning() {
   const [, params] = useRoute("/lease-signing/:applicationId");
@@ -39,7 +46,10 @@ export default function LeaseSigning() {
 
   const signLeaseMutation = useMutation({
     mutationFn: async (values: SignatureFormValues) => {
-      const res = await apiRequest("POST", `/api/v2/leases/${applicationId}/sign`, values);
+      const res = await apiRequest("POST", `/api/v2/leases/${applicationId}/sign`, {
+        ...values,
+        stateCode: application?.stateSnapshot || application?.properties?.state || "US",
+      });
       return res.json();
     },
     onSuccess: () => {
@@ -64,6 +74,7 @@ export default function LeaseSigning() {
       signerName: "",
       consentElectronic: false,
       consentBinding: false,
+      stateDisclosureAcknowledged: false,
     },
   });
 
@@ -89,6 +100,9 @@ export default function LeaseSigning() {
   const userRole = user?.role;
   const isTenant = userRole === "renter";
   const isLandlord = userRole === "owner" || userRole === "landlord";
+
+  const propertyState = application?.stateSnapshot || application?.properties?.state || "US";
+  const stateDisclosure = STATE_DISCLOSURES[propertyState] || "Standard E-Signature Disclosure: By signing this document, you agree that your electronic signature is legally binding and has the same effect as a handwritten signature.";
 
   // Logic for button visibility
   const canTenantSign = isTenant && !isPartiallySigned && !isSigned;
@@ -184,6 +198,38 @@ export default function LeaseSigning() {
                 />
 
                 <div className="space-y-4 rounded-md border p-4 bg-muted/30">
+                  <div className="mb-4 pb-4 border-b">
+                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      State-Specific Legal Disclosure ({propertyState})
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed italic">
+                      {stateDisclosure}
+                    </p>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="stateDisclosureAcknowledged"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={signLeaseMutation.isPending}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-primary font-semibold">I acknowledge the state disclosure above</FormLabel>
+                          <p className="text-xs text-muted-foreground">
+                            Required by {propertyState} law for electronic transactions.
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
                   <FormField
                     control={form.control}
                     name="consentElectronic"
