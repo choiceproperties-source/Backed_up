@@ -721,6 +721,82 @@ export async function sendPaymentFailureNotification(
   }
 }
 
+// Send notification reminder for pending actions (unsigned leases, incomplete applications)
+export async function sendReminder(
+  userId: string,
+  type: "unsigned_lease" | "incomplete_application",
+  metadata: {
+    applicationId: string;
+    propertyName: string;
+    targetStep?: number;
+    targetPath?: string;
+  }
+): Promise<boolean> {
+  try {
+    const { data: user } = await getSupabase()
+      .from("users")
+      .select("id, email, full_name")
+      .eq("id", userId)
+      .single();
+
+    if (!user?.email) return false;
+
+    // Throttle: Max 1 reminder per user per 24 hours
+    const { data: recentReminder } = await getSupabase()
+      .from("application_notifications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("notification_type", "reminder")
+      .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .limit(1);
+
+    if (recentReminder && recentReminder.length > 0) {
+      console.log(`[NOTIFICATION] Skipping reminder for user ${userId}, sent within 24h`);
+      return false;
+    }
+
+    const subject = type === "unsigned_lease" 
+      ? `Action Required: Please Sign Your Lease for ${metadata.propertyName}`
+      : `Reminder: Complete Your Application for ${metadata.propertyName}`;
+
+    const content = type === "unsigned_lease"
+      ? `<p>Hi ${user.full_name || "Applicant"},</p>
+         <p>You have an unsigned lease for <strong>${metadata.propertyName}</strong>.</p>
+         <p>Please log in to review and sign the agreement to finalize your move-in.</p>
+         <p><a href="${process.env.VITE_APP_URL || ''}${metadata.targetPath || '/'}">Click here to sign now</a></p>
+         <p>Best regards,<br>Choice Properties</p>`
+      : `<p>Hi ${user.full_name || "Applicant"},</p>
+         <p>We noticed you haven't finished your application for <strong>${metadata.propertyName}</strong>.</p>
+         <p>You were last on step ${metadata.targetStep || 1}. Pick up where you left off to secure your new home!</p>
+         <p><a href="${process.env.VITE_APP_URL || ''}${metadata.targetPath || '/'}">Click here to continue</a></p>
+         <p>Best regards,<br>Choice Properties</p>`;
+
+    const notificationId = await createNotificationRecord({
+      applicationId: metadata.applicationId,
+      userId: user.id,
+      type: "reminder",
+      subject,
+      content,
+      metadata: {
+        reminderType: type,
+        targetPath: metadata.targetPath,
+        targetStep: metadata.targetStep
+      }
+    });
+
+    const result = await sendEmail({ to: user.email, subject, html: content });
+
+    if (notificationId) {
+      await updateNotificationStatus(notificationId, result.success ? "sent" : "failed");
+    }
+
+    return result.success;
+  } catch (err) {
+    console.error("[NOTIFICATION] Failed to send reminder:", err);
+    return false;
+  }
+}
+
 // Send lease signature complete notification
 export async function sendLeaseSignatureCompleteNotification(
   applicationId: string,

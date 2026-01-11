@@ -409,8 +409,6 @@ export const applications = pgTable("applications", {
   stateCode: text("state_code"), // The state where the property is located
   stateDisclosureAcknowledged: boolean("state_disclosure_acknowledged").default(false),
   legalDisclosures: jsonb("legal_disclosures").$type<{
-    fairHousingAcknowledged: boolean;
-    creditCheckAuthorized: boolean;
     accuracyCertified: boolean;
     feeAcknowledged: boolean;
     fcraConsent: boolean;
