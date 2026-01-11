@@ -402,6 +402,9 @@ export const applications = pgTable("applications", {
   disclosurePdfUrl: text("disclosure_pdf_url"),
   leasePdfUrl: text("lease_pdf_url"),
   leaseGeneratedAt: timestamp("lease_generated_at"),
+  // Lease e-signature fields
+  leaseSignatureStatus: text("lease_signature_status").default("pending_signature"), // pending_signature, partially_signed, signed
+  leaseFullySignedAt: timestamp("lease_fully_signed_at"),
   legalDisclosures: jsonb("legal_disclosures").$type<{
     fairHousingAcknowledged: boolean;
     creditCheckAuthorized: boolean;
@@ -555,6 +558,27 @@ export const favorites = pgTable("favorites", {
 }, (table) => ({
   userPropertyUnique: unique().on(table.userId, table.propertyId),
 }));
+
+export const leaseSignatures = pgTable("lease_signatures", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "cascade" }),
+  signerUserId: uuid("signer_user_id").references(() => users.id, { onDelete: "cascade" }),
+  signerRole: text("signer_role").notNull(), // tenant, landlord
+  signerName: text("signer_name").notNull(),
+  signedAt: timestamp("signed_at").defaultNow(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  consentElectronic: boolean("consent_electronic").default(true),
+  consentBinding: boolean("consent_binding").default(true),
+});
+
+export const insertLeaseSignatureSchema = createInsertSchema(leaseSignatures).omit({
+  id: true,
+  signedAt: true,
+});
+
+export type LeaseSignature = typeof leaseSignatures.$inferSelect;
+export type InsertLeaseSignature = z.infer<typeof insertLeaseSignatureSchema>;
 
 export const savedSearches = pgTable("saved_searches", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
