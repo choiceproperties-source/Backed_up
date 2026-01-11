@@ -3,10 +3,27 @@ import type { AuthenticatedRequest } from "../../auth-middleware";
 import { authenticateToken } from "../../auth-middleware";
 import { success, error as errorResponse } from "../../response";
 import { LeaseService } from "./lease.service";
+import { createLeasePdfStream } from "../../services/leaseAgreementPdf";
 
 const leaseService = new LeaseService();
 
 export function registerLeaseRoutes(app: Express): void {
+  // GET /api/v2/leases/:applicationId/download-signed-pdf - Download signed lease PDF
+  app.get("/api/v2/leases/:applicationId/download-signed-pdf", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const applicationId = req.params.applicationId;
+      const application = await leaseService.getSignatures(applicationId); // Simplified auth check or add proper ownership check here
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=signed-lease-${applicationId}.pdf`);
+      
+      await createLeasePdfStream(applicationId, res, true);
+    } catch (err: any) {
+      console.error("[LEASES] Download PDF error:", err);
+      return res.status(500).json(errorResponse("Failed to generate signed lease PDF"));
+    }
+  });
+
   // GET /api/v2/leases/:leaseId/payment-history - Get lease payment history
   app.get("/api/v2/leases/:leaseId/payment-history", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {

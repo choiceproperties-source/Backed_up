@@ -144,7 +144,7 @@ export default function LeaseSigning() {
             </div>
           </div>
 
-          {isSigned && application.signed_lease_pdf_url && (
+          {isSigned && (application.signed_lease_pdf_url || application.id) && (
             <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <ShieldCheck className="h-5 w-5 text-primary" />
@@ -154,7 +154,7 @@ export default function LeaseSigning() {
                 </div>
               </div>
               <Button asChild size="sm" variant="outline">
-                <a href={application.signed_lease_pdf_url} target="_blank" rel="noopener noreferrer">
+                <a href={`/api/v2/leases/${applicationId}/download-signed-pdf`} target="_blank" rel="noopener noreferrer">
                   <Download className="mr-2 h-4 w-4" />
                   Download PDF
                 </a>

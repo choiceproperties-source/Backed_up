@@ -81,7 +81,19 @@ export async function createLeasePdfStream(applicationId: string, res: any, isSi
   if (isSigned) {
     doc.moveDown();
     doc.fontSize(12).font('Helvetica-Bold').text('ELECTRONIC SIGNATURE DISCLOSURE', { underline: true });
-    doc.fontSize(8).font('Helvetica').text('By providing an electronic signature, both parties agree that this document is legally binding under the Electronic Signatures in Global and National Commerce (ESIGN) Act. Both parties acknowledge that they have read and understood the terms of this lease agreement.', { align: 'justify' });
+    
+    // Fetch state disclosure text based on state_code
+    const stateDisclosuresLookup: Record<string, string> = {
+      "CA": "California E-Signature Disclosure: You agree that your electronic signature is the legal equivalent of your manual signature on this Agreement. Under the California Uniform Electronic Transactions Act (UETA), this Agreement is legally binding.",
+      "NY": "New York E-Signature Disclosure: This document is being signed electronically pursuant to the New York Electronic Signatures and Records Act (ESRA). Your electronic signature has the same validity and enforceability as a handwritten signature.",
+      "TX": "Texas E-Signature Disclosure: You acknowledge that your electronic signature on this Agreement is legally binding under the Texas Uniform Electronic Transactions Act.",
+    };
+
+    const firstSigWithState = signatures.find(s => s.state_code);
+    const stateDisclosureText = (firstSigWithState?.state_code && stateDisclosuresLookup[firstSigWithState.state_code]) 
+      || 'By providing an electronic signature, both parties agree that this document is legally binding under the Electronic Signatures in Global and National Commerce (ESIGN) Act. Both parties acknowledge that they have read and understood the terms of this lease agreement.';
+
+    doc.fontSize(8).font('Helvetica').text(stateDisclosureText, { align: 'justify' });
   }
   
   doc.moveDown();
@@ -93,17 +105,17 @@ export async function createLeasePdfStream(applicationId: string, res: any, isSi
   const landlordSig = signatures.find(s => s.signer_role === 'landlord');
 
   doc.fontSize(10).font('Helvetica').text(`TENANT SIGNATURE: ${tenantSig?.signer_name || user?.full_name || 'N/A'}`);
-  doc.text(`Date: ${tenantSig ? new Date(tenantSig.signedAt).toLocaleString() : (isSigned ? 'N/A' : new Date().toLocaleDateString())}`);
+  doc.text(`Date: ${tenantSig ? new Date(tenantSig.created_at).toLocaleString() : (isSigned ? 'N/A' : new Date().toLocaleDateString())}`);
   if (tenantSig) {
-    doc.fontSize(8).text(`IP Address: ${tenantSig.ip_address} | Method: Electronic Consent Verified`, { color: 'grey' });
+    doc.fontSize(8).text(`IP Address: ${tenantSig.ip_address} | Method: Electronic Consent Verified | Disclosure Acknowledged: ${tenantSig.state_disclosure_acknowledged ? 'Yes' : 'No'} (${tenantSig.state_code})`, { color: 'grey' });
   }
   
   doc.moveDown();
   
   doc.fontSize(10).font('Helvetica').text(`LANDLORD SIGNATURE: ${landlordSig?.signer_name || owner?.full_name || 'Choice Properties Authorized Agent'}`);
-  doc.text(`Date: ${landlordSig ? new Date(landlordSig.signedAt).toLocaleString() : (isSigned ? 'N/A' : new Date().toLocaleDateString())}`);
+  doc.text(`Date: ${landlordSig ? new Date(landlordSig.created_at).toLocaleString() : (isSigned ? 'N/A' : new Date().toLocaleDateString())}`);
   if (landlordSig) {
-    doc.fontSize(8).text(`IP Address: ${landlordSig.ip_address} | Method: Electronic Consent Verified`, { color: 'grey' });
+    doc.fontSize(8).text(`IP Address: ${landlordSig.ip_address} | Method: Electronic Consent Verified | Disclosure Acknowledged: ${landlordSig.state_disclosure_acknowledged ? 'Yes' : 'No'} (${landlordSig.state_code})`, { color: 'grey' });
   }
   
   doc.moveDown(2);
