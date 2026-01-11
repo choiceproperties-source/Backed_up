@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -11,14 +11,16 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, FileCheck, ShieldCheck, Signature, Download, Clock } from "lucide-react";
+import { Loader2, FileCheck, ShieldCheck, Signature, Download, Clock, Eraser } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 const signatureSchema = z.object({
   signerName: z.string().min(2, "Full legal name is required"),
+  signatureData: z.string().min(100, "Please provide your signature"),
   consentElectronic: z.boolean().refine(val => val === true, "You must agree to sign electronically"),
   consentBinding: z.boolean().refine(val => val === true, "You must acknowledge this is legally binding"),
   stateDisclosureAcknowledged: z.boolean().refine(val => val === true, "You must acknowledge the state-specific disclosure"),
+  attestationAcknowledged: z.boolean().refine(val => val === true, "You must certify your signature"),
 });
 
 type SignatureFormValues = z.infer<typeof signatureSchema>;
@@ -28,6 +30,116 @@ const STATE_DISCLOSURES: Record<string, string> = {
   "NY": "New York E-Signature Disclosure: This document is being signed electronically pursuant to the New York Electronic Signatures and Records Act (ESRA). Your electronic signature has the same validity and enforceability as a handwritten signature.",
   "TX": "Texas E-Signature Disclosure: You acknowledge that your electronic signature on this Agreement is legally binding under the Texas Uniform Electronic Transactions Act.",
 };
+
+function SignatureCanvas({ value, onChange, disabled }: { value: string, onChange: (val: string) => void, disabled?: boolean }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+
+    if (value && !isDrawing) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = value;
+    }
+  }, [value]);
+
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    if (disabled) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing || disabled) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    if (!isDrawing) return;
+    setIsDrawing(false);
+    const canvas = canvasRef.current;
+    if (canvas) {
+      onChange(canvas.toDataURL());
+    }
+  };
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    onChange("");
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="relative border-2 border-dashed border-muted-foreground/25 rounded-lg bg-white overflow-hidden h-40 touch-none">
+        <canvas
+          ref={canvasRef}
+          width={600}
+          height={160}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+          onTouchStart={startDrawing}
+          onTouchMove={draw}
+          onTouchEnd={stopDrawing}
+          className="w-full h-full cursor-crosshair"
+        />
+        {!value && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-muted-foreground/50">
+            Sign here
+          </div>
+        )}
+        {!disabled && value && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-destructive"
+            onClick={clear}
+          >
+            <Eraser className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function LeaseSigning() {
   const [, params] = useRoute("/lease-signing/:applicationId");
@@ -42,6 +154,37 @@ export default function LeaseSigning() {
   const { data: application, isLoading: isLoadingApp } = useQuery<any>({
     queryKey: [`/api/v2/applications/${applicationId}`],
     enabled: !!applicationId,
+  });
+
+  const form = useForm<SignatureFormValues>({
+    resolver: zodResolver(signatureSchema),
+    defaultValues: {
+      signerName: "",
+      signatureData: "",
+      consentElectronic: false,
+      consentBinding: false,
+      stateDisclosureAcknowledged: false,
+      attestationAcknowledged: false,
+    },
+  });
+
+  // Autosave logic
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (applicationId && !isSigned) {
+        autosaveMutation.mutate();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch, applicationId]);
+
+  const autosaveMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("PATCH", `/api/v2/leases/${applicationId}/autosave`, {
+        step: 4, // Signing step
+        data: form.getValues(),
+      });
+    },
   });
 
   const signLeaseMutation = useMutation({
@@ -65,30 +208,6 @@ export default function LeaseSigning() {
         title: "Signing Failed",
         description: error.message || "Failed to submit signature. Please try again.",
       });
-    },
-  });
-
-  // Autosave logic
-  const autosaveMutation = useMutation({
-    mutationFn: async (step: number) => {
-      await apiRequest("PATCH", `/api/v2/leases/${applicationId}/autosave`, {
-        step,
-        data: form.getValues(),
-      });
-    },
-  });
-
-  const onStepChange = (step: number) => {
-    autosaveMutation.mutate(step);
-  };
-
-  const form = useForm<SignatureFormValues>({
-    resolver: zodResolver(signatureSchema),
-    defaultValues: {
-      signerName: "",
-      consentElectronic: false,
-      consentBinding: false,
-      stateDisclosureAcknowledged: false,
     },
   });
 
@@ -211,6 +330,24 @@ export default function LeaseSigning() {
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name="signatureData"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Electronic Signature</FormLabel>
+                      <FormControl>
+                        <SignatureCanvas 
+                          value={field.value} 
+                          onChange={field.onChange}
+                          disabled={signLeaseMutation.isPending}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <div className="space-y-4 rounded-md border p-4 bg-muted/30">
                   <div className="mb-4 pb-4 border-b">
                     <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
@@ -282,6 +419,28 @@ export default function LeaseSigning() {
                           <FormLabel>I understand this is legally binding</FormLabel>
                           <p className="text-xs text-muted-foreground">
                             By signing, you agree to all terms of the lease agreement.
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="attestationAcknowledged"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-2 border-t">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={signLeaseMutation.isPending}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="font-bold text-destructive underline">Legal Attestation</FormLabel>
+                          <p className="text-sm font-medium">
+                            I certify under penalty of perjury that this is my legal signature.
                           </p>
                         </div>
                       </FormItem>
