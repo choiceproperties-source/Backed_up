@@ -80,4 +80,19 @@ export function registerLeaseRoutes(app: Express): void {
       return res.status(500).json(errorResponse("Failed to sign lease"));
     }
   });
+
+  // GET /api/v2/leases/:applicationId/signatures - Get audit data for admins
+  app.get("/api/v2/leases/:applicationId/signatures", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user!.role !== "admin") {
+        return res.status(403).json(errorResponse("Only admins can access lease audit data"));
+      }
+
+      const result = await leaseService.getSignatures(req.params.applicationId);
+      return res.json(success(result, "Lease audit data retrieved successfully"));
+    } catch (err: any) {
+      console.error("[LEASES] Audit data error:", err);
+      return res.status(500).json(errorResponse("Failed to retrieve lease audit data"));
+    }
+  });
 }

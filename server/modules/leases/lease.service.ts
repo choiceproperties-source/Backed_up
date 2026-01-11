@@ -220,8 +220,9 @@ export class LeaseService {
       signer_name: signatureData.signerName,
       ip_address: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress,
       user_agent: req.headers['user-agent'],
-      consent_electronic: signatureData.consentElectronic ?? true,
-      consent_binding: signatureData.consentBinding ?? true,
+      consent_esign: signatureData.consentElectronic ?? true,
+      consent_terms: signatureData.consentBinding ?? true,
+      is_locked: true,
     };
 
     const recorded = await this.repository.recordSignature(signatureRecord);
@@ -260,5 +261,9 @@ export class LeaseService {
       status: newStatus,
       signature: recorded
     };
+  }
+
+  async getSignatures(applicationId: string): Promise<any> {
+    return await this.repository.findSignaturesByApplicationId(applicationId);
   }
 }
