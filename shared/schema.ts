@@ -406,6 +406,10 @@ export const applications = pgTable("applications", {
     feeAcknowledged: boolean;
     acknowledgedAt: string;
   }>(),
+  stateDisclosures: jsonb("state_disclosures").$type<Record<string, {
+    acknowledged: boolean;
+    acknowledgedAt: string;
+  }>>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),

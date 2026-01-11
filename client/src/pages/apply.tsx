@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
-import { format } from "date-fns";
+import { getRequiredDisclosures } from "@shared/state-disclosures";
 import { 
   FileText, 
   MapPin, 
@@ -101,6 +101,9 @@ const applyFormSchema = z.object({
     accuracyCertified: z.boolean().refine(val => val === true, "Required"),
     feeAcknowledged: z.boolean().refine(val => val === true, "Required"),
   }),
+  stateDisclosures: z.record(z.object({
+    acknowledged: z.boolean().refine(val => val === true, "Required"),
+  })).optional(),
 });
 
 type ApplyFormValues = z.infer<typeof applyFormSchema>;
@@ -1291,6 +1294,35 @@ export default function Apply() {
                           />
                         </div>
                       </div>
+
+                      {property?.state && getRequiredDisclosures(property.state).length > 0 && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-none space-y-6 border border-blue-100 dark:border-blue-800 mt-6">
+                          <h3 className="text-sm font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-4">State Required Disclosures ({property.state})</h3>
+                          
+                          <div className="space-y-4">
+                            {getRequiredDisclosures(property.state).map((disclosure) => (
+                              <FormField
+                                key={disclosure.id}
+                                control={form.control}
+                                name={`stateDisclosures.${disclosure.id}.acknowledged`}
+                                render={({ field }) => (
+                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-background border border-blue-200 dark:border-blue-800 rounded-none">
+                                    <FormControl>
+                                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                      <FormLabel className="font-bold">{disclosure.label}</FormLabel>
+                                      <FormDescription className="text-xs">
+                                        {disclosure.text}
+                                      </FormDescription>
+                                    </div>
+                                  </FormItem>
+                                )}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 )}
@@ -1333,7 +1365,8 @@ export default function Apply() {
                         !form.watch("legalDisclosures.fairHousingAcknowledged") ||
                         !form.watch("legalDisclosures.creditCheckAuthorized") ||
                         !form.watch("legalDisclosures.accuracyCertified") ||
-                        !form.watch("legalDisclosures.feeAcknowledged")
+                        !form.watch("legalDisclosures.feeAcknowledged") ||
+                        (property?.state && getRequiredDisclosures(property.state).some(d => !form.watch(`stateDisclosures.${d.id}.acknowledged`)))
                       }
                       className="h-12 px-12 bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >

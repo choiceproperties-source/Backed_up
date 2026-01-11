@@ -1,0 +1,158 @@
+ROLE:
+You are a Senior SaaS Engineer and Compliance Architect for a U.S.-based rental platform.
+You are implementing STATE-SPECIFIC LEGAL DISCLOSURES only.
+This task builds on an existing general disclosure system.
+
+DO NOT refactor unrelated code.
+DO NOT add payments, scoring, or background checks.
+DO NOT require Autonomous Mode.
+
+GOAL:
+Ensure rental applications dynamically display and enforce legally required
+state-specific disclosures based on the property's location.
+
+========================================
+SECTION 1 — READ-ONLY AUDIT (NO CHANGES)
+========================================
+Scan the project to confirm:
+
+Files:
+- shared/schema.ts
+- client/src/pages/apply.tsx
+- server/modules/applications/application.service.ts
+- properties table (state / address fields)
+
+Confirm:
+1. Where the property's state is stored (e.g., properties.state)
+2. How the application is linked to a property
+3. How disclosures are currently stored and validated
+
+Report findings inline before implementation.
+
+========================================
+SECTION 2 — STATE DISCLOSURE CONFIG MODEL
+========================================
+Implement a centralized, extensible disclosure configuration.
+
+Backend:
+Create a stateDisclosures configuration object or file (e.g.):
+server/config/state-disclosures.ts
+
+Structure:
+{
+  CA: {
+    required: [
+      "background_check",
+      "rent_control_notice",
+      "sexual_offender_registry"
+    ]
+  },
+  NY: {
+    required: [
+      "background_check",
+      "application_fee_cap"
+    ]
+  },
+  TX: {
+    required: [
+      "background_check"
+    ]
+  }
+}
+
+Rules:
+- Must support adding states without DB migrations
+- Defaults to federal-only disclosures if state not listed
+
+========================================
+SECTION 3 — REQUIRED STATE DISCLOSURES (IMPLEMENT)
+========================================
+Implement the following example disclosures (expandable):
+
+California (CA):
+1. Rent Control Disclosure
+"I acknowledge that this property may be subject to California rent control laws."
+
+2. Megan’s Law Disclosure
+"I understand that information about registered sex offenders is available at www.meganslaw.ca.gov."
+
+New York (NY):
+1. Application Fee Cap Disclosure
+"I understand that New York law limits application fees to the legally allowed maximum."
+
+Texas (TX):
+1. No Rent Control Notice
+"I understand that Texas does not impose statewide rent control regulations."
+
+Each disclosure must:
+- Be displayed only if the property is in that state
+- Be required before submission
+- Store timestamped consent
+
+========================================
+SECTION 4 — DATABASE STORAGE (EXTEND, NOT REPLACE)
+========================================
+Extend the existing disclosures JSONB structure to support state disclosures.
+
+Example:
+state_disclosures: {
+  CA: {
+    rent_control: true,
+    megans_law: true,
+    acknowledged_at: "ISO_TIMESTAMP"
+  }
+}
+
+Rules:
+- Do NOT overwrite federal disclosures
+- State disclosures must be immutable after submission
+
+========================================
+SECTION 5 — FRONTEND RENDERING LOGIC
+========================================
+In apply.tsx:
+
+1. Determine property.state once application loads
+2. Load required state disclosures dynamically
+3. Render them:
+   - Below federal disclosures
+   - With a “State Required Disclosures” heading
+4. Disable submission until:
+   - Federal disclosures are complete
+   - State disclosures (if any) are complete
+
+UX Rules:
+- No modals
+- No redirects
+- Clear, readable legal text
+- Professional tone
+
+========================================
+SECTION 6 — BACKEND ENFORCEMENT
+========================================
+In application.service.ts:
+
+1. On submit:
+   - Validate federal disclosures
+   - Validate state disclosures based on property.state
+2. Reject submission if any required disclosure is missing
+3. Log failures clearly (do not silently fail)
+
+========================================
+SECTION 7 — CONSTRAINTS (STRICT)
+========================================
+- DO NOT hardcode disclosures into the database
+- DO NOT require user location
+- DO NOT block autosave
+- DO NOT modify scoring or payment flows
+- DO NOT add external APIs
+
+========================================
+EXPECTED RESULT:
+• Applications are legally compliant per state
+• Disclosures scale cleanly
+• No duplication of logic
+• Audit-ready consent records
+• Professional, enterprise-grade behavior
+
+Proceed carefully and explain changes briefly.

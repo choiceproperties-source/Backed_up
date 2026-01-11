@@ -6,6 +6,7 @@ import {
 } from "../../email";
 import { notifyOwnerOfNewApplication, sendStatusChangeNotification, notifyOwnerOfScoringComplete } from "../../notification-service";
 import * as applicationRepository from "./application.repository";
+import { getRequiredDisclosures } from "@shared/state-disclosures";
 
 /* ------------------------------------------------ */
 /* Constants & Helpers */
@@ -608,6 +609,7 @@ export async function updateStatus(
   }
 
   if (input.status === "submitted") {
+    // Federal Disclosures
     if (!application.legalDisclosures?.fairHousingAcknowledged ||
         !application.legalDisclosures?.creditCheckAuthorized ||
         !application.legalDisclosures?.accuracyCertified ||
@@ -616,6 +618,22 @@ export async function updateStatus(
         success: false,
         error: "All legal disclosures must be acknowledged before submission",
       };
+    }
+
+    // State Disclosures
+    const property = await applicationRepository.getProperty(application.property_id);
+    const requiredStateDisclosures = getRequiredDisclosures(property?.state);
+    
+    if (requiredStateDisclosures.length > 0) {
+      const acknowledged = application.stateDisclosures || {};
+      for (const disclosure of requiredStateDisclosures) {
+        if (!acknowledged[disclosure.id]?.acknowledged) {
+          return {
+            success: false,
+            error: `State disclosure required: ${disclosure.label}`,
+          };
+        }
+      }
     }
   }
 
