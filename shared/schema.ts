@@ -385,12 +385,15 @@ export const applications = pgTable("applications", {
   propertyTitleSnapshot: text("property_title_snapshot"),
   propertyAddressSnapshot: text("property_address_snapshot"),
   propertyTypeSnapshot: text("property_type_snapshot"),
+  rulesAcknowledged: boolean("rules_acknowledged").default(false),
+  rulesAcknowledgedAt: timestamp("rules_acknowledged_at"),
   policiesSnapshot: jsonb("policies_snapshot").$type<{
     petPolicy?: string;
     smokingPolicy?: string;
     occupancyLimit?: number;
     utilitiesIncluded?: string[];
     hoaRules?: string;
+    customRules?: string[];
   }>(),
   propertyVersionSnapshot: integer("property_version_snapshot").default(1),
   propertyStatusAtApplyTime: text("property_status_at_apply_time"),

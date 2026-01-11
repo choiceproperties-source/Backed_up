@@ -184,6 +184,7 @@ export default function Apply() {
       acknowledgeUtilities: false,
       agreeToBackgroundCheck: false,
       agreeToTerms: false,
+      rulesAcknowledged: false,
       signature: "",
     },
   });
@@ -248,6 +249,7 @@ export default function Apply() {
         acknowledgeUtilities: !!appToLoad.legalDisclosures?.utilities,
         agreeToBackgroundCheck: !!appToLoad.legalDisclosures?.fcraConsent,
         agreeToTerms: !!appToLoad.legalDisclosures?.accuracyCertified,
+        rulesAcknowledged: !!appToLoad.rulesAcknowledged,
         signature: appToLoad.signature || "",
         legalDisclosures: appToLoad.legalDisclosures || {
           fairHousingAcknowledged: false,
@@ -319,7 +321,9 @@ export default function Apply() {
         legalDisclosures: {
           ...values.legalDisclosures,
           acknowledgedAt: new Date().toISOString()
-        }
+        },
+        rulesAcknowledged: values.rulesAcknowledged,
+        rulesAcknowledgedAt: values.rulesAcknowledged ? new Date().toISOString() : null,
       };
 
       let response;
@@ -630,6 +634,24 @@ export default function Apply() {
                         <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-4">Required Legal Disclosures</h3>
                         
                         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                          <FormField
+                            control={form.control}
+                            name="rulesAcknowledged"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-primary/5 border border-primary/20 rounded-none mb-6">
+                                <FormControl>
+                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel className="font-bold text-primary">I have read and agree to the property rules and requirements listed above.</FormLabel>
+                                  <FormDescription className="text-xs">
+                                    Acknowledgment is required to submit your application.
+                                  </FormDescription>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+
                           <FormField
                             control={form.control}
                             name="legalDisclosures.fairHousingAcknowledged"

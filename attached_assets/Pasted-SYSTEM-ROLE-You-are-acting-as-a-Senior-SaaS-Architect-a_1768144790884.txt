@@ -1,0 +1,104 @@
+SYSTEM ROLE:
+You are acting as a Senior SaaS Architect and Rental Compliance Engineer.
+Do NOT refactor unrelated logic.
+Do NOT change how data is fetched unless explicitly instructed.
+Work incrementally and safely.
+
+TASK:
+Implement a professional, property-scoped “Property Rules” system that is fetched from a property and displayed clearly during the rental application flow, with legal acknowledgment before submission.
+
+SCOPE (VERY IMPORTANT):
+• This logic applies ONLY to the property application flow.
+• Do NOT create global rules.
+• Do NOT invent new rules.
+• ONLY read and display rules that already exist or are explicitly defined on the property record.
+
+STEP 1 — PROPERTY RULES SOURCE OF TRUTH
+Audit the property schema and identify all rule-related fields already stored on a property, including but not limited to:
+• pet policy
+• smoking policy
+• occupancy limits
+• income requirements
+• HOA requirements
+• application fee
+• any JSON / metadata rule fields
+
+If any rule data is stored in JSON or metadata, map it safely without restructuring.
+
+STEP 2 — FETCH RULES IN APPLICATION FLOW
+In the property application page (apply flow):
+• Fetch property rules using the property ID already available in the route
+• Fetch rules ONCE when the application loads
+• Do NOT refetch on every step
+• Do NOT block the application yet
+
+STEP 3 — EARLY READ-ONLY DISPLAY (INFORMATIONAL)
+Add a clearly labeled section near the top of the application UI:
+
+“Property Rules & Requirements”
+
+Display rules in a clean, modern, readable format:
+• Bullet list or badges
+• Icons allowed but optional
+• Human-readable language (no legal jargon)
+• Read-only (no checkboxes here)
+
+Examples:
+• No smoking
+• Pets allowed (cats only)
+• Maximum occupancy: 3 people
+• Minimum income: 3× monthly rent
+
+STEP 4 — ACKNOWLEDGMENT STEP (MANDATORY)
+Near the final step of the application wizard:
+• Re-display the same property rules
+• Add a required acknowledgment checkbox:
+  “I have read and agree to the property rules and requirements listed above.”
+
+Rules:
+• Submission MUST be blocked until this checkbox is checked
+• The acknowledgment state must be saved with the application
+• Do NOT submit without acknowledgment
+
+STEP 5 — RULE SNAPSHOT SAFETY
+When the application is created:
+• Save a snapshot of the property rules with the application record
+• Do NOT rely on live property rules after submission
+• This snapshot protects against rule changes mid-application
+
+STEP 6 — BLOCKING VS INFORMATIONAL RULES
+Categorize rules internally as:
+• Blocking (e.g. max occupancy exceeded, pets not allowed)
+• Informational (e.g. quiet hours, HOA rules)
+
+Behavior:
+• Blocking rules may show warnings or prevent submission
+• Informational rules require acknowledgment but do not block
+
+Do NOT auto-reject silently.
+Always show clear messaging to the applicant.
+
+STEP 7 — LEGAL & TRUST REQUIREMENTS
+Ensure:
+• Rules are visible before submission
+• Rules are acknowledged before submission
+• Acknowledgment is stored with timestamp
+• UI language is neutral and compliant (Fair Housing safe)
+
+Do NOT add legal disclaimers beyond acknowledgment yet.
+
+STEP 8 — DO NOT TOUCH
+• Do NOT modify scoring logic
+• Do NOT modify autosave logic
+• Do NOT refactor property creation
+• Do NOT change backend endpoints unless strictly required
+• Do NOT introduce new roles or permissions
+
+DELIVERABLE:
+• Property rules fetched and displayed in the application
+• Mandatory acknowledgment before submit
+• Rules snapshot stored with the application
+• Clean, professional, modern UX
+• Zero breaking changes
+
+Work step by step and explain changes briefly after each section.

@@ -1,0 +1,85 @@
+ROLE: Senior Backend Architect & Data Integrity Auditor
+
+TASK:
+Enforce a strict rule that Property Rules displayed anywhere in the platform (Application page, Property Details, Pre-Apply screens, PDFs) must originate ONLY from data explicitly entered during Property Creation or Property Editing.
+
+ABSOLUTE CONSTRAINTS (NON-NEGOTIABLE):
+1. NO additional rules may be generated, inferred, defaulted, or injected at runtime.
+2. NO global platform rules, AI-generated text, or fallback values are allowed.
+3. If a rule field is empty or NULL on the property record, it MUST NOT appear in the UI.
+4. The property record is the SINGLE SOURCE OF TRUTH.
+
+SCOPE:
+- Property Rules display on:
+  - Rental application page
+  - Property details page
+  - Application review & submission summary
+  - Downloadable PDFs (applications / disclosures)
+- Property Rules input via:
+  - Property creation flow
+  - Property editing flow
+
+BACKEND REQUIREMENTS:
+1. Audit the property schema and identify all rule-related fields (explicit columns + JSON fields).
+2. Create a strict allowlist of rule fields that are permitted to be exposed.
+   Example:
+   - application_fee
+   - pets_allowed
+   - pet_restrictions
+   - smoking_allowed
+   - max_occupancy
+   - income_requirement
+   - available_from
+   - custom_rules (only if explicitly saved by owner)
+3. Implement a `getPropertyRules(property)` selector that:
+   - Extracts ONLY allowlisted fields
+   - Filters out NULL, empty strings, empty arrays, and empty objects
+   - Returns a read-only rules object
+4. Ensure NO business logic mutates or augments this rules object.
+
+FRONTEND REQUIREMENTS:
+1. Property rules UI components must:
+   - Render only keys returned from the backend selector
+   - Use conditional rendering (do not show missing rules)
+   - Never introduce text not present in the API response
+2. Remove any hard-coded labels such as:
+   - “Standard rules apply”
+   - “Platform policy”
+   - “Typical requirements”
+3. If the rules object is empty:
+   - Display nothing (no placeholder messaging)
+
+APPLICATION FLOW RULES:
+1. The rental application page must:
+   - Fetch property rules via property ID
+   - Display rules as read-only
+   - Require applicant acknowledgment ONLY for rules that exist
+2. On application submission:
+   - Persist a snapshot of the rules exactly as received
+   - Do not re-fetch or re-compute rules after submission
+
+SECURITY & LEGAL SAFETY:
+1. Do NOT expose internal policy text.
+2. Do NOT infer Fair Housing or legal disclosures as “rules”.
+3. Rules must be owner-defined, not platform-defined.
+
+VERIFICATION STEPS (REQUIRED):
+1. Scan codebase for:
+   - Hardcoded rule strings
+   - Default rule fallbacks
+   - Rule text defined outside property flows
+2. Remove or refactor any violations.
+3. Confirm via test:
+   - Property with minimal data shows minimal rules
+   - Property with no rules shows no rules
+   - Editing property rules updates future applications only
+
+DO NOT:
+- Redesign UI
+- Change business logic
+- Add new fields
+- Add defaults
+- Add AI-generated content
+
+GOAL:
+Ensure the platform behaves professionally, legally, and predictably by guaranteeing that Property Rules are derived EXCLUSIVELY from owner-entered property data — nothing more, nothing less.
