@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRoute, useLocation, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -190,10 +191,25 @@ export default function Apply() {
   const { reset, getValues } = form;
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const stepParam = searchParams.get("step");
+    if (stepParam) {
+      const step = parseInt(stepParam);
+      if (!isNaN(step) && step >= 1 && step <= steps.length) {
+        setCurrentStep(step);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     const appToLoad = draft;
     if (appToLoad) {
       setApplicationId(appToLoad.id);
-      setCurrentStep(appToLoad.lastSavedStep || 1);
+      
+      const searchParams = new URLSearchParams(window.location.search);
+      if (!searchParams.has("step")) {
+        setCurrentStep(appToLoad.lastSavedStep || 1);
+      }
       
       reset({
         propertyId: params?.id || "",
@@ -383,7 +399,7 @@ export default function Apply() {
           <SubmissionReceipt 
             property={property}
             applicantName={`${getValues("firstName")} ${getValues("lastName")}`}
-            submissionDate={format(new Date(), "MMMM do, yyyy")}
+            submissionDate={new Date().toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' })}
             referenceId={applicationId?.substring(0, 8).toUpperCase() || "PENDING"}
           />
         </div>

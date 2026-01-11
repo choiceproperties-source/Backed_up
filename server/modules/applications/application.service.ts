@@ -418,7 +418,7 @@ export async function autosaveApplication(
 
   // Track lastSavedStep
   if (processedBody.step !== undefined) {
-    processedBody.last_saved_step = processedBody.step;
+    processedBody.lastSavedStep = processedBody.step;
   }
 
   // Partial update without strict validation

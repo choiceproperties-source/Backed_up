@@ -99,16 +99,17 @@ export default function NotificationsPage() {
       markAsReadMutation.mutate(notification.id);
     }
     
-    let targetUrl = notification.actionUrl;
+    // Check for deep-linking actionUrl in metadata or root
+    let targetUrl = (notification.metadata as any)?.actionUrl || notification.actionUrl;
     
-    if (notification.application_id) {
+    if (!targetUrl && notification.application_id) {
       targetUrl = `/applications/${notification.application_id}`;
       if (notification.notification_type === "document_request" || notification.content?.toLowerCase().includes("document")) {
         targetUrl += "?tab=documents";
       } else if (notification.notification_type === "info_requested" || notification.content?.toLowerCase().includes("review")) {
         targetUrl += "?tab=review";
       }
-    } else if (notification.notification_type === "payment_received" || notification.notification_type === "payment_verified") {
+    } else if (!targetUrl && (notification.notification_type === "payment_received" || notification.notification_type === "payment_verified")) {
       targetUrl = "/tenant-payments";
     }
     

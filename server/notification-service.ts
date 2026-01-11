@@ -152,6 +152,10 @@ export async function sendStatusChangeNotification(
       targetStep = stepMap[newStatus];
     }
 
+    const actionUrl = targetStep !== undefined 
+      ? `/apply/${property.id}?step=${targetStep}` 
+      : `/applications/${applicationId}`;
+
     // Create notification record with metadata for deep-linking
     const notificationId = await createNotificationRecord({
       applicationId,
@@ -162,6 +166,7 @@ export async function sendStatusChangeNotification(
       metadata: {
         status: newStatus,
         targetStep,
+        actionUrl,
         actionRequired: options?.actionRequired || (newStatus === 'info_requested' ? 'Upload requested documents' : undefined)
       }
     });
