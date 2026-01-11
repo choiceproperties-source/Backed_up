@@ -353,8 +353,18 @@ export default function Apply() {
   };
 
   const onSubmit = async (values: ApplyFormValues) => {
+    if (!applicationId) {
+      toast({
+        title: "Sync Error",
+        description: "Application ID not found. Please try refreshing or wait for autosave.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
     try {
+      console.log("[Apply] Submitting application:", applicationId);
       // 1. Ensure latest data is saved as draft first
       await autosave(values, currentStep);
       
@@ -363,8 +373,10 @@ export default function Apply() {
         status: "submitted" 
       });
 
+      const result = await submitResponse.json();
+
       if (!submitResponse.ok) {
-        throw new Error("Final submission failed. Your draft is saved.");
+        throw new Error(result.error || "Final submission failed. Your draft is saved.");
       }
 
       setIsSubmitted(true);

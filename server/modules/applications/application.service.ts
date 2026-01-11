@@ -392,9 +392,9 @@ export async function autosaveApplication(
     return { error: "Not authorized" };
   }
 
-  // ALLOW autosave ONLY if status is draft
-  if (application.status !== "draft") {
-    return { error: "Application is already submitted and cannot be edited" };
+  // ALLOW autosave ONLY if status is draft or in_progress
+  if (application.status !== "draft" && application.status !== "in_progress") {
+    return { error: `Application is in ${application.status} status and cannot be edited` };
   }
 
   // Enforce immutability of legal disclosures after initial set if status is not draft
@@ -616,6 +616,35 @@ export async function updateStatus(
   }
 
   if (input.status === "submitted") {
+    // Basic structural checks first
+    if (!application.personalInfo || !application.employment || !application.rentalHistory) {
+      return {
+        success: false,
+        error: "Personal, employment, and rental history details are required for submission",
+      };
+    }
+
+    const personal = application.personalInfo as any;
+    const employment = application.employment as any;
+    
+    const requiredFields = {
+      firstName: personal.firstName,
+      lastName: personal.lastName,
+      email: personal.email,
+      phone: personal.phone,
+      employerName: employment.employerName,
+      monthlyIncome: employment.monthlyIncome,
+    };
+
+    for (const [field, value] of Object.entries(requiredFields)) {
+      if (!value) {
+        return {
+          success: false,
+          error: `Required field missing: ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`,
+        };
+      }
+    }
+
     // Federal Disclosures
     if (!application.legalDisclosures?.fairHousingAcknowledged ||
         !application.legalDisclosures?.creditCheckAuthorized ||
