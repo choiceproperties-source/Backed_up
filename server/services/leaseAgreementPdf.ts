@@ -64,7 +64,7 @@ export async function createLeasePdfStream(applicationId: string, res: any) {
   doc.fontSize(10).text(`Date: ${new Date().toLocaleDateString()}`);
 
   // FOOTER
-  doc.fontSize(8).text(`Application ID: ${applicationId} | Page 1`, { align: 'center', bottom: 50 });
+  doc.fontSize(8).text(`Application ID: ${applicationId} | Page 1`, { align: 'center' });
 
   doc.end();
 }
