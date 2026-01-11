@@ -53,6 +53,7 @@ import FAQ from "@/pages/faq";
 import SuccessStories from "@/pages/success-stories";
 import OwnerProfile from "@/pages/owner-profile";
 import PropertyRequirements from "@/pages/property-requirements";
+import LeaseSigning from "@/pages/lease-signing";
 
 import { StickyNav } from "@/components/sticky-nav";
 import { FloatingCTAButton } from "@/components/floating-cta-button";
@@ -91,6 +92,11 @@ function Router() {
         <Route path="/faq" component={FAQ} />
         <Route path="/success-stories" component={SuccessStories} />
         <Route path="/property-requirements" component={PropertyRequirements} />
+        <Route path="/lease-signing/:applicationId">
+          <ProtectedRoute>
+            <LeaseSigning />
+          </ProtectedRoute>
+        </Route>
 
         {/* Auth Pages */}
         <Route path="/login" component={Login} />
