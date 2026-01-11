@@ -64,6 +64,7 @@ export default function Signup() {
       email: "",
       fullName: "",
       password: "",
+      confirmPassword: "",
       phone: "",
       role: "renter" as UserRole,
       agreeToTerms: false
@@ -301,6 +302,30 @@ export default function Signup() {
                           indicatorClassName={`${passwordStrength.color} transition-all duration-500 ease-out`}
                         />
                       </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground/70">
+                        <Lock className="h-3.5 w-3.5" />
+                        Confirm Password
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          autoComplete="new-password"
+                          className="h-12 bg-muted/30 border-border/50 focus:bg-background transition-all text-base"
+                          {...field}
+                          disabled={loading}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
