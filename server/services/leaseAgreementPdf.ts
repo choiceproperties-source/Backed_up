@@ -5,6 +5,13 @@ import { supabase } from '../supabase';
 export async function generateLeasePdf(applicationId: string): Promise<string> {
   const application = await applicationRepository.findApplicationById(applicationId);
   if (!application) throw new Error("Application not found");
+  // Log PDF generation
+  await supabase.from("admin_actions").insert({
+    action: "lease_pdf_generated",
+    resource_type: "application",
+    resource_id: applicationId,
+    details: { timestamp: new Date().toISOString() }
+  });
   return `/api/v2/leases/${applicationId}/download-pdf`;
 }
 
