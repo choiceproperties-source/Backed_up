@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
+import { format } from "date-fns";
 import { 
   FileText, 
   MapPin, 
@@ -41,6 +42,8 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import PrivacyNotice from "@/components/shared/PrivacyNotice";
 import SecurityBadges from "@/components/shared/SecurityBadges";
+import { SubmissionReceipt } from "@/components/application/SubmissionReceipt";
+import { AutosaveIndicator } from "@/components/application/AutosaveIndicator";
 import type { Property } from "@shared/schema";
 
 interface ApiResponse<T> {
@@ -297,11 +300,15 @@ export default function Apply() {
         }
       };
 
-      let response;
       if (applicationId) {
         response = await apiRequest("PATCH", `/api/v2/applications/${applicationId}/autosave`, payload);
       } else {
         response = await apiRequest("POST", "/api/v2/applications", { ...payload, status: 'draft' });
+      }
+      
+      if (!response.ok) throw new Error("Auto-sync failed");
+      
+      if (!applicationId) {
         const data = await response.json();
         if (data.success) {
           setApplicationId(data.data.id);
@@ -311,6 +318,11 @@ export default function Apply() {
     } catch (error) {
       console.error("Autosave failed:", error);
       setSaveStatus('error');
+      toast({
+        title: "Connection Issue",
+        description: "Draft sync interrupted. We'll try again on your next move.",
+        variant: "destructive"
+      });
     }
   }, [params?.id, applicationId]);
 
@@ -415,33 +427,12 @@ export default function Apply() {
       <div className="min-h-screen bg-gray-50/30 dark:bg-gray-950 flex flex-col">
         <Navbar />
         <div className="flex-1 container max-w-4xl mx-auto py-20 px-4">
-          <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-2xl text-center p-12">
-            <div className="flex justify-center mb-6">
-              <div className="h-20 w-20 bg-green-50 dark:bg-green-950/30 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="h-10 w-10 text-green-600" />
-              </div>
-            </div>
-            <CardTitle className="text-3xl font-black tracking-tight mb-4">Application Submitted!</CardTitle>
-            <CardDescription className="text-gray-500 text-lg mb-8">
-              Your application for <strong>{property?.title}</strong> has been received and is currently under review.
-            </CardDescription>
-            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 p-6 mb-8 inline-block text-left max-w-md mx-auto">
-              <h3 className="text-sm font-black uppercase tracking-widest text-blue-900 dark:text-blue-100 mb-2">What happens next?</h3>
-              <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-2 list-disc pl-4">
-                <li>The property manager will review your information.</li>
-                <li>You'll receive an email notification when the status changes.</li>
-                <li>You can track progress on your tenant dashboard.</li>
-              </ul>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={() => setLocation("/dashboard")} className="h-12 px-8 rounded-none font-black uppercase tracking-widest">
-                Go to Dashboard
-              </Button>
-              <Button variant="outline" onClick={() => setLocation(`/properties/${property?.id}`)} className="h-12 px-8 rounded-none font-black uppercase tracking-widest">
-                View Listing
-              </Button>
-            </div>
-          </Card>
+          <SubmissionReceipt 
+            property={property}
+            applicantName={`${getValues("firstName")} ${getValues("lastName")}`}
+            submissionDate={format(new Date(), "MMMM do, yyyy")}
+            referenceId={applicationId?.substring(0, 8).toUpperCase() || "PENDING"}
+          />
         </div>
         <Footer />
       </div>
@@ -520,26 +511,7 @@ export default function Apply() {
                     Step {currentStep}: {steps.find(s => s.id === currentStep)?.label}
                   </p>
                   <Separator orientation="vertical" className="h-3" />
-                  <div className="flex items-center gap-1.5 min-w-[100px]">
-                    {saveStatus === 'saving' && (
-                      <>
-                        <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Saving...</span>
-                      </>
-                    )}
-                    {saveStatus === 'saved' && (
-                      <>
-                        <Check className="h-3 w-3 text-green-500" />
-                        <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">Saved</span>
-                      </>
-                    )}
-                    {saveStatus === 'error' && (
-                      <>
-                        <AlertCircle className="h-3 w-3 text-destructive" />
-                        <span className="text-[10px] font-bold text-destructive uppercase tracking-wider">Save Failed</span>
-                      </>
-                    )}
-                  </div>
+                  <AutosaveIndicator status={saveStatus} />
                 </div>
                 <p className="text-xs font-bold text-gray-400">
                   {Math.round(progressPercentage)}% Complete

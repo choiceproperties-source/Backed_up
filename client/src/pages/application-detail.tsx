@@ -12,6 +12,8 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { ApplicationDetailView } from "@/components/application-detail-view";
 import { updateMetaTags } from "@/lib/seo";
 import { ArrowLeft, FileText, Loader2, AlertCircle } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { ApplicationTimeline } from "@/components/application/ApplicationTimeline";
 
 interface ApplicationFullResponse {
   success: boolean;
@@ -173,20 +175,23 @@ export default function ApplicationDetail() {
                   </CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
                     {application.properties?.address}
-                    {application.properties?.city &&
-                      `, ${application.properties.city}`}
-                    {application.properties?.state &&
-                      `, ${application.properties.state}`}
                   </p>
                 </div>
-                <Link href={`/properties/${application.property_id}`}>
-                  <Button variant="outline" size="sm" data-testid="button-view-property">
-                    View Property
-                  </Button>
-                </Link>
+                <div className="flex gap-2">
+                  <Badge variant={application.status === 'approved' ? 'default' : 'outline'}>{application.status?.replace('_', ' ') || 'draft'}</Badge>
+                  <Link href={`/properties/${application.property_id}`}>
+                    <Button variant="outline" size="sm" data-testid="button-view-property">
+                      View Property
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-10">
+              <div className="py-6">
+                <ApplicationTimeline currentStatus={application.status} history={application.statusHistory || []} />
+              </div>
+              <Separator />
               <ApplicationDetailView
                 defaultTab={activeTab}
                 application={{
