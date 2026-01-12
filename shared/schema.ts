@@ -386,7 +386,6 @@ export const applications = pgTable("applications", {
   rentSnapshot: decimal("rent_snapshot", { precision: 12, scale: 2 }),
   depositSnapshot: decimal("deposit_snapshot", { precision: 12, scale: 2 }),
   applicationFeeSnapshot: decimal("application_fee_snapshot", { precision: 8, scale: 2 }),
-  application_fee_snapshot: decimal("application_fee_snapshot", { precision: 8, scale: 2 }),
   leaseTermSnapshot: text("lease_term_snapshot"),
   availableDateSnapshot: date("available_date_snapshot"),
   propertyTitleSnapshot: text("property_title_snapshot"),
