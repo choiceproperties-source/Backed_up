@@ -266,7 +266,7 @@ export async function createApplication(
     // Snapshot pricing & lease terms
     rentSnapshot: property.price ? property.price.toString() : "0.00",
     depositSnapshot: property.price ? property.price.toString() : "0.00", 
-    applicationFeeSnapshot: property.application_fee || property.applicationFee || "50.00",
+    applicationFeeSnapshot: property.application_fee || property.applicationFee || property.application_fee_snapshot || "50.00",
     leaseTermSnapshot: property.lease_term || property.leaseTerm || "12 Months",
     availableDateSnapshot: property.available_date || property.availableDate || null,
     // Property Context
