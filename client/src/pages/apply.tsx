@@ -1264,6 +1264,44 @@ export default function Apply() {
                     Back
                   </Button>
 
+                  {currentStep < steps.length ? (
+                    <Button
+                      type="button"
+                      onClick={async () => {
+                        const values = getValues();
+                        await autosave(values, currentStep);
+                        const nextStep = currentStep + 1;
+                        setCurrentStep(nextStep);
+                        window.scrollTo(0, 0);
+                        const url = new URL(window.location.href);
+                        url.searchParams.set("step", nextStep.toString());
+                        window.history.pushState({}, "", url.toString());
+                      }}
+                      disabled={isProcessing}
+                      className="h-12 px-8 font-black uppercase tracking-widest rounded-none bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
+                    >
+                      Next Step
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={isProcessing}
+                      className="h-12 px-8 font-black uppercase tracking-widest rounded-none bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-900/20"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          Submit Application
+                          <CheckCircle2 className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </form>
             </Form>
