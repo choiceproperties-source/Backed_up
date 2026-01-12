@@ -105,6 +105,7 @@ const applyFormSchema = z.object({
     creditCheckAuthorized: z.boolean().refine(val => val === true, "Required"),
     accuracyCertified: z.boolean().refine(val => val === true, "Required"),
     feeAcknowledged: z.boolean().refine(val => val === true, "Required"),
+    electronicConsent: z.boolean().refine(val => val === true, "Required"),
   }),
   stateDisclosures: z.record(z.object({
     acknowledged: z.boolean().refine(val => val === true, "Required"),
@@ -146,6 +147,11 @@ export default function Apply() {
   const requiresScreening = property && (parseFloat(String(property.applicationFee || 0)) > 0 || (property as any).requires_screening);
 
   const { data: draftResponse, isLoading: isLoadingDraft } = useQuery<ApiResponse<any>>({
+    queryKey: [`/api/v2/applications/draft?propertyId=${params?.id}`],
+    enabled: !!params?.id && !applicationId
+  });
+
+  const draft = draftResponse?.data;
 
   const form = useForm<ApplyFormValues>({
     resolver: zodResolver(applyFormSchema),
@@ -258,6 +264,7 @@ export default function Apply() {
           creditCheckAuthorized: false,
           accuracyCertified: false,
           feeAcknowledged: false,
+          electronicConsent: false,
         },
       });
 
@@ -322,7 +329,8 @@ export default function Apply() {
         },
         legalDisclosures: {
           ...values.legalDisclosures,
-          acknowledgedAt: new Date().toISOString()
+          acknowledgedAt: new Date().toISOString(),
+          propertyRulesAccepted: values.rulesAcknowledged
         },
         rulesAcknowledged: values.rulesAcknowledged,
         rulesAcknowledgedAt: values.rulesAcknowledged ? new Date().toISOString() : null,
@@ -605,7 +613,180 @@ export default function Apply() {
                   </Card>
                 )}
 
-                {/* Other steps would be here - simplified for brevity of the fix */}
+                {/* Step 7: Legal Disclosures */}
+                {currentStep === 7 && (
+                  <Card className="rounded-none shadow-sm border-gray-100 dark:border-gray-800">
+                    <CardHeader>
+                      <CardTitle className="text-xl font-black uppercase tracking-widest flex items-center gap-2">
+                        <Shield className="h-6 w-6 text-primary" />
+                        Legal Disclosures & Consent
+                      </CardTitle>
+                      <CardDescription>Please review and acknowledge the following legal terms.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-8">
+                      <div className="space-y-6">
+                        <FormField
+                          control={form.control}
+                          name="legalDisclosures.accuracyCertified"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4 bg-gray-50/30">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-bold uppercase tracking-tight">Accuracy & Certification</FormLabel>
+                                <FormDescription className="text-xs">
+                                  I certify that all information provided in this application is true, complete, and accurate to the best of my knowledge.
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="legalDisclosures.fairHousingAcknowledged"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4 bg-gray-50/30">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-bold uppercase tracking-tight">Fair Housing Acknowledgment</FormLabel>
+                                <FormDescription className="text-xs">
+                                  I acknowledge that this platform and the landlord comply with the Fair Housing Act and do not discriminate based on race, color, religion, sex, handicap, familial status, or national origin.
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        {requiresScreening && (
+                          <div className="space-y-6 pt-4 border-t border-gray-100 dark:border-gray-800">
+                            <div className="flex items-center gap-2 mb-2 text-amber-600 dark:text-amber-500">
+                              <AlertCircle className="h-4 w-4" />
+                              <span className="text-xs font-black uppercase tracking-widest">Screening Authorization Required</span>
+                            </div>
+
+                            <FormField
+                              control={form.control}
+                              name="legalDisclosures.creditCheckAuthorized"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-amber-100 dark:border-amber-900/30 p-4 bg-amber-50/30">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                  <div className="space-y-1 leading-none">
+                                    <FormLabel className="text-sm font-bold uppercase tracking-tight">FCRA Authorization</FormLabel>
+                                    <FormDescription className="text-xs">
+                                      I authorize the landlord and Choice Properties to obtain a background check and credit report as permitted by the Fair Credit Reporting Act (FCRA).
+                                    </FormDescription>
+                                  </div>
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name="legalDisclosures.feeAcknowledged"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-amber-100 dark:border-amber-900/30 p-4 bg-amber-50/30">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                  <div className="space-y-1 leading-none">
+                                    <FormLabel className="text-sm font-bold uppercase tracking-tight">Application Fee Disclosure</FormLabel>
+                                    <FormDescription className="text-xs">
+                                      I understand that the application fee of ${property?.applicationFee || "45.00"} is non-refundable and will be used to process my application and screening reports.
+                                    </FormDescription>
+                                  </div>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Step 8: Property Rules */}
+                {currentStep === 8 && property && (
+                  <Card className="rounded-none shadow-sm border-gray-100 dark:border-gray-800">
+                    <CardHeader>
+                      <CardTitle className="text-xl font-black uppercase tracking-widest flex items-center gap-2">
+                        <Info className="h-6 w-6 text-primary" />
+                        Property Rules Acknowledgment
+                      </CardTitle>
+                      <CardDescription>Please review the rules specifically set by the property owner.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {(property as any).pets_allowed !== null && (
+                          <div className="p-4 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+                            <div className="flex items-center gap-3 mb-2">
+                              <PawPrint className="h-4 w-4 text-primary" />
+                              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Pet Policy</span>
+                            </div>
+                            <p className="font-bold">{(property as any).pets_allowed ? "Pets Allowed" : "No Pets Allowed"}</p>
+                          </div>
+                        )}
+                        {(property as any).smoking_allowed !== null && (
+                          <div className="p-4 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+                            <div className="flex items-center gap-3 mb-2">
+                              <Ban className="h-4 w-4 text-primary" />
+                              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Smoking Policy</span>
+                            </div>
+                            <p className="font-bold">{(property as any).smoking_allowed ? "Smoking Allowed" : "No Smoking"}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {property.rules_text && (
+                        <div className="p-6 bg-blue-50/30 dark:bg-blue-900/10 border border-blue-100/50 dark:border-blue-900/30">
+                          <h4 className="text-xs font-black uppercase tracking-widest text-blue-600 mb-3">Additional Rules</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap">
+                            {property.rules_text}
+                          </p>
+                        </div>
+                      )}
+
+                      <FormField
+                        control={form.control}
+                        name="rulesAcknowledged"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-primary/20 p-6 bg-primary/5">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-black uppercase tracking-tight">I have read and agree to all property rules</FormLabel>
+                              <FormDescription className="text-xs">
+                                Required acknowledgment for this specific property listing.
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Review Step (9) */}
                 {currentStep === 9 && (
                   <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">

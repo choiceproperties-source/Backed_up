@@ -788,7 +788,12 @@ export const signupSchema = insertUserSchema.extend({
   confirmPassword: z.string(),
   agreeToTerms: z.boolean().refine(val => val === true, {
     message: "You must agree to the terms and conditions"
-  })
+  }),
+  termsVersion: z.string().optional(),
+  privacyVersion: z.string().optional(),
+  acceptedTermsAt: z.string().optional(),
+  acceptedPrivacyAt: z.string().optional(),
+  acceptedIp: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],

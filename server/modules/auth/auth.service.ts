@@ -7,7 +7,7 @@ export class AuthService {
     this.repository = new AuthRepository();
   }
 
-  async signup(email: string, password: string, fullName: string, phone: string | null, role: string = 'renter') {
+  async signup(email: string, password: string, fullName: string, phone: string | null, role: string = 'renter', legalConsent?: any) {
     const allowedRoles = ['renter', 'landlord', 'agent', 'property_manager', 'buyer'];
     if (!allowedRoles.includes(role)) {
       throw { status: 400, message: `Invalid role selected: ${role}. Please choose a valid role.` };
@@ -35,7 +35,7 @@ export class AuthService {
       await this.repository.resendVerificationEmail(normalizedEmail);
 
       try {
-        await this.repository.storeUserProfile(authData.user.id, normalizedEmail, fullName, phone, role);
+        await this.repository.storeUserProfile(authData.user.id, normalizedEmail, fullName, phone, role, legalConsent);
       } catch (profileError: any) {
         console.error('Failed to save user profile, rolling back auth user:', profileError);
         await this.repository.deleteAuthUser(authData.user.id);

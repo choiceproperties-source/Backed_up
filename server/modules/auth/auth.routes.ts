@@ -25,9 +25,26 @@ export function registerAuthRoutes(app: Express): void {
         return res.status(400).json(apiError(errorDetails));
       }
 
-      const { email, password, fullName, phone, role } = validation.data;
+      const { 
+        email, 
+        password, 
+        fullName, 
+        phone, 
+        role, 
+        termsVersion, 
+        privacyVersion, 
+        acceptedTermsAt, 
+        acceptedPrivacyAt, 
+        acceptedIp 
+      } = validation.data as any;
 
-      const result = await authService.signup(email, password, fullName, phone || null, role as string);
+      const result = await authService.signup(email, password, fullName, phone || null, role as string, {
+        termsVersion,
+        privacyVersion,
+        acceptedTermsAt: acceptedTermsAt ? new Date(acceptedTermsAt) : undefined,
+        acceptedPrivacyAt: acceptedPrivacyAt ? new Date(acceptedPrivacyAt) : undefined,
+        acceptedIp
+      });
       return res.json(apiSuccess(result.user, "Account created successfully"));
     } catch (err: any) {
       const status = err.status || 500;

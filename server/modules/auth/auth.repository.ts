@@ -50,7 +50,7 @@ export class AuthRepository {
     }
   }
 
-  async storeUserProfile(userId: string, email: string, fullName: string, phone: string | null, role: string) {
+  async storeUserProfile(userId: string, email: string, fullName: string, phone: string | null, role: string, legalConsent?: any) {
     const sb = this.ensureSupabase();
     const { data, error } = await sb
       .from('users')
@@ -59,7 +59,8 @@ export class AuthRepository {
         email: email.toLowerCase(),
         full_name: fullName,
         phone: phone || null,
-        role
+        role,
+        ...legalConsent
       }, { onConflict: 'id' })
       .select();
 
