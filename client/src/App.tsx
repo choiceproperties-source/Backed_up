@@ -71,7 +71,19 @@ function Loading() {
   );
 }
 
-/* ---------------- Router ---------------- */
+import { useAuth } from "@/lib/auth-context";
+
+function DashboardRedirect() {
+  const { user } = useAuth();
+  
+  if (user?.role === 'renter') return <RenterDashboard />;
+  if (user?.role === 'agent') return <AgentDashboard />;
+  if (user?.role === 'landlord' || user?.role === 'property_manager') return <LandlordDashboard />;
+  if (user?.role === 'admin' || user?.role === 'super_admin') return <Admin />;
+  
+  return <NotFound />;
+}
+
 
 import Notifications from "@/pages/notifications";
 
@@ -247,13 +259,7 @@ function Router() {
 
         <Route path="/dashboard">
           <ProtectedRoute>
-            {({ user }) => {
-              if (user?.role === 'renter') return <RenterDashboard />;
-              if (user?.role === 'agent') return <AgentDashboard />;
-              if (user?.role === 'landlord' || user?.role === 'property_manager') return <LandlordDashboard />;
-              if (user?.role === 'admin' || user?.role === 'super_admin') return <Admin />;
-              return <NotFound />;
-            }}
+            <DashboardRedirect />
           </ProtectedRoute>
         </Route>
 
