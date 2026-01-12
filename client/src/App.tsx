@@ -54,6 +54,7 @@ import SuccessStories from "@/pages/success-stories";
 import OwnerProfile from "@/pages/owner-profile";
 import PropertyRequirements from "@/pages/property-requirements";
 import LeaseSigning from "@/pages/lease-signing";
+import Legal from "@/pages/Legal";
 
 import { StickyNav } from "@/components/sticky-nav";
 import { FloatingCTAButton } from "@/components/floating-cta-button";
@@ -102,6 +103,7 @@ function Router() {
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />
         <Route path="/faq" component={FAQ} />
+        <Route path="/legal" component={Legal} />
         <Route path="/success-stories" component={SuccessStories} />
         <Route path="/property-requirements" component={PropertyRequirements} />
         <Route path="/lease-signing/:applicationId">

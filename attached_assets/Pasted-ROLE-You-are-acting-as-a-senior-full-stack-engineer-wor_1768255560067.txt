@@ -1,0 +1,80 @@
+ROLE:
+You are acting as a senior full-stack engineer working inside an existing production codebase.
+
+CONTEXT:
+This project is called “Choice Properties”.
+It is a rental platform with an existing application form and authentication system.
+This task is ONLY to create a Legal & Disclosures system foundation.
+Do not refactor, optimize, or touch unrelated systems.
+
+VERY IMPORTANT SCOPE LIMITS:
+You may ONLY do the following:
+- Create a new page component for legal documents
+- Create a simple, structured data model (static for now) for legal content
+- Add routing/navigation to access the legal page
+
+You MUST NOT:
+- Modify the tenant application form
+- Modify authentication logic
+- Modify payment logic
+- Modify database schemas
+- Add backend APIs
+- Change existing UI components
+
+FILES YOU MAY CREATE OR MODIFY:
+- client/src/pages/Legal.tsx (or Legal.jsx depending on project setup)
+- client/src/data/legalDocuments.ts (new file)
+- client/src/routes or router config file (ONLY to register the new page)
+
+TASK:
+Create a professional, Zillow-style “Legal & Disclosures” page that displays legal documents in a clear, trustworthy, and modern way.
+
+REQUIREMENTS:
+1. The Legal page must:
+   - Look professional, clean, and trustworthy
+   - Be suitable for sensitive legal and compliance content
+   - Work on both desktop and mobile
+   - Use neutral colors, good spacing, and readable typography
+
+2. Legal content must be structured into categories:
+   - Terms of Service
+   - Privacy Policy
+   - Rental Application Terms
+   - Fair Housing Notice
+   - Background & Credit Check Disclosure
+   - Electronic Consent & Signature Disclosure
+
+3. Each category must:
+   - Have a title
+   - Have a short summary/description
+   - Expand to show full content (accordion or section layout)
+
+4. Content source:
+   - Use a static data file (legalDocuments.ts)
+   - Each document must include:
+     - id
+     - title
+     - category
+     - lastUpdated (date string)
+     - content (placeholder legal text, clearly marked)
+
+5. UX & Trust Indicators:
+   - Show “Last Updated” for each document
+   - Display a notice such as:
+     “These documents govern your use of Choice Properties and tenant applications.”
+
+6. Routing:
+   - Add a route like /legal
+   - Ensure it does not interfere with existing routes
+
+OUTPUT CHECK (MANDATORY):
+When finished, the project must have:
+- A visible /legal page accessible via URL
+- A clean, readable legal layout
+- Legal content loaded from a centralized data file
+- NO changes to the application form or backend logic
+
+STOP CONDITION:
+After completing this task, STOP.
+Do not suggest further improvements.
+Do not continue to Phase 2.
