@@ -266,13 +266,13 @@ export async function createApplication(
     // Snapshot pricing & lease terms
     rentSnapshot: property.price ? property.price.toString() : "0.00",
     depositSnapshot: property.price ? property.price.toString() : "0.00", 
-    applicationFeeSnapshot: property.application_fee || "50.00",
-    leaseTermSnapshot: property.lease_term || "12 Months",
-    availableDateSnapshot: property.available_date || null,
+    applicationFeeSnapshot: property.application_fee || property.applicationFee || "50.00",
+    leaseTermSnapshot: property.lease_term || property.leaseTerm || "12 Months",
+    availableDateSnapshot: property.available_date || property.availableDate || null,
     // Property Context
     propertyTitleSnapshot: property.title,
     propertyAddressSnapshot: property.address,
-    propertyTypeSnapshot: property.property_type || "Residential",
+    propertyTypeSnapshot: property.property_type || property.propertyType || "Residential",
     // Rules & Policies snapshot
     policiesSnapshot: {
       petPolicy: property.pets_allowed ? "Pets Allowed" : (property.pets_allowed === false ? "No Pets" : null),
