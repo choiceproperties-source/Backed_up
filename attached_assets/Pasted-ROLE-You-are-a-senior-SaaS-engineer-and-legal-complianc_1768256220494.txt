@@ -1,0 +1,111 @@
+ROLE:
+You are a senior SaaS engineer and legal-compliance UX designer working on the Choice Properties platform.
+
+OBJECTIVE:
+Add a mandatory legal acknowledgement section to the Tenant Application Form WITHOUT changing existing application submission, payment logic, or backend schemas.
+
+SCOPE (STRICT — DO NOT EXPAND):
+• Frontend UI only
+• Application form components
+• Legal acknowledgment behavior
+• No backend writes yet
+• No payment logic
+• No new database tables
+
+DO NOT:
+• Do NOT modify application status logic
+• Do NOT touch payment flow
+• Do NOT refactor unrelated components
+• Do NOT introduce new APIs
+
+────────────────────────
+STEP 1 — ADD LEGAL ACKNOWLEDGEMENT SECTION
+────────────────────────
+
+In the Tenant Application Form (ApplicationWizard final step or pre-submit step):
+
+• Add a clearly separated section titled:
+  “Legal Acknowledgement & Consent”
+
+• This section must appear:
+  → Immediately BEFORE the “Submit Application” button
+
+────────────────────────
+STEP 2 — REQUIRED CHECKBOX
+────────────────────────
+
+Add ONE required checkbox with the exact text:
+
+“I agree to the Rental Application Terms, Privacy Policy, and Fair Housing Notice.”
+
+Rules:
+• Checkbox MUST be required
+• Submit button MUST be disabled until checked
+• Error message on submit attempt if unchecked:
+  “You must agree to the legal terms before submitting your application.”
+
+────────────────────────
+STEP 3 — CLICKABLE LEGAL LINKS
+────────────────────────
+
+Each document name must be clickable and open the Legal page:
+
+• “Rental Application Terms”
+• “Privacy Policy”
+• “Fair Housing Notice”
+
+Link behavior:
+• Open `/legal`
+• Include URL hash anchors:
+  /legal#rental-application-terms
+  /legal#privacy-policy
+  /legal#fair-housing-notice
+
+• Links must open in a new tab
+
+────────────────────────
+STEP 4 — PROFESSIONAL TRUST UI
+────────────────────────
+
+Visually style the section to feel:
+• Secure
+• Professional
+• Non-intrusive
+
+UI guidance:
+• Light neutral background
+• Subtle border or divider
+• Small lock or shield icon (optional)
+• Text below checkbox:
+  “Your information is securely processed and handled in accordance with applicable privacy and housing laws.”
+
+────────────────────────
+STEP 5 — STATE MANAGEMENT
+────────────────────────
+
+• Track checkbox state locally (React state only)
+• No persistence yet
+• No backend calls
+
+────────────────────────
+STEP 6 — VALIDATION RULES
+────────────────────────
+
+• Prevent submission if unchecked
+• Maintain all existing form validation
+• Do NOT alter application submission payload
+
+────────────────────────
+SUCCESS CRITERIA
+────────────────────────
+
+• User cannot submit application without accepting legal terms
+• Legal documents are accessible and readable
+• Existing application flow continues to work
+• No backend changes
+• No errors introduced
+
+If anything is ambiguous:
+→ Default to safety and minimal change
+→ Do NOT guess backend behavior
+→ Ask for clarification instead of expanding scope
