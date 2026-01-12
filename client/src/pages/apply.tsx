@@ -922,6 +922,24 @@ export default function Apply() {
                               </FormItem>
                             )}
                           />
+
+                          <FormField
+                            control={form.control}
+                            name="legalDisclosures.electronicConsent"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-background border border-gray-200 dark:border-gray-700 rounded-none">
+                                <FormControl>
+                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel className="font-bold">Electronic Signature & Communications Consent</FormLabel>
+                                  <FormDescription className="text-xs">
+                                    I consent to conduct this transaction electronically and understand that my electronic signature is as legally binding as a handwritten signature.
+                                  </FormDescription>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
                         </div>
                       </div>
 
@@ -929,11 +947,18 @@ export default function Apply() {
                         control={form.control}
                         name="signature"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Electronic Signature (Full Legal Name)</FormLabel>
+                          <FormItem className="space-y-2 pt-4">
+                            <FormLabel className="text-sm font-black uppercase tracking-tight">Electronic Signature</FormLabel>
                             <FormControl>
-                              <Input placeholder="Type your full legal name to sign" className="h-12 bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 font-signature text-xl italic rounded-none" {...field} />
+                              <Input 
+                                {...field} 
+                                placeholder="Type your full legal name"
+                                className="rounded-none border-primary/20 bg-white font-serif italic text-lg h-12"
+                              />
                             </FormControl>
+                            <FormDescription className="text-xs">
+                              By typing your name, you are legally signing this application.
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
