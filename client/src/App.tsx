@@ -245,6 +245,18 @@ function Router() {
           </ProtectedRoute>
         </Route>
 
+        <Route path="/dashboard">
+          <ProtectedRoute>
+            {({ user }) => {
+              if (user?.role === 'renter') return <RenterDashboard />;
+              if (user?.role === 'agent') return <AgentDashboard />;
+              if (user?.role === 'landlord' || user?.role === 'property_manager') return <LandlordDashboard />;
+              if (user?.role === 'admin' || user?.role === 'super_admin') return <Admin />;
+              return <NotFound />;
+            }}
+          </ProtectedRoute>
+        </Route>
+
         {/* 404 */}
         <Route component={NotFound} />
       </Switch>

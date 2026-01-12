@@ -20,6 +20,9 @@ export function Navbar() {
     { href: "/properties", label: "Rent" },
     { href: "/success-stories", label: "Success Stories" },
     { href: "/faq", label: "FAQ" },
+    ...(user?.role === 'renter' ? [{ href: "/renter-dashboard", label: "Dashboard" }] : []),
+    ...(user?.role === 'agent' ? [{ href: "/agent-dashboard", label: "Dashboard" }] : []),
+    ...(user?.role === 'landlord' || user?.role === 'property_manager' ? [{ href: "/landlord-dashboard", label: "Dashboard" }] : []),
     ...(isAdmin || user?.role === 'admin' || user?.role === 'super_admin' ? [{ href: "/admin", label: "Admin" }] : []),
     ...(user?.role === 'super_admin' ? [{ href: "/super-admin", label: "Super Admin" }] : []),
     { href: "/about", label: "About Us" },
@@ -35,6 +38,14 @@ export function Navbar() {
     }
   }, []);
 
+  const getLogoHref = () => {
+    if (user?.role === 'renter') return "/renter-dashboard";
+    if (user?.role === 'agent') return "/agent-dashboard";
+    if (user?.role === 'landlord' || user?.role === 'property_manager') return "/landlord-dashboard";
+    if (user?.role === 'admin' || user?.role === 'super_admin') return "/admin";
+    return "/";
+  };
+
   return (
     <nav 
       className="sticky top-0 z-50 w-full border-b bg-white/95 dark:bg-gray-950/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-950/60" 
@@ -42,7 +53,7 @@ export function Navbar() {
       role="navigation"
     >
       <div className="container flex h-16 items-center justify-between mx-auto px-4">
-        <Link href="/">
+        <Link href={getLogoHref()}>
           <span 
             className="flex items-center space-x-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-none" 
             aria-label="Choice Properties home"

@@ -1,0 +1,68 @@
+TASK: Fix missing renter navigation and dashboard access (UI/UX only)
+
+CONTEXT
+Users with the role "renter" can log in and are redirected to their dashboard initially, but once they navigate away, there is no visible menu item or navigation path to return to the renter dashboard. This creates a broken UX where renters are effectively stranded.
+
+SCOPE (DO NOT EXPAND)
+- Navigation and routing only
+- Do NOT change backend logic, permissions, or database schema
+- Do NOT refactor unrelated components
+- Do NOT touch application scoring, property logic, or admin logic
+
+OBJECTIVE
+Ensure renters always have a clear, persistent way to access their dashboard from anywhere in the app.
+
+REQUIREMENTS
+
+1) Canonical Dashboard Route
+- Treat `/dashboard` as the canonical renter dashboard route.
+- This route already exists and should not be renamed.
+
+2) Persistent Renter Navigation
+- Update the main navigation (navbar or sidebar) to ALWAYS show a visible menu item for renters:
+  - Label: "Dashboard" or "My Dashboard"
+  - Route: `/dashboard`
+- This menu item must appear on all pages when the user role is `renter`.
+
+3) Role-Aware Navigation Logic
+- Navigation should be role-aware but never empty.
+- Implement logic similar to:
+  - renter → Dashboard
+  - agent → Agent Dashboard
+  - owner → Owner Dashboard
+  - admin → Admin Console
+- Do NOT hide all navigation items for renters.
+
+4) Logo Click Behavior
+- Make the app logo role-aware:
+  - If role === renter → redirect to `/dashboard`
+  - If role === agent → redirect to agent dashboard
+  - If role === owner → redirect to owner dashboard
+  - If role === admin → redirect to admin panel
+
+5) Fallback Safety Redirect
+- If a renter accesses a page where no renter-specific menu exists or an invalid route:
+  - Automatically redirect them to `/dashboard`
+- This is a frontend safety fallback only.
+
+6) UX Expectations
+- Renters must never need to manually type URLs.
+- At least one dashboard entry must always be visible.
+- Empty states (e.g., no applications yet) are acceptable — missing navigation is not.
+
+FILES LIKELY INVOLVED (DO NOT ASSUME)
+- Navigation component (navbar / sidebar)
+- Role or auth context
+- App routing configuration
+
+DELIVERABLE
+- Clean, minimal navigation fix
+- No breaking changes
+- No role privilege changes
+
+SUCCESS CRITERIA
+A renter can:
+- Log in
+- Navigate anywhere
+- Always find a visible way back to their dashboard
+- Never feel “lost” in the UI
