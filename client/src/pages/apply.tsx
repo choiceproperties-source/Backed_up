@@ -430,13 +430,14 @@ export default function Apply() {
   const progressPercentage = ((currentStep - 1) / (steps.length - 1)) * 100;
 
   const StepIndicator = () => (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" role="progressbar" aria-valuenow={progressPercentage} aria-valuemin={0} aria-valuemax={100}>
       {steps.map((step) => (
         <div
           key={step.id}
           className={`h-2 w-8 rounded-none transition-all duration-300 ${
             currentStep >= step.id ? "bg-primary" : "bg-muted"
           }`}
+          aria-label={`Step ${step.id}: ${step.label}`}
         />
       ))}
     </div>
@@ -838,7 +839,10 @@ export default function Apply() {
                               return (
                                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-primary/5 border border-primary/20 rounded-none mb-6">
                                   <FormControl>
-                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    <Checkbox 
+                                    checked={field.value || false} 
+                                    onCheckedChange={(checked) => field.onChange(checked === true)} 
+                                  />
                                   </FormControl>
                                   <div className="space-y-1 leading-none">
                                     <FormLabel className="font-bold text-primary">I have read and agree to the property rules and requirements ({rules.join(", ")}) listed above.</FormLabel>
@@ -857,7 +861,10 @@ export default function Apply() {
                             render={({ field }) => (
                               <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-background border border-gray-200 dark:border-gray-700 rounded-none">
                                 <FormControl>
-                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                  <Checkbox 
+                                    checked={field.value || false} 
+                                    onCheckedChange={(checked) => field.onChange(checked === true)} 
+                                  />
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
                                   <FormLabel className="font-bold">Fair Housing Act Acknowledgment</FormLabel>
@@ -875,7 +882,10 @@ export default function Apply() {
                             render={({ field }) => (
                               <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-background border border-gray-200 dark:border-gray-700 rounded-none">
                                 <FormControl>
-                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                  <Checkbox 
+                                    checked={field.value || false} 
+                                    onCheckedChange={(checked) => field.onChange(checked === true)} 
+                                  />
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
                                   <FormLabel className="font-bold">Background & Credit Check Authorization (FCRA)</FormLabel>
@@ -893,7 +903,10 @@ export default function Apply() {
                             render={({ field }) => (
                               <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-background border border-gray-200 dark:border-gray-700 rounded-none">
                                 <FormControl>
-                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                  <Checkbox 
+                                    checked={field.value || false} 
+                                    onCheckedChange={(checked) => field.onChange(checked === true)} 
+                                  />
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
                                   <FormLabel className="font-bold">Application Accuracy & Fraud Warning</FormLabel>
@@ -911,7 +924,10 @@ export default function Apply() {
                             render={({ field }) => (
                               <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-background border border-gray-200 dark:border-gray-700 rounded-none">
                                 <FormControl>
-                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                  <Checkbox 
+                                    checked={field.value || false} 
+                                    onCheckedChange={(checked) => field.onChange(checked === true)} 
+                                  />
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
                                   <FormLabel className="font-bold">Non-Refundable Application Fee Disclosure</FormLabel>
@@ -929,7 +945,10 @@ export default function Apply() {
                             render={({ field }) => (
                               <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-background border border-gray-200 dark:border-gray-700 rounded-none">
                                 <FormControl>
-                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                  <Checkbox 
+                                    checked={field.value || false} 
+                                    onCheckedChange={(checked) => field.onChange(checked === true)} 
+                                  />
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
                                   <FormLabel className="font-bold">Electronic Signature & Communications Consent</FormLabel>
