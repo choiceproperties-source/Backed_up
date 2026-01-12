@@ -610,6 +610,398 @@ export default function Apply() {
                           )}
                         />
                       </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Email Address</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="email@example.com" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Phone Number</FormLabel>
+                              <FormControl>
+                                <Input placeholder="(555) 000-0000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="dateOfBirth"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Date of Birth</FormLabel>
+                              <FormControl>
+                                <Input type="date" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="ssn"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">SSN (Last 4 digits)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="0000" maxLength={4} className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormDescription className="text-[10px]">For identity verification purposes only.</FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name="currentAddress"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Current Full Address</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Street, City, State, Zip" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {currentStep === 2 && (
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
+                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
+                      <CardTitle className="text-2xl font-black tracking-tight">Employment & Income</CardTitle>
+                      <CardDescription className="text-gray-500 font-medium">Please provide your current employment details.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-8 space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="employerName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Employer Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Current Company" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="jobTitle"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Job Title</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Software Engineer" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="monthlyIncome"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Monthly Gross Income</FormLabel>
+                              <FormControl>
+                                <Input placeholder="5000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="employmentDuration"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Duration (Years/Months)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="2 Years" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {currentStep === 3 && (
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
+                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
+                      <CardTitle className="text-2xl font-black tracking-tight">Emergency Contact</CardTitle>
+                      <CardDescription className="text-gray-500 font-medium">Who should we contact in case of an emergency?</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-8 space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="emergencyContactName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Contact Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Full Name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="emergencyContactPhone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Phone Number</FormLabel>
+                              <FormControl>
+                                <Input placeholder="(555) 000-0000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="emergencyContactRelationship"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Relationship</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. Spouse, Parent" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {currentStep === 4 && (
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
+                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
+                      <CardTitle className="text-2xl font-black tracking-tight">Rental History</CardTitle>
+                      <CardDescription className="text-gray-500 font-medium">Information about your current or most recent residence.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-8 space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="currentLandlordName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Landlord Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Current Landlord" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="currentLandlordPhone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Landlord Phone</FormLabel>
+                              <FormControl>
+                                <Input placeholder="(555) 000-0000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="currentRentAmount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Current Monthly Rent</FormLabel>
+                              <FormControl>
+                                <Input placeholder="1500" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="reasonForMoving"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Reason for Moving</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Relocation, Upsizing, etc." className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {currentStep === 5 && (
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
+                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
+                      <CardTitle className="text-2xl font-black tracking-tight">Professional Reference</CardTitle>
+                      <CardDescription className="text-gray-500 font-medium">Please provide one professional or personal reference.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-8 space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="ref1Name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Reference Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Full Name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="ref1Phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Phone Number</FormLabel>
+                              <FormControl>
+                                <Input placeholder="(555) 000-0000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="ref1Relation"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Relationship</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Colleague, Friend, etc." className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {currentStep === 6 && (
+                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
+                    <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
+                      <CardTitle className="text-2xl font-black tracking-tight">Pets & Vehicles</CardTitle>
+                      <CardDescription className="text-gray-500 font-medium">Additional information for property management.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-8 space-y-8">
+                      <div className="space-y-6">
+                        <FormField
+                          control={form.control}
+                          name="hasPets"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4 bg-gray-50/30">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-bold uppercase tracking-tight">I have pets</FormLabel>
+                                <FormDescription className="text-xs">Select if you intend to bring pets to the property.</FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        {form.watch("hasPets") && (
+                          <FormField
+                            control={form.control}
+                            name="petDetails"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Pet Details</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Type, breed, and weight of each pet" className="bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none min-h-[100px]" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-6">
+                        <FormField
+                          control={form.control}
+                          name="hasVehicles"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4 bg-gray-50/30">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-bold uppercase tracking-tight">I have vehicles</FormLabel>
+                                <FormDescription className="text-xs">Select if you require parking for any vehicles.</FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        {form.watch("hasVehicles") && (
+                          <FormField
+                            control={form.control}
+                            name="vehicleDetails"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Vehicle Details</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Make, model, and year of each vehicle" className="bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none min-h-[100px]" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 )}
