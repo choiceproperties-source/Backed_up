@@ -195,7 +195,20 @@ export const USER_ROLE_DESCRIPTIONS: Record<UserRole, string> = {
 export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<UserRole>;
-  signup: (email: string, name: string, password: string, phone?: string, role?: UserRole) => Promise<UserRole>;
+  signup: (
+    email: string,
+    name: string,
+    password: string,
+    phone?: string,
+    role?: UserRole,
+    legalConsent?: {
+      termsVersion: string;
+      privacyVersion: string;
+      acceptedTermsAt: string;
+      acceptedPrivacyAt: string;
+      acceptedIp: string;
+    }
+  ) => Promise<UserRole>;
   sendMagicLink: (email: string) => Promise<void>;
   logout: () => void;
   resetPassword: (email: string) => Promise<void>;

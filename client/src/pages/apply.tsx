@@ -135,22 +135,17 @@ export default function Apply() {
     { id: 9, label: "Review & Submit" }
   ];
 
-  // Logic to determine if screening is required
-  const requiresScreening = property && (parseFloat(String(property.applicationFee || 0)) > 0 || (property as any).requires_screening);
-
-  const { data: draftResponse, isLoading: isLoadingDraft } = useQuery<ApiResponse<any>>({
-    queryKey: [`/api/v2/applications/draft?propertyId=${params?.id}`],
-    enabled: !!params?.id && !applicationId
-  });
-
-  const draft = draftResponse?.data;
-
   const { data: propertyResponse, isLoading: isLoadingProperty } = useQuery<ApiResponse<Property>>({
     queryKey: [`/api/v2/properties/${params?.id}`],
     enabled: !!params?.id
   });
 
   const property = propertyResponse?.data;
+
+  // Logic to determine if screening is required
+  const requiresScreening = property && (parseFloat(String(property.applicationFee || 0)) > 0 || (property as any).requires_screening);
+
+  const { data: draftResponse, isLoading: isLoadingDraft } = useQuery<ApiResponse<any>>({
 
   const form = useForm<ApplyFormValues>({
     resolver: zodResolver(applyFormSchema),
