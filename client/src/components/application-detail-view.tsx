@@ -478,6 +478,10 @@ export function ApplicationDetailView({
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Application Details</DialogTitle>
+                      <DialogDescription>Detailed view of the rental application information.</DialogDescription>
+                    </DialogHeader>
                     <DialogTitle>Reject Application</DialogTitle>
                     <DialogDescription>
                       Please provide a reason for rejecting this application.

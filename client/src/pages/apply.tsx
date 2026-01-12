@@ -633,8 +633,8 @@ export default function Apply() {
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4 bg-gray-50/30">
                               <FormControl>
                                 <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
+                                  checked={field.value || false}
+                                  onCheckedChange={(checked) => field.onChange(checked === true)}
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
@@ -654,8 +654,8 @@ export default function Apply() {
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-none border border-gray-100 dark:border-gray-800 p-4 bg-gray-50/30">
                               <FormControl>
                                 <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
+                                  checked={field.value || false}
+                                  onCheckedChange={(checked) => field.onChange(checked === true)}
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
@@ -755,11 +755,11 @@ export default function Apply() {
                         )}
                       </div>
 
-                      {property.rules_text && (
+                      {((property as any).rules_text || (property as any).rulesText) && (
                         <div className="p-6 bg-blue-50/30 dark:bg-blue-900/10 border border-blue-100/50 dark:border-blue-900/30">
                           <h4 className="text-xs font-black uppercase tracking-widest text-blue-600 mb-3">Additional Rules</h4>
                           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap">
-                            {property.rules_text}
+                            {((property as any).rules_text || (property as any).rulesText)}
                           </p>
                         </div>
                       )}

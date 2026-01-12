@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Bed, Bath, Maximize, MapPin, X, Share2, Heart } from "lucide-react";
@@ -42,6 +42,8 @@ export function PropertyQuickView({ property, isOpen, onClose }: QuickViewProps)
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
+        <DialogTitle className="sr-only">Property Details: {property?.title}</DialogTitle>
+        <DialogDescription className="sr-only">View images and details for {property?.title}</DialogDescription>
         <DialogHeader>
           <DialogTitle>Quick View</DialogTitle>
           <button
