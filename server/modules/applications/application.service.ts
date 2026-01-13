@@ -5,6 +5,7 @@ import {
   getApplicationConfirmationEmailTemplate,
 } from "../../email";
 import { notifyOwnerOfNewApplication, sendStatusChangeNotification, notifyOwnerOfScoringComplete } from "../../notification-service";
+import * as applicationRepository from "./application.repository";
 import * as legalRepository from "../legal-documents/legal-documents.repository";
 import { getRequiredDisclosures } from "@shared/state-disclosures";
 import { generateDisclosurePdf } from "../../services/applicationDisclosurePdf";

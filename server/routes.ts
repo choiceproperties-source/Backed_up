@@ -64,6 +64,7 @@ import { registerPaymentModuleRoutes } from "./modules/payments";
 import { registerLeaseModuleRoutes } from "./modules/leases";
 import { registerAdminModuleRoutes } from "./modules/admin";
 import { registerAuthModuleRoutes } from "./modules/auth";
+import legalDocumentsRouter from "./modules/legal-documents/legal-documents.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -79,6 +80,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerLeaseModuleRoutes(app);
   registerAdminModuleRoutes(app);
   registerAuthModuleRoutes(app);
+
+  // Register legal documents API (read-only)
+  app.use("/api/v2/legal-documents", legalDocumentsRouter);
 
   // Config endpoint for frontend to fetch Supabase credentials
   app.get("/api/config", (req, res) => {
