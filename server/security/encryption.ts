@@ -97,22 +97,23 @@ export interface EncryptedField {
 }
 
 export function encryptSensitiveField(value: string, type: "ssn" | "phone" | "email" | "other"): EncryptedField {
-  const encrypted = encrypt(value);
-  const hash = hashSensitiveData(value);
+  const normalizedValue = type === "ssn" ? value.replace(/\D/g, "") : value;
+  const encrypted = encrypt(normalizedValue);
+  const hash = hashSensitiveData(normalizedValue);
   let masked: string;
 
   switch (type) {
     case "ssn":
-      masked = maskSSN(value);
+      masked = maskSSN(normalizedValue);
       break;
     case "phone":
-      masked = maskPhoneNumber(value);
+      masked = maskPhoneNumber(normalizedValue);
       break;
     case "email":
-      masked = maskEmail(value);
+      masked = maskEmail(normalizedValue);
       break;
     default:
-      masked = "*".repeat(Math.max(value.length - 2, 3));
+      masked = "*".repeat(Math.max(normalizedValue.length - 2, 3));
   }
 
   return { value: encrypted, masked, hash };

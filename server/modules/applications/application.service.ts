@@ -423,11 +423,15 @@ export async function autosaveApplication(
   if (processedBody.personalInfo?.ssn) {
     const ssnValue = processedBody.personalInfo.ssn.toString();
     // Only encrypt if it's not already redacted or empty
-    if (ssnValue && ssnValue !== "REDACTED") {
+    if (ssnValue && ssnValue !== "REDACTED" && !ssnValue.includes("*")) {
       processedBody.personalInfo = {
         ...processedBody.personalInfo,
-        ssn: encrypt(ssnValue)
+        ssn: encrypt(ssnValue.replace(/\D/g, ""))
       };
+    } else if (ssnValue === "REDACTED" || ssnValue.includes("*")) {
+      // Prevent overwriting the real encrypted SSN with a masked version
+      const { ssn, ...rest } = processedBody.personalInfo;
+      processedBody.personalInfo = rest;
     }
   }
 

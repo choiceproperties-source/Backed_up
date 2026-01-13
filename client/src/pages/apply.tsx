@@ -74,7 +74,10 @@ const applyFormSchema = z.object({
     return age >= 18;
   }, "You must be at least 18 years old to legally sign a lease agreement"),
   currentAddress: z.string().min(10, "A full current address (including city/state) is required for background verification"),
-  ssn: z.string().regex(/^\d{3}-?\d{2}-?\d{4}$/, "A valid SSN is required for identity and credit verification").optional().or(z.literal("")),
+  ssn: z.string()
+    .transform(val => val.replace(/\D/g, ""))
+    .refine(val => val.length === 9 || val.length === 0, "SSN must be exactly 9 digits if provided")
+    .optional(),
   employerName: z.string().min(2, "Employer name is required to verify your source of income"),
   jobTitle: z.string().min(2, "Your current job title is required for employment verification"),
   monthlyIncome: z.string().min(1, "Monthly income is required to verify your ability to pay rent"),
