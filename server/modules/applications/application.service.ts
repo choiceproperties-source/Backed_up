@@ -267,6 +267,8 @@ export async function createApplication(
     ...validation.data,
     user_id: input.userId,
     status: "draft",
+    customAnswers: validation.data.customAnswers || {},
+    stateDisclosures: validation.data.stateDisclosures || {},
     // Encrypt SSN if provided in personalInfo
     personalInfo: validation.data.personalInfo ? {
       ...(validation.data.personalInfo as object),
@@ -419,10 +421,22 @@ export async function autosaveApplication(
   delete processedBody.status;
 
   if (processedBody.personalInfo?.ssn) {
-    processedBody.personalInfo = {
-      ...processedBody.personalInfo,
-      ssn: encrypt(processedBody.personalInfo.ssn.toString())
-    };
+    const ssnValue = processedBody.personalInfo.ssn.toString();
+    // Only encrypt if it's not already redacted or empty
+    if (ssnValue && ssnValue !== "REDACTED") {
+      processedBody.personalInfo = {
+        ...processedBody.personalInfo,
+        ssn: encrypt(ssnValue)
+      };
+    }
+  }
+
+  // Ensure stateDisclosures and customAnswers are included in partial update
+  if (processedBody.stateDisclosures) {
+    processedBody.state_disclosures = processedBody.stateDisclosures;
+  }
+  if (processedBody.customAnswers) {
+    processedBody.custom_answers = processedBody.customAnswers;
   }
 
   // Track lastSavedStep

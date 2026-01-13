@@ -397,7 +397,15 @@ export default function Apply() {
       
       const submitResponse = await apiRequest("PATCH", `/api/v2/applications/${applicationId}/status`, { 
         status: "submitted",
-        legalAcceptance: true
+        legalAcceptance: {
+          accepted: true,
+          acceptedAt: new Date().toISOString(),
+          documents: {
+            rentalApplicationTerms: "v1.0",
+            privacyPolicy: "v1.0",
+            fairHousingNotice: "v1.0"
+          }
+        }
       });
 
       const result = await submitResponse.json();
