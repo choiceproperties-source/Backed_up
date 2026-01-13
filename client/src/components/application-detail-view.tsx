@@ -311,6 +311,26 @@ export function ApplicationDetailView({
 
   return (
     <div className="space-y-6">
+      {application.status === 'payment_requested' && (
+        <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-100 dark:border-blue-900 mb-6">
+          <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200 font-semibold mb-2">
+            <DollarSign className="h-5 w-5" />
+            <span>Payment Requested</span>
+          </div>
+          <p className="text-sm text-blue-700 dark:text-blue-300 mb-4">
+            The landlord has requested a payment for {application.personalInfo?.firstName}'s application.
+          </p>
+          <div className="flex gap-2">
+            <Button 
+              data-testid="button-pay-fee"
+              onClick={() => onStatusChange?.()}
+              disabled={!!(application as any).paymentRequest?.payment_intent_id}
+            >
+              {(application as any).paymentRequest?.payment_intent_id ? 'Payment Processing...' : 'Pay Application Fee'}
+            </Button>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="flex justify-between items-start gap-4 flex-wrap mb-8">
         <div>
