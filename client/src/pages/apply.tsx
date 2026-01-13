@@ -416,17 +416,52 @@ export default function Apply() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gray-50/30 dark:bg-gray-950 flex flex-col">
-        <Navbar />
-        <div className="flex-1 container max-w-4xl mx-auto py-20 px-4">
-          <SubmissionReceipt 
-            property={property}
-            applicantName={`${getValues("firstName")} ${getValues("lastName")}`}
-            submissionDate={new Date().toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' })}
-            referenceId={applicationId?.substring(0, 8).toUpperCase() || "PENDING"}
-          />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center space-y-6">
+        <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-full">
+          <CheckCircle2 className="w-16 h-16 text-green-600 dark:text-green-400" />
         </div>
-        <Footer />
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold">Application Submitted!</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Your application for <strong>{property?.title || "the property"}</strong> has been received and is now locked for review.
+          </p>
+        </div>
+        
+        <Card className="max-w-md w-full p-6 text-left bg-muted/50">
+          <h3 className="font-semibold mb-4 text-sm uppercase tracking-widest">Next Steps:</h3>
+          <ul className="space-y-4 text-sm">
+            <li className="flex gap-3">
+              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">1</div>
+              <div className="space-y-1">
+                <p className="font-bold">Landlord Review</p>
+                <p className="text-muted-foreground text-xs leading-relaxed">The property manager will review your documents and rental history. This typically takes 2-3 business days.</p>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">2</div>
+              <div className="space-y-1">
+                <p className="font-bold">Identity Verification</p>
+                <p className="text-muted-foreground text-xs leading-relaxed">You may be asked to complete a credit or background check if you haven't already authorized it.</p>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">3</div>
+              <div className="space-y-1">
+                <p className="font-bold">Shortlist & Payment</p>
+                <p className="text-muted-foreground text-xs leading-relaxed">If shortlisted, you will receive a notification to pay the application fee or security deposit via your dashboard.</p>
+              </div>
+            </li>
+          </ul>
+        </Card>
+
+        <div className="flex gap-4">
+          <Button variant="outline" onClick={() => setLocation("/renter-dashboard")} className="h-12 px-8 rounded-none font-black uppercase tracking-widest">
+            Go to Dashboard
+          </Button>
+          <Button onClick={() => window.print()} className="h-12 px-8 rounded-none font-black uppercase tracking-widest">
+            Print Copy
+          </Button>
+        </div>
       </div>
     );
   }

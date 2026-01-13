@@ -52,7 +52,7 @@ export default function LandlordApplications() {
     };
 
     applications.forEach((app: any) => {
-      if (app.status === 'pending' || app.status === 'submitted' || app.status === 'payment_verified') {
+      if (app.status === 'submitted' || app.status === 'pending' || app.status === 'payment_verified') {
         groups.pending.push(app);
       } else if (app.status === 'under_review') {
         groups.under_review.push(app);
@@ -102,8 +102,8 @@ export default function LandlordApplications() {
       case 'info_requested':
         return <MessageSquare className="h-4 w-4 text-amber-600" />;
       case 'pending':
-      case 'under_review':
       case 'submitted':
+      case 'under_review':
         return <Clock className="h-4 w-4 text-yellow-600" />;
       default:
         return <FileText className="h-4 w-4" />;
