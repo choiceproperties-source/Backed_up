@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRoute, Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { useAuth, getAuthToken } from "@/lib/auth-context";
@@ -12,7 +14,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { ApplicationDetailView } from "@/components/application-detail-view";
 import { updateMetaTags } from "@/lib/seo";
 import { ArrowLeft, FileText, Loader2, AlertCircle, DollarSign, Send, Ban } from "lucide-react";
-import { Separator } from "@/components/layout/separator";
+import { Separator } from "@/components/ui/separator";
 import { ApplicationTimeline } from "@/components/application/ApplicationTimeline";
 
 interface ApplicationFullResponse {
