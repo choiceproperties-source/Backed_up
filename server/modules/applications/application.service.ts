@@ -17,7 +17,7 @@ import { generateLeasePdf } from "../../services/leaseAgreementPdf";
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
   draft: ["submitted", "withdrawn"],
-  submitted: ["under_review", "withdrawn"],
+  submitted: ["under_review", "withdrawn", "payment_requested"],
   under_review: ["approved", "rejected", "withdrawn", "payment_requested"],
   payment_requested: ["submitted", "under_review", "withdrawn"],
   approved: [],

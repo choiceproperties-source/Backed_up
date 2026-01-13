@@ -226,6 +226,18 @@ export const PAYMENT_VERIFICATION_METHODS = [
   "other"
 ] as const;
 
+export const applicationStatusEnum = z.enum([
+  "draft",
+  "submitted",
+  "under_review",
+  "payment_requested",
+  "approved",
+  "rejected",
+  "withdrawn",
+]);
+
+export type ApplicationStatus = z.infer<typeof applicationStatusEnum>;
+
 export const REJECTION_CATEGORIES = [
   "income_insufficient",
   "credit_issues",

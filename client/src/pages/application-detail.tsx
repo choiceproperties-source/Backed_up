@@ -27,8 +27,32 @@ export default function ApplicationDetail() {
   const [, params] = useRoute("/applications/:id");
   const applicationId = params?.id;
   const { user, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
+
+  const {
+    data: response,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<ApplicationFullResponse>({
+    queryKey: ["/api/v2/applications", applicationId, "full"],
+    queryFn: async () => {
+      const token = await getAuthToken();
+      const res = await fetch(`/api/v2/applications/${applicationId}/full`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: "include",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch application details");
+      }
+      return res.json();
+    },
+    enabled: !!applicationId && !!user?.id,
+  });
+
+  const application = response?.success ? response.data : null;
   const isLandlord = user?.role === 'landlord' || user?.role === 'property_manager' || user?.role === 'admin';
-  const isApplicant = user?.id === (response?.success ? response.data.user_id : null);
+  const isApplicant = user?.id === application?.user_id;
 
   const handleRequestPayment = async (data: { amount: string; purpose: string; message?: string }) => {
     try {
@@ -36,7 +60,7 @@ export default function ApplicationDetail() {
         status: "payment_requested",
         paymentRequest: data
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/applications", applicationId, "full"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v2/applications", applicationId, "full"] });
       toast({ title: "Payment Requested", description: "The applicant has been notified." });
     } catch (err) {
       toast({ title: "Error", description: "Failed to request payment.", variant: "destructive" });
@@ -52,38 +76,15 @@ export default function ApplicationDetail() {
     }
   };
 
+  const paymentRequest = application?.paymentRequest;
+  const isPaymentPending = paymentRequest?.status === "pending";
+
   useEffect(() => {
     updateMetaTags({
       title: "Application Details - Choice Properties",
       description: "View your rental application details and status.",
     });
   }, []);
-
-  const {
-    data: response,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery<ApplicationFullResponse>({
-    queryKey: ["/api/applications", applicationId, "full"],
-    queryFn: async () => {
-      const token = await getAuthToken();
-      const res = await fetch(`/api/applications/${applicationId}/full`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        credentials: "include",
-      });
-      if (!res.ok) {
-        throw new Error("Failed to fetch application details");
-      }
-      return res.json();
-    },
-    enabled: !!applicationId && !!user?.id,
-  });
-
-  const application = response?.success ? response.data : null;
-
-  const paymentRequest = application?.paymentRequest;
-  const isPaymentPending = paymentRequest?.status === "pending";
 
   if (authLoading) {
     return (
