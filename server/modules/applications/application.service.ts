@@ -5,7 +5,7 @@ import {
   getApplicationConfirmationEmailTemplate,
 } from "../../email";
 import { notifyOwnerOfNewApplication, sendStatusChangeNotification, notifyOwnerOfScoringComplete } from "../../notification-service";
-import * as applicationRepository from "./application.repository";
+import * as legalRepository from "../legal-documents/legal-documents.repository";
 import { getRequiredDisclosures } from "@shared/state-disclosures";
 import { generateDisclosurePdf } from "../../services/applicationDisclosurePdf";
 import { generateLeasePdf } from "../../services/leaseAgreementPdf";
@@ -705,14 +705,16 @@ export async function updateStatus(
   };
 
   if (input.status === "submitted" && input.legalAcceptance === true) {
+    const activeDocs = await legalRepository.getActiveLegalDocuments();
+    const documentVersions: Record<string, string> = {};
+    activeDocs.forEach((doc: any) => {
+      documentVersions[doc.key] = doc.version;
+    });
+
     updatePayload.legalAcceptance = {
       accepted: true,
       acceptedAt: new Date().toISOString(),
-      documents: {
-        rentalApplicationTerms: "v1.0",
-        privacyPolicy: "v1.0",
-        fairHousingNotice: "v1.0"
-      }
+      documents: documentVersions
     };
   }
 

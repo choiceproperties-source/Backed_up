@@ -449,6 +449,26 @@ export const applications = pgTable("applications", {
   userPropertyUnique: unique().on(table.userId, table.propertyId),
 }));
 
+// Legal Documents table for versioned storage
+export const legalDocuments = pgTable("legal_documents", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: text("key").notNull(), // e.g., "rental_application_terms"
+  version: text("version").notNull(), // e.g., "v1.0"
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  jurisdiction: text("jurisdiction"), // e.g., "US", "CA"
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertLegalDocumentSchema = createInsertSchema(legalDocuments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type LegalDocument = typeof legalDocuments.$inferSelect;
+export type InsertLegalDocument = z.infer<typeof insertLegalDocumentSchema>;
+
 // Co-applicants for multiple people on one application
 export const coApplicants = pgTable("co_applicants", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
