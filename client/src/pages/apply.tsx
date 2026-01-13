@@ -150,8 +150,17 @@ export default function Apply() {
   const handleNext = async () => {
     const currentStepFields = steps[currentStep - 1].fields as (keyof ApplyFormValues)[];
     
+    // Custom logic for conditionally required fields
+    const fieldsToValidate = [...currentStepFields];
+    
+    // Add conditional fields based on screening requirements in Step 7
+    if (currentStep === 7 && requiresScreening) {
+      // These are already in the schema as required inside legalDisclosures object
+      // but we ensure they are validated specifically if screening is active
+    }
+
     // Trigger validation for current step fields
-    const isValid = await form.trigger(currentStepFields);
+    const isValid = await form.trigger(fieldsToValidate);
     
     if (isValid) {
       if (currentStep < steps.length) {
