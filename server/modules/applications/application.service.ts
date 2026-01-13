@@ -456,6 +456,18 @@ function redactSensitiveData(application: any, requesterRole: string): any {
       };
     }
   }
+
+  // Ensure payment_request is handled correctly
+  // Only include it if it exists and status is appropriate, or if user is owner/admin
+  if (redacted.payment_request) {
+    const isOwner = requesterRole === "landlord" || requesterRole === "property_manager" || requesterRole === "admin";
+    const isRequested = redacted.status === "payment_requested" || redacted.payment_request.status !== "pending";
+    
+    if (!isOwner && !isRequested) {
+      delete redacted.payment_request;
+    }
+  }
+
   return redacted;
 }
 
