@@ -69,15 +69,26 @@ export default function ApplicationDetail() {
 
   const handlePaymentAction = async (action: "pay" | "decline", reason?: string) => {
     try {
-      // Logic for pay or decline (updates status/metadata)
-      toast({ title: "Action completed", description: `You have ${action === 'pay' ? 'paid' : 'declined'} the request.` });
+      if (action === "pay") {
+        const res = await apiRequest("POST", `/api/applications/${applicationId}/pay`, {});
+        const result = await res.json();
+        if (result.success) {
+          toast({ title: "Payment Initiated", description: "Your payment has been successfully initiated." });
+          refetch();
+        } else {
+          toast({ title: "Payment Failed", description: result.message || "Failed to initiate payment.", variant: "destructive" });
+        }
+      } else {
+        // Logic for decline
+        toast({ title: "Action completed", description: `You have declined the request.` });
+      }
     } catch (err) {
       toast({ title: "Error", description: "Failed to complete action.", variant: "destructive" });
     }
   };
 
-  const paymentRequest = application?.paymentRequest;
-  const isPaymentPending = paymentRequest?.status === "pending";
+  const paymentRequest = application?.payment_request;
+  const isPaymentPending = application?.status === "payment_requested" && !paymentRequest?.payment_intent_id;
 
   useEffect(() => {
     updateMetaTags({
