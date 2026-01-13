@@ -527,7 +527,7 @@ export async function updateApplication(
   }
 
   // Block edits after submission for applicants
-  if (isApplicant && !isAdmin && application.status !== "draft") {
+  if (isApplicant && !isAdmin && (application.status === "submitted" || application.status === "under_review" || application.status === "approved" || application.status === "rejected")) {
     return { error: "Application is locked and cannot be edited after submission" };
   }
 
