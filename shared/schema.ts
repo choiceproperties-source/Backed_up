@@ -442,6 +442,15 @@ export const applications = pgTable("applications", {
       fairHousingNotice: string;
     };
   }>(),
+  paymentRequest: jsonb("payment_request").$type<{
+    amount: string;
+    purpose: string;
+    message?: string;
+    requestedAt: string;
+    status: "pending" | "paid" | "declined";
+    declinedReason?: string;
+    declinedAt?: string;
+  }>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),

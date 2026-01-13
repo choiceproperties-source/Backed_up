@@ -18,7 +18,8 @@ import { generateLeasePdf } from "../../services/leaseAgreementPdf";
 const STATUS_TRANSITIONS: Record<string, string[]> = {
   draft: ["submitted", "withdrawn"],
   submitted: ["under_review", "withdrawn"],
-  under_review: ["approved", "rejected", "withdrawn"],
+  under_review: ["approved", "rejected", "withdrawn", "payment_requested"],
+  payment_requested: ["submitted", "under_review", "withdrawn"],
   approved: [],
   rejected: [],
   withdrawn: [],
@@ -730,6 +731,14 @@ export async function updateStatus(
   if (input.rejectionCategory) updatePayload.rejection_category = input.rejectionCategory;
   if (input.rejectionReason) updatePayload.rejection_reason = input.rejectionReason;
   if (input.rejectionDetails) updatePayload.rejection_details = input.rejectionDetails;
+
+  if (input.status === "payment_requested" && (input as any).paymentRequest) {
+    updatePayload.paymentRequest = {
+      ...(input as any).paymentRequest,
+      requestedAt: new Date().toISOString(),
+      status: "pending"
+    };
+  }
 
   if (input.status === "approved" || input.status === "rejected") {
     updatePayload.reviewed_by = input.userId;
