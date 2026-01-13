@@ -471,6 +471,44 @@ function redactSensitiveData(application: any, requesterRole: string): any {
   return redacted;
 }
 
+export async function verifyPayment(
+  id: string,
+  userId: string
+): Promise<{ data?: any; error?: string }> {
+  const application = await applicationRepository.findApplicationById(id);
+  if (!application) return { error: "Application not found" };
+
+  const property = await applicationRepository.getProperty(application.property_id);
+  if (!property || property.owner_id !== userId) return { error: "Not authorized" };
+
+  if (application.status !== "payment_completed") {
+    return { error: "Payment not completed yet" };
+  }
+
+  const paymentRequest = application.payment_request as any;
+  if (!paymentRequest || paymentRequest.payment_status !== 'COMPLETED') {
+    return { error: "Payment intent not completed" };
+  }
+
+  const statusHistory = [
+    ...(application.status_history as any[] || []),
+    {
+      from: 'payment_completed',
+      to: 'under_review',
+      changedAt: new Date().toISOString(),
+      changedBy: userId,
+      reason: 'Payment verified by landlord'
+    }
+  ];
+
+  const updatedApplication = await applicationRepository.updateApplication(id, {
+    status: 'under_review',
+    status_history: statusHistory
+  });
+
+  return { data: updatedApplication };
+}
+
 export async function completePayment(
   id: string,
   userId: string

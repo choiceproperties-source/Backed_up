@@ -280,6 +280,35 @@ router.post("/:id/request-payment", authenticateToken, async (req: Authenticated
   }
 });
 
+router.post("/:id/payment/verify", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const application = await applicationService.getApplicationById(req.params.id);
+    if (!application) return res.status(404).json(errorResponse("Application not found"));
+
+    // Verify requester is the property owner (landlord)
+    const property = await applicationService.getProperty(application.property_id);
+    if (!property || property.owner_id !== req.user!.id) {
+      return res.status(403).json(errorResponse("Only the property owner can verify payments"));
+    }
+
+    // Ensure application.status === 'PAYMENT_COMPLETED'
+    if (application.status !== "payment_completed") {
+      return res.status(400).json(errorResponse("Application payment has not been completed"));
+    }
+
+    const result = await applicationService.verifyPayment(req.params.id, req.user!.id);
+
+    if (result.error) {
+      return res.status(400).json(errorResponse(result.error));
+    }
+
+    return res.json(success(result.data, "Payment verified successfully"));
+  } catch (err: any) {
+    console.error("[APPLICATIONS] Error verifying payment:", err);
+    return res.status(500).json(errorResponse("Failed to verify payment"));
+  }
+});
+
 router.post("/:id/payment/complete", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const application = await applicationService.getApplicationById(req.params.id);
