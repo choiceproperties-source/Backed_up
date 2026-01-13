@@ -493,16 +493,36 @@ export default function Apply() {
   const progressPercentage = ((currentStep - 1) / (steps.length - 1)) * 100;
 
   const StepIndicator = () => (
-    <div className="flex items-center gap-2" role="progressbar" aria-valuenow={progressPercentage} aria-valuemin={0} aria-valuemax={100}>
-      {steps.map((step) => (
-        <div
-          key={step.id}
-          className={`h-2 w-8 rounded-none transition-all duration-300 ${
-            currentStep >= step.id ? "bg-primary" : "bg-muted"
-          }`}
-          aria-label={`Step ${step.id}: ${step.label}`}
-        />
-      ))}
+    <div className="flex flex-col gap-4 mb-8" role="progressbar" aria-valuenow={progressPercentage} aria-valuemin={0} aria-valuemax={100}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+            {currentStep}
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 leading-none mb-1">Step {currentStep} of {steps.length}</p>
+            <h3 className="text-xl font-bold tracking-tight text-foreground">{steps[currentStep - 1].label}</h3>
+          </div>
+        </div>
+        <div className="flex flex-col items-end">
+          <AutosaveIndicator status={saveStatus} />
+          <p className="text-[10px] font-bold text-primary mt-1">{Math.round(progressPercentage)}% COMPLETE</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5 h-1.5">
+        {steps.map((step) => (
+          <div
+            key={step.id}
+            className={`h-full flex-1 transition-all duration-500 rounded-full ${
+              currentStep > step.id 
+                ? "bg-primary" 
+                : currentStep === step.id 
+                  ? "bg-primary/30" 
+                  : "bg-muted"
+            }`}
+          />
+        ))}
+      </div>
     </div>
   );
 
@@ -546,30 +566,8 @@ export default function Apply() {
       </div>
 
       <div className="bg-white dark:bg-gray-950 border-b sticky top-16 z-40 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="max-w-4xl mx-auto flex items-center justify-between gap-8">
-            <div className="flex-1">
-              <div className="relative mb-2">
-                <div className="h-2 bg-muted rounded-none overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-500 ease-out"
-                    style={{ width: `${progressPercentage}%` }}
-                  ></div>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <p className="text-xs font-black uppercase tracking-widest text-primary">
-                    Step {currentStep}: {steps.find(s => s.id === currentStep)?.label}
-                  </p>
-                  <Separator orientation="vertical" className="h-3" />
-                  <AutosaveIndicator status={saveStatus} />
-                </div>
-                <p className="text-xs font-bold text-gray-400">
-                  {Math.round(progressPercentage)}% Complete
-                </p>
-              </div>
-            </div>
+        <div className="container mx-auto px-4 py-6">
+          <div className="max-w-4xl mx-auto">
             <StepIndicator />
           </div>
         </div>
@@ -579,59 +577,53 @@ export default function Apply() {
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
             {currentStep === 1 && property && (
-              <div className="mb-8 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-primary" />
-                        Lease Terms
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500 font-medium">Monthly Rent</span>
-                        <span className="font-bold text-primary">${parseFloat(String(property.price || 0)).toLocaleString()}</span>
+              <div className="mb-10 space-y-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-1 w-8 bg-primary rounded-full"></div>
+                  <h2 className="text-sm font-black uppercase tracking-[0.2em] text-foreground/80">Application Summary</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white dark:bg-gray-950 p-6 border-l-4 border-l-primary shadow-sm space-y-4">
+                    <div className="flex items-center gap-3 text-primary">
+                      <Shield className="h-5 w-5" />
+                      <h3 className="font-bold tracking-tight">Lease Snapshot</h3>
+                    </div>
+                    <div className="space-y-3 pt-2">
+                      <div className="flex justify-between items-end border-b border-gray-50 pb-2">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Rent</span>
+                        <span className="font-black text-lg">${parseFloat(String(property.price || 0)).toLocaleString()}<span className="text-xs font-normal text-muted-foreground ml-1">/mo</span></span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500 font-medium">Security Deposit</span>
-                        <span className="font-bold text-primary">${parseFloat(String(property.price || 0)).toLocaleString()}</span>
+                      <div className="flex justify-between items-end border-b border-gray-50 pb-2">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Deposit</span>
+                        <span className="font-bold">${parseFloat(String(property.price || 0)).toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500 font-medium">Lease Term</span>
-                        <span className="font-bold capitalize">{property.leaseTerm || '12 Months'}</span>
+                      <div className="flex justify-between items-end">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Term</span>
+                        <span className="font-bold">{property.leaseTerm || '12 Months'}</span>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
 
-                  <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4 text-primary" />
-                        Property Rules
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {(property as any).pets_allowed !== null && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500 font-medium">Pet Policy</span>
-                          <span className="font-bold">{(property as any).pets_allowed ? "Pets Allowed" : "No Pets"}</span>
-                        </div>
-                      )}
-                      {(property as any).smoking_allowed !== null && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500 font-medium">Smoking</span>
-                          <span className="font-bold">{(property as any).smoking_allowed ? "Allowed" : "No Smoking"}</span>
-                        </div>
-                      )}
-                      {(property as any).rules_text && (
-                        <div className="text-sm border-t pt-2 mt-2">
-                          <span className="text-gray-500 font-medium block mb-1">Additional Rules</span>
-                          <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{(property as any).rules_text}</span>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <div className="bg-white dark:bg-gray-950 p-6 border-l-4 border-l-accent shadow-sm space-y-4">
+                    <div className="flex items-center gap-3 text-accent">
+                      <AlertCircle className="h-5 w-5" />
+                      <h3 className="font-bold tracking-tight">Property Policies</h3>
+                    </div>
+                    <div className="space-y-3 pt-2">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="font-medium text-muted-foreground">Pets</span>
+                        <span className="px-2 py-0.5 bg-accent/10 text-accent font-bold rounded-full text-[10px] uppercase">{(property as any).pets_allowed ? "Allowed" : "Not Allowed"}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="font-medium text-muted-foreground">Smoking</span>
+                        <span className="px-2 py-0.5 bg-accent/10 text-accent font-bold rounded-full text-[10px] uppercase">{(property as any).smoking_allowed ? "Allowed" : "Restricted"}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="font-medium text-muted-foreground">Occupancy</span>
+                        <span className="font-bold">Max {(property as any).occupancy_limit || 2}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -651,11 +643,11 @@ export default function Apply() {
                           name="firstName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">First Name</FormLabel>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">First Name</FormLabel>
                               <FormControl>
-                                <Input placeholder="Legal first name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="Legal first name" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-[10px] uppercase font-bold" />
                             </FormItem>
                           )}
                         />
@@ -664,11 +656,11 @@ export default function Apply() {
                           name="lastName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Last Name</FormLabel>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Last Name</FormLabel>
                               <FormControl>
-                                <Input placeholder="Legal last name" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="Legal last name" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-[10px] uppercase font-bold" />
                             </FormItem>
                           )}
                         />
@@ -679,11 +671,11 @@ export default function Apply() {
                           name="email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Email Address</FormLabel>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Email Address</FormLabel>
                               <FormControl>
-                                <Input type="email" placeholder="email@example.com" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input type="email" placeholder="email@example.com" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-[10px] uppercase font-bold" />
                             </FormItem>
                           )}
                         />
@@ -692,11 +684,11 @@ export default function Apply() {
                           name="phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Phone Number</FormLabel>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Phone Number</FormLabel>
                               <FormControl>
-                                <Input placeholder="(555) 000-0000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="(555) 000-0000" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-[10px] uppercase font-bold" />
                             </FormItem>
                           )}
                         />
@@ -707,11 +699,11 @@ export default function Apply() {
                           name="dateOfBirth"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Date of Birth</FormLabel>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Date of Birth</FormLabel>
                               <FormControl>
-                                <Input type="date" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input type="date" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-[10px] uppercase font-bold" />
                             </FormItem>
                           )}
                         />
@@ -720,12 +712,12 @@ export default function Apply() {
                           name="ssn"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">SSN (Last 4 digits)</FormLabel>
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">SSN (Last 4 digits)</FormLabel>
                               <FormControl>
-                                <Input placeholder="0000" maxLength={4} className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="0000" maxLength={4} className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
                               </FormControl>
-                              <FormDescription className="text-[10px]">For identity verification purposes only.</FormDescription>
-                              <FormMessage />
+                              <FormDescription className="text-[10px] font-medium text-muted-foreground uppercase">For identity verification purposes only.</FormDescription>
+                              <FormMessage className="text-[10px] uppercase font-bold" />
                             </FormItem>
                           )}
                         />
@@ -735,11 +727,11 @@ export default function Apply() {
                         name="currentAddress"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Current Full Address</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Current Full Address</FormLabel>
                             <FormControl>
-                              <Input placeholder="Street, City, State, Zip" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                              <Input placeholder="Street, City, State, Zip" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-[10px] uppercase font-bold" />
                           </FormItem>
                         )}
                       />
