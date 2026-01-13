@@ -626,6 +626,14 @@ export async function updateStatus(
       };
     }
 
+    // Property snapshot check
+    if (!application.rentSnapshot || !application.propertyTitleSnapshot) {
+      return {
+        success: false,
+        error: "Property information snapshot is missing. Please contact support.",
+      };
+    }
+
     // Legal Acceptance check (mandatory for submission)
     if (input.legalAcceptance !== true) {
       return {
