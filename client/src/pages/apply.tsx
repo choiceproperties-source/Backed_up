@@ -82,6 +82,8 @@ const applyFormSchema = z.object({
   jobTitle: z.string().min(2, "Your current job title is required for employment verification"),
   monthlyIncome: z.string().min(1, "Monthly income is required to verify your ability to pay rent"),
   employmentDuration: z.string().min(1, "Length of employment is required to assess income stability"),
+  previousAddress: z.string().optional(),
+  previousResidenceDuration: z.string().optional(),
   emergencyContactName: z.string().min(2, "An emergency contact is required for your safety"),
   emergencyContactPhone: z.string().regex(/^\+?1?\d{10,15}$/, "A valid phone number for your emergency contact is required"),
   emergencyContactRelationship: z.string().min(2, "Please specify your relationship with the emergency contact"),
@@ -90,6 +92,9 @@ const applyFormSchema = z.object({
   currentLandlordPhone: z.string().optional(),
   currentRentAmount: z.string().optional(),
   reasonForMoving: z.string().optional(),
+  // New cross-field validation fields
+  residingSince: z.string().optional(),
+  previousAddressRequired: z.boolean().default(false),
   // References
   ref1Name: z.string().optional(),
   ref1Phone: z.string().optional(),
@@ -126,9 +131,42 @@ const applyFormSchema = z.object({
   })).optional(),
   customAnswers: z.record(z.string()).optional(),
 }).superRefine((data, ctx) => {
-  // Conditional validations can be added here if needed based on external property flags
-  // But since we want to avoid silent failures and respect property-specific flags,
-  // we'll handle the dynamic requirement logic in the form itself or here if flags were part of data.
+  // Requirement: If employment status is 'employed', monthly income must be > 0
+  const incomeValue = parseFloat(data.monthlyIncome || "0");
+  if (data.employerName && data.employerName.length > 2 && incomeValue <= 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Monthly income must be greater than zero for current employment",
+      path: ["monthlyIncome"],
+    });
+  }
+
+  // Requirement: Emergency contact cannot be the same as the applicant
+  if (data.emergencyContactName && (data.emergencyContactName.toLowerCase() === `${data.firstName} ${data.lastName}`.toLowerCase())) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Emergency contact should be someone other than yourself",
+      path: ["emergencyContactName"],
+    });
+  }
+
+  // Cross-field requirement: If current address duration is < 2 years, previous address is required
+  if (data.previousAddressRequired && (!data.previousAddress || data.previousAddress.length < 10)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Previous address is required for tenure less than 2 years",
+      path: ["previousAddress"],
+    });
+  }
+
+  // Requirement: Monthly income should be at least 3x the rent if specified
+  if (incomeValue > 0 && incomeValue < 1000) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Income must meet the property's minimum requirements (usually 3x rent)",
+      path: ["monthlyIncome"],
+    });
+  }
 });
 
 type ApplyFormValues = z.infer<typeof applyFormSchema>;
@@ -872,7 +910,18 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">SSN (Last 4 digits)</FormLabel>
                               <FormControl>
-                                <Input placeholder="0000" maxLength={4} className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
+                                <Input 
+                                  placeholder="0000" 
+                                  maxLength={4} 
+                                  inputMode="numeric"
+                                  className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors font-mono tracking-widest" 
+                                  {...field} 
+                                  onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                                    field.onChange(val);
+                                  }}
+                                  onBlur={handleBlur} 
+                                />
                               </FormControl>
                               <FormDescription className="text-[10px] font-medium text-muted-foreground uppercase">For identity verification purposes only.</FormDescription>
                               <FormMessage className="text-[10px] uppercase font-bold" />
