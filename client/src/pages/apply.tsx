@@ -61,16 +61,25 @@ const applyFormSchema = z.object({
   firstName: z.string().min(2, "First name is required"),
   lastName: z.string().min(2, "Last name is required"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Valid phone number is required"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  phone: z.string().regex(/^\+?1?\d{10,15}$/, "Valid phone number is required (e.g. 555-555-5555)"),
+  dateOfBirth: z.string().refine((date) => {
+    const birthDate = new Date(date);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 18;
+  }, "You must be at least 18 years old"),
   currentAddress: z.string().min(10, "Full current address is required"),
-  ssn: z.string().optional(),
+  ssn: z.string().regex(/^\d{3}-?\d{2}-?\d{4}$/, "Invalid SSN format (XXX-XX-XXXX)").optional().or(z.literal("")),
   employerName: z.string().min(2, "Employer name is required"),
   jobTitle: z.string().min(2, "Job title is required"),
   monthlyIncome: z.string().min(1, "Monthly income is required"),
   employmentDuration: z.string().min(1, "Employment duration is required"),
   emergencyContactName: z.string().min(2, "Emergency contact name is required"),
-  emergencyContactPhone: z.string().min(10, "Emergency contact phone is required"),
+  emergencyContactPhone: z.string().regex(/^\+?1?\d{10,15}$/, "Valid phone number is required"),
   emergencyContactRelationship: z.string().min(2, "Relationship is required"),
   // Rental History
   currentLandlordName: z.string().optional(),
@@ -111,6 +120,7 @@ const applyFormSchema = z.object({
   stateDisclosures: z.record(z.object({
     acknowledged: z.boolean().refine(val => val === true, "Required"),
   })).optional(),
+  customAnswers: z.record(z.string()).optional(),
 });
 
 type ApplyFormValues = z.infer<typeof applyFormSchema>;
@@ -196,6 +206,8 @@ export default function Apply() {
       rulesAcknowledged: false,
       signature: "",
       legalAcknowledgement: false,
+      stateDisclosures: {},
+      customAnswers: {},
     },
   });
 
@@ -269,6 +281,8 @@ export default function Apply() {
           feeAcknowledged: false,
           electronicConsent: false,
         },
+        stateDisclosures: appToLoad.stateDisclosures || {},
+        customAnswers: appToLoad.customAnswers || {},
       });
 
       if (appToLoad.status !== 'draft') {
@@ -335,6 +349,8 @@ export default function Apply() {
           acknowledgedAt: new Date().toISOString(),
           propertyRulesAccepted: values.rulesAcknowledged
         },
+        stateDisclosures: values.stateDisclosures,
+        customAnswers: values.customAnswers,
         rulesAcknowledged: values.rulesAcknowledged,
         rulesAcknowledgedAt: values.rulesAcknowledged ? new Date().toISOString() : null,
       };
