@@ -381,7 +381,9 @@ export default function Apply() {
   };
 
   const onSubmit = async (values: ApplyFormValues) => {
+    console.log("[Apply] onSubmit called with values:", values);
     if (!applicationId) {
+      console.error("[Apply] Missing applicationId");
       toast({
         title: "Sync Error",
         description: "Application ID not found. Please try refreshing or wait for autosave.",
@@ -393,6 +395,7 @@ export default function Apply() {
     setIsProcessing(true);
     try {
       console.log("[Apply] Submitting application:", applicationId);
+      // Ensure we have the latest values synced
       await autosave(values, currentStep);
       
       const submitResponse = await apiRequest("PATCH", `/api/v2/applications/${applicationId}/status`, { 
@@ -411,15 +414,18 @@ export default function Apply() {
       const result = await submitResponse.json();
 
       if (!submitResponse.ok) {
+        console.error("[Apply] Submission failed:", result);
         throw new Error(result.error || "Final submission failed. Your draft is saved.");
       }
 
+      console.log("[Apply] Submission successful:", result);
       setIsSubmitted(true);
       toast({
         title: "Application Submitted",
         description: "Your rental application has been received successfully.",
       });
     } catch (error: any) {
+      console.error("[Apply] Submission error:", error);
       toast({
         title: "Submission Issue",
         description: error.message || "There was an error submitting your application.",
@@ -428,6 +434,15 @@ export default function Apply() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const onInvalid = (errors: any) => {
+    console.error("[Apply] Form validation failed:", errors);
+    toast({
+      title: "Validation Error",
+      description: "Please check the form for missing required fields.",
+      variant: "destructive",
+    });
   };
 
   if (isLoadingProperty || isLoadingDraft) {
@@ -629,7 +644,7 @@ export default function Apply() {
             )}
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-8">
                 {currentStep === 1 && (
                   <Card className="bg-white dark:bg-gray-950 border-gray-100 dark:border-gray-800 rounded-none shadow-xl overflow-visible">
                     <CardHeader className="border-b border-gray-50 dark:border-gray-900 pb-6">
