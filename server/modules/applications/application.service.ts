@@ -471,6 +471,55 @@ function redactSensitiveData(application: any, requesterRole: string): any {
   return redacted;
 }
 
+export async function completePayment(
+  id: string,
+  userId: string
+): Promise<{ data?: any; error?: string }> {
+  const application = await applicationRepository.findApplicationById(id);
+  if (!application) return { error: "Application not found" };
+
+  if (application.user_id !== userId) return { error: "Not authorized" };
+  if (application.status !== "payment_requested") return { error: "Payment not requested" };
+
+  const paymentRequest = application.payment_request as any;
+  if (!paymentRequest || !paymentRequest.payment_intent_id) {
+    return { error: "No payment intent found" };
+  }
+
+  if (paymentRequest.payment_status === 'COMPLETED') {
+    return { error: "Payment already completed" };
+  }
+
+  if (paymentRequest.payment_status !== 'PENDING') {
+    return { error: "Invalid payment status" };
+  }
+
+  const updatedPaymentRequest = {
+    ...paymentRequest,
+    payment_status: 'COMPLETED',
+    completed_at: new Date().toISOString()
+  };
+
+  const statusHistory = [
+    ...(application.status_history as any[] || []),
+    {
+      from: 'payment_requested',
+      to: 'payment_completed',
+      changedAt: new Date().toISOString(),
+      changedBy: userId,
+      reason: 'Application fee paid'
+    }
+  ];
+
+  const updatedApplication = await applicationRepository.updateApplication(id, {
+    status: 'payment_completed',
+    payment_request: updatedPaymentRequest,
+    status_history: statusHistory
+  });
+
+  return { data: updatedApplication };
+}
+
 export async function initiatePayment(
   id: string,
   userId: string

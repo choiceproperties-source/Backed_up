@@ -73,8 +73,16 @@ export default function ApplicationDetail() {
         const res = await apiRequest("POST", `/api/applications/${applicationId}/pay`, {});
         const result = await res.json();
         if (result.success) {
-          toast({ title: "Payment Initiated", description: "Your payment has been successfully initiated." });
-          refetch();
+          // Immediately confirm payment for now (placeholder for real provider callback)
+          const confirmRes = await apiRequest("POST", `/api/applications/${applicationId}/payment/complete`, {});
+          const confirmResult = await confirmRes.json();
+          
+          if (confirmResult.success) {
+            toast({ title: "Payment Completed", description: "Your payment has been successfully completed and the application is locked." });
+            refetch();
+          } else {
+            toast({ title: "Payment Confirmation Failed", description: confirmResult.message || "Failed to confirm payment.", variant: "destructive" });
+          }
         } else {
           toast({ title: "Payment Failed", description: result.message || "Failed to initiate payment.", variant: "destructive" });
         }

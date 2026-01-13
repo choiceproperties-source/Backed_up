@@ -280,6 +280,35 @@ router.post("/:id/request-payment", authenticateToken, async (req: Authenticated
   }
 });
 
+router.post("/:id/payment/complete", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const application = await applicationService.getApplicationById(req.params.id);
+    if (!application) return res.status(404).json(errorResponse("Application not found"));
+
+    // Verify the user is the applicant
+    if (application.user_id !== req.user!.id) {
+      return res.status(403).json(errorResponse("Not authorized to confirm payment for this application"));
+    }
+
+    // Verify application.status === PAYMENT_REQUESTED
+    if (application.status !== "payment_requested") {
+      return res.status(400).json(errorResponse("Payment not requested for this application"));
+    }
+
+    const result = await applicationService.completePayment(req.params.id, req.user!.id);
+
+    if (result.error) {
+      const statusCode = result.error === "Not authorized" ? 403 : 400;
+      return res.status(statusCode).json(errorResponse(result.error));
+    }
+
+    return res.json(success(result.data, "Payment completed successfully"));
+  } catch (err: any) {
+    console.error("[APPLICATIONS] Error completing payment:", err);
+    return res.status(500).json(errorResponse("Failed to complete payment"));
+  }
+});
+
 router.post("/:id/pay", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const application = await applicationService.getApplicationById(req.params.id);
