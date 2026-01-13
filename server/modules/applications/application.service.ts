@@ -732,9 +732,9 @@ export async function updateStatus(
   if (input.rejectionReason) updatePayload.rejection_reason = input.rejectionReason;
   if (input.rejectionDetails) updatePayload.rejection_details = input.rejectionDetails;
 
-  if (input.status === "payment_requested" && (input as any).paymentRequest) {
-    updatePayload.paymentRequest = {
-      ...(input as any).paymentRequest,
+  if (input.status === "payment_requested" && input.paymentRequest) {
+    updatePayload.payment_request = {
+      ...input.paymentRequest,
       requestedAt: new Date().toISOString(),
       status: "pending"
     };

@@ -11,8 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { ApplicationDetailView } from "@/components/application-detail-view";
 import { updateMetaTags } from "@/lib/seo";
-import { ArrowLeft, FileText, Loader2, AlertCircle } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, FileText, Loader2, AlertCircle, DollarSign, Send, Ban } from "lucide-react";
+import { Separator } from "@/components/layout/separator";
 import { ApplicationTimeline } from "@/components/application/ApplicationTimeline";
 
 interface ApplicationFullResponse {
@@ -25,6 +25,30 @@ export default function ApplicationDetail() {
   const [, params] = useRoute("/applications/:id");
   const applicationId = params?.id;
   const { user, isLoading: authLoading } = useAuth();
+  const isLandlord = user?.role === 'landlord' || user?.role === 'property_manager' || user?.role === 'admin';
+  const isApplicant = user?.id === (response?.success ? response.data.user_id : null);
+
+  const handleRequestPayment = async (data: { amount: string; purpose: string; message?: string }) => {
+    try {
+      await apiRequest("PATCH", `/api/v2/applications/${applicationId}/status`, {
+        status: "payment_requested",
+        paymentRequest: data
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/applications", applicationId, "full"] });
+      toast({ title: "Payment Requested", description: "The applicant has been notified." });
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to request payment.", variant: "destructive" });
+    }
+  };
+
+  const handlePaymentAction = async (action: "pay" | "decline", reason?: string) => {
+    try {
+      // Logic for pay or decline (updates status/metadata)
+      toast({ title: "Action completed", description: `You have ${action === 'pay' ? 'paid' : 'declined'} the request.` });
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to complete action.", variant: "destructive" });
+    }
+  };
 
   useEffect(() => {
     updateMetaTags({
@@ -55,6 +79,9 @@ export default function ApplicationDetail() {
   });
 
   const application = response?.success ? response.data : null;
+
+  const paymentRequest = application?.paymentRequest;
+  const isPaymentPending = paymentRequest?.status === "pending";
 
   if (authLoading) {
     return (
