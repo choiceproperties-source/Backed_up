@@ -1,0 +1,36 @@
+/**
+ * GOAL:
+ * Ensure that the entire Property Application form is fully validated before submission,
+ * including fields skipped or modified during step navigation, and that any
+ * business logic rules are enforced at submission-time.
+ *
+ * REQUIREMENTS:
+ * 1. Global Pre-Submit Validation:
+ *    - Trigger validation for all fields in the form using react-hook-form's form.trigger().
+ *    - Catch any fields skipped during step-level navigation.
+ *    - Ensure that conditional fields (e.g., creditCheckAuthorized, feeAcknowledged, electronicConsent)
+ *      are validated according to the property context.
+ *    - Display all validation errors in inline messages and/or toast notifications.
+ *
+ * 2. Submission-Time Checks (Business Logic Layer):
+ *    - After passing Zod validation, run additional runtime checks in the onSubmit handler:
+ *       a. Confirm that the selected property still has availability.
+ *       b. Verify that the uploaded documents are present and meet minimum requirements.
+ *       c. Check any conditional business rules (e.g., screening fees or tenant-specific requirements).
+ *    - Prevent submission if any runtime business rules fail, with clear error messaging.
+ *
+ * 3. Integration:
+ *    - Use applyFormSchema (Zod) as the single source of truth for types and field validation.
+ *    - Keep React Hook Form integration intact.
+ *    - Ensure submission sends data to api/v2/applications endpoint without bypassing backend.
+ *
+ * 4. AI TASKS:
+ *    - Implement global pre-submit validation logic that runs before final submission.
+ *    - Implement submission-time business logic checks in onSubmit.
+ *    - Provide clear inline or toast notifications for errors.
+ *    - Ensure that all conditional validation rules are properly handled based on property context.
+ *
+ * 5. NOTES:
+ *    - This prompt focuses only on **global pre-submit validation and runtime checks**.
+ *    - Do NOT modify step-level validation or field-level Zod schemas (already handled in previous steps).
+ */

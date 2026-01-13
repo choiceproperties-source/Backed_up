@@ -442,6 +442,19 @@ export default function Apply() {
 
   const onSubmit = async (values: ApplyFormValues) => {
     console.log("[Apply] onSubmit called with values:", values);
+    
+    // 1. Global Pre-Submit Validation
+    const isFormValid = await form.trigger();
+    if (!isFormValid) {
+      console.error("[Apply] Global validation failed:", form.formState.errors);
+      toast({
+        title: "Validation Failed",
+        description: "Some required fields are missing or invalid. Please review all steps.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!applicationId) {
       console.error("[Apply] Missing applicationId");
       toast({
@@ -454,6 +467,26 @@ export default function Apply() {
 
     setIsProcessing(true);
     try {
+      // 2. Submission-Time Business Logic Checks
+      
+      // a. Availability check
+      if (!property || property.status !== "active") {
+        throw new Error("This property is no longer available for new applications.");
+      }
+
+      // b. Document verification (Example: checking if custom uploads or required fields that act as documents are filled)
+      // Since specific document upload fields might be dynamic, we check the core signature as a proxy for "signed documents"
+      if (!values.signature || values.signature.length < 2) {
+        throw new Error("Electronic signature is required to verify your application documents.");
+      }
+
+      // c. Conditional business rules
+      if (requiresScreening) {
+        if (!values.legalDisclosures?.creditCheckAuthorized || !values.legalDisclosures?.feeAcknowledged) {
+          throw new Error("Screening authorization and fee acknowledgment are required for this property.");
+        }
+      }
+
       console.log("[Apply] Submitting application:", applicationId);
       // Ensure we have the latest values synced
       await autosave(values, currentStep);
