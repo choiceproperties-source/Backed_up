@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
 import { getRequiredDisclosures } from "@shared/state-disclosures";
+import { cn } from "@/lib/utils";
 import { 
   FileText, 
   MapPin, 
