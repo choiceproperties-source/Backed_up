@@ -223,11 +223,12 @@ router.patch("/:id", authenticateToken, async (req: AuthenticatedRequest, res) =
 
 router.patch("/:id/status", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const { status, rejectionCategory, rejectionReason, rejectionDetails, reason } = req.body;
+    const { status, legalAcceptance, rejectionCategory, rejectionReason, rejectionDetails, reason } = req.body;
 
     const result = await applicationService.updateStatus({
       id: req.params.id,
       status,
+      legalAcceptance,
       userId: req.user!.id,
       userRole: req.user!.role,
       rejectionCategory,

@@ -206,6 +206,7 @@ export interface UpdateStatusInput {
   status: ApplicationStatus;
   userId: string;
   userRole: string;
+  legalAcceptance?: boolean;
   rejectionCategory?: RejectionCategory;
   rejectionReason?: string;
   rejectionDetails?: {
@@ -624,6 +625,14 @@ export async function updateStatus(
       };
     }
 
+    // Legal Acceptance check (mandatory for submission)
+    if (input.legalAcceptance !== true) {
+      return {
+        success: false,
+        error: "Legal acceptance is required before submitting an application.",
+      };
+    }
+
     const personal = application.personalInfo as any;
     const employment = application.employment as any;
     
@@ -694,6 +703,18 @@ export async function updateStatus(
     status_history: [...(application.status_history || []), historyEntry],
     updated_at: new Date().toISOString(),
   };
+
+  if (input.status === "submitted" && input.legalAcceptance === true) {
+    updatePayload.legalAcceptance = {
+      accepted: true,
+      acceptedAt: new Date().toISOString(),
+      documents: {
+        rentalApplicationTerms: "v1.0",
+        privacyPolicy: "v1.0",
+        fairHousingNotice: "v1.0"
+      }
+    };
+  }
 
   if (input.rejectionCategory) updatePayload.rejection_category = input.rejectionCategory;
   if (input.rejectionReason) updatePayload.rejection_reason = input.rejectionReason;
