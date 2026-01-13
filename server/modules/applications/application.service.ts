@@ -209,6 +209,12 @@ export interface UpdateStatusInput {
   userId: string;
   userRole: string;
   legalAcceptance?: boolean;
+  paymentRequest?: {
+    amount: string;
+    purpose: string;
+    message?: string;
+    landlordMessage?: string;
+  };
   rejectionCategory?: RejectionCategory;
   rejectionReason?: string;
   rejectionDetails?: {
@@ -700,6 +706,30 @@ export async function updateStatus(
     };
   }
 
+  // Handle PAYMENT_REQUESTED specific checks
+  if (input.status === "payment_requested") {
+    if (!isPropertyOwner && !isAdmin && !isPropertyManager) {
+      return {
+        success: false,
+        error: "Only landlords or authorized managers can request payment",
+      };
+    }
+
+    if (application.paymentRequest) {
+      return {
+        success: false,
+        error: "A payment request already exists for this application",
+      };
+    }
+
+    if (!input.paymentRequest || !input.paymentRequest.amount || !input.paymentRequest.purpose) {
+      return {
+        success: false,
+        error: "Payment request details (amount and purpose) are required",
+      };
+    }
+  }
+
   const historyEntry = {
     status: input.status,
     changedAt: new Date().toISOString(),
@@ -734,7 +764,9 @@ export async function updateStatus(
 
   if (input.status === "payment_requested" && input.paymentRequest) {
     updatePayload.payment_request = {
-      ...input.paymentRequest,
+      amount: input.paymentRequest.amount,
+      purpose: input.paymentRequest.purpose,
+      landlordMessage: input.paymentRequest.landlordMessage || input.paymentRequest.message,
       requestedAt: new Date().toISOString(),
       status: "pending"
     };

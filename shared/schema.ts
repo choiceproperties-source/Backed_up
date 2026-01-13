@@ -226,6 +226,7 @@ export const PAYMENT_VERIFICATION_METHODS = [
   "other"
 ] as const;
 
+// Application status enum for Zod validation
 export const applicationStatusEnum = z.enum([
   "draft",
   "submitted",
@@ -457,7 +458,7 @@ export const applications = pgTable("applications", {
   paymentRequest: jsonb("payment_request").$type<{
     amount: string;
     purpose: string;
-    message?: string;
+    landlordMessage?: string;
     requestedAt: string;
     status: "pending" | "paid" | "declined";
     declinedReason?: string;
@@ -1021,7 +1022,6 @@ export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type PaymentVerification = typeof paymentVerifications.$inferSelect;
 export type InsertPaymentVerification = z.infer<typeof insertPaymentVerificationSchema>;
-export type ApplicationStatus = typeof APPLICATION_STATUSES[number];
 export type RejectionCategory = typeof REJECTION_CATEGORIES[number];
 export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
