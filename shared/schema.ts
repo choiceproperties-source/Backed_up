@@ -433,6 +433,15 @@ export const applications = pgTable("applications", {
     acknowledged: boolean;
     acknowledgedAt: string;
   }>>(),
+  legalAcceptance: jsonb("legal_acceptance").$type<{
+    accepted: boolean;
+    acceptedAt: string;
+    documents: {
+      rentalApplicationTerms: string;
+      privacyPolicy: string;
+      fairHousingNotice: string;
+    };
+  }>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),

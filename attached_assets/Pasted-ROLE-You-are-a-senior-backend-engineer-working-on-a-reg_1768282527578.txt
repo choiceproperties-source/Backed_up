@@ -1,0 +1,102 @@
+ROLE:
+You are a senior backend engineer working on a regulated SaaS platform (Choice Properties).
+
+OBJECTIVE:
+Persist tenant legal acceptance metadata at application submission time in a safe, auditable, and backward-compatible way.
+
+STRICT SCOPE:
+• Backend + frontend coordination
+• Application submission flow only
+• No payment logic
+• No approval logic
+• No breaking schema changes
+
+DO NOT:
+• Do NOT alter application status transitions
+• Do NOT change payment timing
+• Do NOT refactor unrelated services
+• Do NOT require autonomous mode
+
+────────────────────────
+STEP 1 — DATA MODEL (NON-BREAKING)
+────────────────────────
+
+Extend the existing applications table with ONE nullable JSONB column:
+
+Column name:
+legal_acceptance
+
+Structure:
+{
+  accepted: true,
+  acceptedAt: ISO_TIMESTAMP,
+  documents: {
+    rentalApplicationTerms: "v1.0",
+    privacyPolicy: "v1.0",
+    fairHousingNotice: "v1.0"
+  }
+}
+
+Rules:
+• Column must be nullable
+• Existing records must remain valid
+• No backfill required
+
+────────────────────────
+STEP 2 — BACKEND WRITE LOGIC
+────────────────────────
+
+During application submission (server/modules/applications):
+
+• When a new application is created:
+  → Persist legal_acceptance only if accepted === true
+  → Include server-generated timestamp
+  → Never trust client timestamps
+
+• If acceptance is missing:
+  → Reject submission with 400
+  → Message:
+    “Legal acceptance is required before submitting an application.”
+
+────────────────────────
+STEP 3 — FRONTEND PAYLOAD UPDATE
+────────────────────────
+
+Update the application submission payload to include:
+
+legalAcceptance: true
+
+Rules:
+• Boolean only
+• No document versions sent from client
+• Backend controls versions
+
+────────────────────────
+STEP 4 — SECURITY & AUDIT SAFETY
+────────────────────────
+
+• Acceptance is immutable after submission
+• No update endpoints allowed
+• Acceptance is tied to the application record only
+
+────────────────────────
+STEP 5 — BACKWARD COMPATIBILITY
+────────────────────────
+
+• Existing applications without legal_acceptance must continue working
+• Do not enforce acceptance retroactively
+
+────────────────────────
+SUCCESS CRITERIA
+────────────────────────
+
+• New applications store legal acceptance correctly
+• No existing applications break
+• Clear audit trail exists
+• No payment logic impacted
+• No autonomous mode triggered
+
+If ambiguity arises:
+→ Prefer safety
+→ Prefer minimalism
+→ Do not expand scope

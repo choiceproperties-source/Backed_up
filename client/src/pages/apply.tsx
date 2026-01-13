@@ -380,7 +380,8 @@ export default function Apply() {
       await autosave(values, currentStep);
       
       const submitResponse = await apiRequest("PATCH", `/api/v2/applications/${applicationId}/status`, { 
-        status: "submitted" 
+        status: "submitted",
+        legalAcceptance: true
       });
 
       const result = await submitResponse.json();
