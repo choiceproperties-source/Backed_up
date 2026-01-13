@@ -136,16 +136,67 @@ export default function Apply() {
   const [applicationId, setApplicationId] = useState<string | null>(null);
 
   const steps = [
-    { id: 1, label: "Personal Info" },
-    { id: 2, label: "Employment" },
-    { id: 3, label: "Emergency Contact" },
-    { id: 4, label: "Rental History" },
-    { id: 5, label: "References" },
-    { id: 6, label: "Pets & Vehicles" },
-    { id: 7, label: "Legal Disclosures" },
-    { id: 8, label: "Property Rules" },
-    { id: 9, label: "Review & Submit" }
+    { id: 1, label: "Personal Info", fields: ["firstName", "lastName", "email", "phone", "dateOfBirth", "currentAddress", "ssn"] },
+    { id: 2, label: "Employment", fields: ["employerName", "jobTitle", "monthlyIncome", "employmentDuration"] },
+    { id: 3, label: "Emergency Contact", fields: ["emergencyContactName", "emergencyContactPhone", "emergencyContactRelationship"] },
+    { id: 4, label: "Rental History", fields: ["currentLandlordName", "currentLandlordPhone", "currentRentAmount", "reasonForMoving"] },
+    { id: 5, label: "References", fields: ["ref1Name", "ref1Phone", "ref1Relation"] },
+    { id: 6, label: "Pets & Vehicles", fields: ["hasPets", "petDetails", "hasVehicles", "vehicleDetails"] },
+    { id: 7, label: "Legal Disclosures", fields: ["hasEvictions", "hasFelonies", "hasBankruptcies", "disclosureExplanation", "legalDisclosures", "stateDisclosures"] },
+    { id: 8, label: "Property Rules", fields: ["acknowledgePetPolicy", "acknowledgeSmokingPolicy", "acknowledgeOccupancyLimit", "acknowledgeUtilities", "rulesAcknowledged"] },
+    { id: 9, label: "Review & Submit", fields: ["agreeToBackgroundCheck", "agreeToTerms", "signature", "legalAcknowledgement"] }
   ];
+
+  const handleNext = async () => {
+    const currentStepFields = steps[currentStep - 1].fields as (keyof ApplyFormValues)[];
+    
+    // Trigger validation for current step fields
+    const isValid = await form.trigger(currentStepFields);
+    
+    if (isValid) {
+      if (currentStep < steps.length) {
+        const nextStep = currentStep + 1;
+        setCurrentStep(nextStep);
+        autosave(getValues(), nextStep);
+        window.scrollTo(0, 0);
+        
+        // Update URL
+        const url = new URL(window.location.href);
+        url.searchParams.set("step", nextStep.toString());
+        window.history.pushState({}, "", url.toString());
+      } else {
+        form.handleSubmit(onSubmit, onInvalid)();
+      }
+    } else {
+      toast({
+        title: "Incomplete Step",
+        description: "Please fill in all required fields correctly before proceeding.",
+        variant: "destructive",
+      });
+      
+      // Scroll to the first error
+      const firstError = Object.keys(form.formState.errors)[0];
+      if (firstError) {
+        const element = document.getElementsByName(firstError)[0];
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+      
+      // Update URL
+      const url = new URL(window.location.href);
+      url.searchParams.set("step", prevStep.toString());
+      window.history.pushState({}, "", url.toString());
+      window.scrollTo(0, 0);
+    }
+  };
 
   const { data: propertyResponse, isLoading: isLoadingProperty } = useQuery<ApiResponse<Property>>({
     queryKey: [`/api/v2/properties/${params?.id}`],
