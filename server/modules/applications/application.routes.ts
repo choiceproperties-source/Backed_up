@@ -247,4 +247,37 @@ router.patch("/:id/status", authenticateToken, async (req: AuthenticatedRequest,
   }
 });
 
+router.post("/:id/request-payment", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { amount, purpose, message, landlordMessage } = req.body;
+
+    if (!amount || !purpose) {
+      return res.status(400).json(errorResponse("Amount and purpose are required"));
+    }
+
+    const result = await applicationService.updateStatus({
+      id: req.params.id,
+      status: "payment_requested",
+      userId: req.user!.id,
+      userRole: req.user!.role,
+      paymentRequest: {
+        amount,
+        purpose,
+        message,
+        landlordMessage,
+      },
+    });
+
+    if (!result.success) {
+      const statusCode = result.error?.includes("Not authorized") ? 403 : 400;
+      return res.status(statusCode).json(errorResponse(result.error || "Failed to request payment"));
+    }
+
+    return res.json(success(result.data, "Payment request sent successfully"));
+  } catch (err: any) {
+    console.error("[APPLICATIONS] Error requesting payment:", err);
+    return res.status(500).json(errorResponse("Failed to request payment"));
+  }
+});
+
 export default router;
