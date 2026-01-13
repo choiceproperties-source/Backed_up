@@ -280,4 +280,42 @@ router.post("/:id/request-payment", authenticateToken, async (req: Authenticated
   }
 });
 
+router.post("/:id/pay", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const application = await applicationService.getApplicationById(req.params.id);
+    if (!application) return res.status(404).json(errorResponse("Application not found"));
+
+    // Verify the user is the applicant
+    if (application.user_id !== req.user!.id) {
+      return res.status(403).json(errorResponse("Not authorized to pay for this application"));
+    }
+
+    // Verify application.status === PAYMENT_REQUESTED
+    if (application.status !== "payment_requested") {
+      return res.status(400).json(errorResponse("Payment not requested for this application"));
+    }
+
+    // Read the payment amount ONLY from stored payment_request data
+    const paymentRequest = application.payment_request as any;
+    if (!paymentRequest || !paymentRequest.amount) {
+      return res.status(400).json(errorResponse("Payment request data is missing"));
+    }
+
+    // Create a payment_intent placeholder
+    // In a real scenario, this would interact with Stripe/etc.
+    // For now, we'll store it in a transaction/payment record if available, 
+    // or just return success as per instructions.
+    const result = await applicationService.initiatePayment(req.params.id, req.user!.id);
+
+    if (result.error) {
+      return res.status(400).json(errorResponse(result.error));
+    }
+
+    return res.json(success(result.data, "Payment initiated successfully"));
+  } catch (err: any) {
+    console.error("[APPLICATIONS] Error initiating payment:", err);
+    return res.status(500).json(errorResponse("Failed to initiate payment"));
+  }
+});
+
 export default router;

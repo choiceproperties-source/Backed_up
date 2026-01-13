@@ -471,6 +471,41 @@ function redactSensitiveData(application: any, requesterRole: string): any {
   return redacted;
 }
 
+export async function initiatePayment(
+  id: string,
+  userId: string
+): Promise<{ data?: any; error?: string }> {
+  const application = await applicationRepository.findApplicationById(id);
+  if (!application) return { error: "Application not found" };
+
+  if (application.user_id !== userId) return { error: "Not authorized" };
+  if (application.status !== "payment_requested") return { error: "Payment not requested" };
+
+  const paymentRequest = application.payment_request as any;
+  
+  // Check if payment already initiated/completed
+  if (paymentRequest.payment_intent_id) {
+    return { error: "Payment already initiated" };
+  }
+
+  const paymentIntentId = `pi_${Math.random().toString(36).substring(7)}`;
+  
+  // Create a placeholder payment_intent in the application metadata
+  const updatedPaymentRequest = {
+    ...paymentRequest,
+    payment_intent_id: paymentIntentId,
+    payment_status: 'PENDING',
+    initiated_by: userId,
+    initiated_at: new Date().toISOString()
+  };
+
+  await applicationRepository.updateApplication(id, {
+    payment_request: updatedPaymentRequest
+  });
+
+  return { data: { payment_intent_id: paymentIntentId } };
+}
+
 export async function getApplicationById(id: string, requesterRole: string = "user"): Promise<any> {
   const application = await applicationRepository.findApplicationById(id);
   return redactSensitiveData(application, requesterRole);
