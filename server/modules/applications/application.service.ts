@@ -509,6 +509,85 @@ export async function verifyPayment(
   return { data: updatedApplication };
 }
 
+export async function approveApplication(
+  id: string,
+  landlordId: string
+): Promise<{ data?: any; error?: string }> {
+  const application = await applicationRepository.findApplicationById(id);
+  if (!application) return { error: "Application not found" };
+
+  const property = await applicationRepository.getProperty(application.property_id);
+  if (!property || property.owner_id !== landlordId) return { error: "Not authorized" };
+
+  if (application.status !== "under_review" && application.status !== "payment_completed") {
+    return { error: "Application is not in a reviewable state" };
+  }
+
+  const statusHistory = [
+    ...(application.status_history as any[] || []),
+    {
+      status: 'approved',
+      changedAt: new Date().toISOString(),
+      changedBy: landlordId,
+      action: 'approved',
+      reason: 'Application approved by landlord'
+    }
+  ];
+
+  const updatedApplication = await applicationRepository.updateApplication(id, {
+    status: 'approved',
+    status_history: statusHistory,
+    reviewed_at: new Date().toISOString(),
+    reviewed_by: landlordId
+  });
+
+  // Trigger notification
+  sendStatusChangeNotification(id, "approved", { rejectionReason: 'Application approved by landlord' }).catch(console.error);
+
+  return { data: updatedApplication };
+}
+
+export async function rejectApplication(
+  id: string,
+  landlordId: string,
+  rejectionCategory: RejectionCategory,
+  rejectionReason: string,
+  rejectionDetails?: any
+): Promise<{ data?: any; error?: string }> {
+  const application = await applicationRepository.findApplicationById(id);
+  if (!application) return { error: "Application not found" };
+
+  const property = await applicationRepository.getProperty(application.property_id);
+  if (!property || property.owner_id !== landlordId) return { error: "Not authorized" };
+
+  const statusHistory = [
+    ...(application.status_history as any[] || []),
+    {
+      status: 'rejected',
+      changedAt: new Date().toISOString(),
+      changedBy: landlordId,
+      action: 'rejected',
+      reason: rejectionReason,
+      category: rejectionCategory
+    }
+  ];
+
+  const updatedApplication = await applicationRepository.updateApplication(id, {
+    status: 'rejected',
+    status_history: statusHistory,
+    rejection_category: rejectionCategory,
+    rejection_reason: rejectionReason,
+    rejection_details: rejectionDetails,
+    reviewed_at: new Date().toISOString(),
+    reviewed_by: landlordId
+  });
+
+  // Trigger notification
+  sendStatusChangeNotification(id, "rejected", { rejectionReason }).catch(console.error);
+
+  return { data: updatedApplication };
+}
+
 export async function completePayment(
   id: string,
   userId: string

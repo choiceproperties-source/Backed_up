@@ -1,0 +1,81 @@
+[Phase 3C — Prompt 4: Landlord Application Review]
+
+Objective:
+Update the Choice Properties Property Application system to implement the final approval and rejection step by the landlord. Ensure that scoring, status updates, notifications, and audit logging work correctly in all cases.
+
+---
+
+SECTION 1: LANDLORD REVIEW FUNCTIONALITY
+1. Enable the landlord to approve or reject a submitted application.
+2. Approval action should:
+   - Change application status to "APPROVED".
+   - Lock further edits by the tenant.
+   - Trigger a notification to the tenant.
+3. Rejection action should:
+   - Change application status to "REJECTED".
+   - Require a reason category (e.g., "Income Issue", "Incomplete Documents").
+   - Trigger a notification to the tenant with the rejection reason.
+4. Both actions must update the `status_history` JSONB array in the database:
+   - Store `changedAt` (timestamp)
+   - Store `changedBy` (landlord ID)
+   - Store `action` (approved/rejected)
+   - Store `reason` if applicable.
+
+---
+
+SECTION 2: FRONTEND INTEGRATION
+1. Update `application-review-workflow.tsx`:
+   - Add **Approve** and **Reject** buttons with confirmation modal.
+   - For rejection, allow landlord to select predefined reason categories.
+   - Show real-time status updates on the tenant dashboard using existing notification system.
+2. Ensure optimistic UI updates:
+   - After landlord action, immediately update the UI.
+   - Sync with backend to finalize status and audit history.
+3. Add scoring display (if not already present):
+   - Highlight key scoring metrics (Income, Credit, Rental History, Documents, Employment).
+   - Optionally show “Market Average” badge for context.
+
+---
+
+SECTION 3: NOTIFICATIONS
+1. Landlord actions must trigger notifications:
+   - **Tenant Notification**: In-app + email alert for approval or rejection.
+   - Include reason if rejected.
+2. Use existing notification system:
+   - `UnifiedNotificationBell`
+   - `UnifiedNotificationsList`
+3. For high-priority actions (approval/rejection):
+   - Add subtle pulse animation on notification bell for immediate visibility.
+
+---
+
+SECTION 4: SECURITY & ROLE ENFORCEMENT
+1. Only the property owner/landlord can perform approval or rejection.
+2. Verify `isPropertyOwner` role before allowing status change.
+3. Prevent tenants from editing application after submission.
+
+---
+
+SECTION 5: BACKEND LOGIC
+1. In `application.service.ts`:
+   - Add `approveApplication(applicationId, landlordId)` method.
+   - Add `rejectApplication(applicationId, landlordId, reason)` method.
+2. Both methods must:
+   - Update application status.
+   - Update `status_history`.
+   - Trigger notifications.
+3. Ensure RLS policies allow only authorized roles to perform these updates.
+
+---
+
+SECTION 6: TESTING CHECKPOINTS
+1. Approve an application as landlord → Tenant sees correct notification and updated status.
+2. Reject an application with a reason → Tenant sees correct notification, rejection reason, and updated status.
+3. Status_history array correctly logs all actions.
+4. Scoring and visual context badges display correctly.
+5. UI updates instantly after landlord action without page reload.
+
+---
+
+[END OF PROMPT]
+Instructions for AI: Please implement these updates in the codebase. Ensure backend and frontend are fully connected, notifications work, scoring and status_history are correctly updated, and all role checks are enforced.

@@ -182,9 +182,12 @@ export function ApplicationDetailView({
   const [isInternalComment, setIsInternalComment] = useState(true);
   
   const isApplicant = user?.id === application.userId;
-  const isAdminOrOwner = user?.role === 'admin' || user?.role === 'owner';
-  const canWithdraw = isApplicant && ['draft', 'pending', 'under_review', 'pending_verification'].includes(application.status);
+  const isOwner = user?.role === 'landlord' || user?.role === 'owner';
+  const isAdmin = user?.role === 'admin';
+  const isAdminOrOwner = isAdmin || isOwner;
+  const canWithdraw = isApplicant && ['draft', 'pending', 'under_review', 'pending_verification', 'payment_requested'].includes(application.status);
   const canRecalculateScore = isAdminOrOwner && !isApplicant;
+  const canReview = isAdminOrOwner && ['under_review', 'payment_completed'].includes(application.status);
 
   // Status update mutation
   const statusMutation = useMutation({
@@ -466,103 +469,77 @@ export function ApplicationDetailView({
       )}
 
       {/* Action Buttons */}
-      {['pending', 'under_review', 'pending_verification'].includes(application.status) && (
+      {canReview && (
         <Card className="p-4" data-testid="card-actions">
           <div className="flex gap-3 flex-wrap">
-            {application.status === 'pending' && (
-              <Button
-                onClick={handleStartReview}
-                disabled={statusMutation.isPending}
-                data-testid="button-start-review"
-              >
-                <Clock className="h-4 w-4 mr-2" />
-                Start Review
-              </Button>
-            )}
-            {['under_review', 'pending_verification'].includes(application.status) && (
-              <>
-                <Button
-                  onClick={handleApprove}
-                  disabled={statusMutation.isPending}
-                  className="bg-green-600 hover:bg-green-700"
-                  data-testid="button-approve"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Approve
+            <Button
+              onClick={handleApprove}
+              disabled={statusMutation.isPending}
+              className="bg-green-600 hover:bg-green-700"
+              data-testid="button-approve"
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Approve Application
+            </Button>
+            
+            <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" data-testid="button-reject-open">
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Reject Application
                 </Button>
-                <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-                  <DialogTrigger asChild>
-                    <Button variant="destructive" data-testid="button-reject-open">
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Reject
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Application Details</DialogTitle>
-                      <DialogDescription>Detailed view of the rental application information.</DialogDescription>
-                    </DialogHeader>
-                    <DialogTitle>Reject Application</DialogTitle>
-                    <DialogDescription>
-                      Please provide a reason for rejecting this application.
-                    </DialogDescription>
-                    <DialogHeader>
-                      <div className="sr-only">Reject Application form</div>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div>
-                        <label className="text-sm font-medium">Category</label>
-                        <Select value={rejectionCategory} onValueChange={setRejectionCategory}>
-                          <SelectTrigger data-testid="select-rejection-category">
-                            <SelectValue placeholder="Select reason" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {rejectionCategories.map((cat) => (
-                              <SelectItem key={cat.value} value={cat.value}>
-                                {cat.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Explanation</label>
-                        <Textarea
-                          value={rejectionReason}
-                          onChange={(e) => setRejectionReason(e.target.value)}
-                          placeholder="Provide additional details..."
-                          data-testid="textarea-rejection-reason"
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleReject}
-                        disabled={!rejectionCategory || statusMutation.isPending}
-                        data-testid="button-confirm-reject"
-                      >
-                        Confirm Rejection
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </>
-            )}
-            {application.status === 'under_review' && (
-              <Button
-                variant="outline"
-                onClick={handleRequestVerification}
-                disabled={statusMutation.isPending}
-                data-testid="button-request-verification"
-              >
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                Request Verification
-              </Button>
-            )}
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Reject Application</DialogTitle>
+                  <DialogDescription>
+                    Please select a reason category and provide additional details for the rejection.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div>
+                    <label className="text-sm font-medium">Rejection Category</label>
+                    <Select value={rejectionCategory} onValueChange={setRejectionCategory}>
+                      <SelectTrigger data-testid="select-rejection-category">
+                        <SelectValue placeholder="Select reason" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {rejectionCategories.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Additional Explanation</label>
+                    <Textarea
+                      value={rejectionReason}
+                      onChange={(e) => setRejectionReason(e.target.value)}
+                      placeholder="Why is this application being rejected?"
+                      data-testid="textarea-rejection-reason"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleReject}
+                    disabled={!rejectionCategory || statusMutation.isPending}
+                    data-testid="button-confirm-reject"
+                  >
+                    {statusMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
+                    Confirm Rejection
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </Card>
       )}

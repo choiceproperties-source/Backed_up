@@ -226,6 +226,39 @@ router.patch("/:id/status", authenticateToken, async (req: AuthenticatedRequest,
   try {
     const { status, legalAcceptance, rejectionCategory, rejectionReason, rejectionDetails, reason } = req.body;
 
+    // Check if it's a landlord approval/rejection action
+    if (status === "approved" || status === "rejected") {
+      const application = await applicationService.getApplicationById(req.params.id);
+      if (!application) return res.status(404).json(errorResponse("Application not found"));
+
+      const property = await applicationRepository.getProperty(application.property_id);
+      if (!property || property.owner_id !== req.user!.id) {
+        return res.status(403).json(errorResponse("Only the property owner can approve or reject applications"));
+      }
+
+      let result;
+      if (status === "approved") {
+        result = await applicationService.approveApplication(req.params.id, req.user!.id);
+      } else {
+        if (!rejectionCategory) {
+          return res.status(400).json(errorResponse("Rejection category is required"));
+        }
+        result = await applicationService.rejectApplication(
+          req.params.id, 
+          req.user!.id, 
+          rejectionCategory, 
+          rejectionReason || "", 
+          rejectionDetails
+        );
+      }
+
+      if (result.error) {
+        return res.status(400).json(errorResponse(result.error));
+      }
+
+      return res.json(success(result.data, `Application ${status} successfully`));
+    }
+
     const result = await applicationService.updateStatus({
       id: req.params.id,
       status,
