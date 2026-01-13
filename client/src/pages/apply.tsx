@@ -58,10 +58,10 @@ interface ApiResponse<T> {
 
 const applyFormSchema = z.object({
   propertyId: z.string(),
-  firstName: z.string().min(2, "First name is required"),
-  lastName: z.string().min(2, "Last name is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().regex(/^\+?1?\d{10,15}$/, "Valid phone number is required (e.g. 555-555-5555)"),
+  firstName: z.string().min(2, "First name is required to personalize your application"),
+  lastName: z.string().min(2, "Last name is required for legal documentation"),
+  email: z.string().email("A valid email address is required to receive application updates"),
+  phone: z.string().regex(/^\+?1?\d{10,15}$/, "A valid phone number is required to contact you regarding your application"),
   dateOfBirth: z.string().refine((date) => {
     const birthDate = new Date(date);
     const today = new Date();
@@ -71,16 +71,16 @@ const applyFormSchema = z.object({
       age--;
     }
     return age >= 18;
-  }, "You must be at least 18 years old"),
-  currentAddress: z.string().min(10, "Full current address is required"),
-  ssn: z.string().regex(/^\d{3}-?\d{2}-?\d{4}$/, "Invalid SSN format (XXX-XX-XXXX)").optional().or(z.literal("")),
-  employerName: z.string().min(2, "Employer name is required"),
-  jobTitle: z.string().min(2, "Job title is required"),
-  monthlyIncome: z.string().min(1, "Monthly income is required"),
-  employmentDuration: z.string().min(1, "Employment duration is required"),
-  emergencyContactName: z.string().min(2, "Emergency contact name is required"),
-  emergencyContactPhone: z.string().regex(/^\+?1?\d{10,15}$/, "Valid phone number is required"),
-  emergencyContactRelationship: z.string().min(2, "Relationship is required"),
+  }, "You must be at least 18 years old to legally sign a lease agreement"),
+  currentAddress: z.string().min(10, "A full current address (including city/state) is required for background verification"),
+  ssn: z.string().regex(/^\d{3}-?\d{2}-?\d{4}$/, "A valid SSN is required for identity and credit verification").optional().or(z.literal("")),
+  employerName: z.string().min(2, "Employer name is required to verify your source of income"),
+  jobTitle: z.string().min(2, "Your current job title is required for employment verification"),
+  monthlyIncome: z.string().min(1, "Monthly income is required to verify your ability to pay rent"),
+  employmentDuration: z.string().min(1, "Length of employment is required to assess income stability"),
+  emergencyContactName: z.string().min(2, "An emergency contact is required for your safety"),
+  emergencyContactPhone: z.string().regex(/^\+?1?\d{10,15}$/, "A valid phone number for your emergency contact is required"),
+  emergencyContactRelationship: z.string().min(2, "Please specify your relationship with the emergency contact"),
   // Rental History
   currentLandlordName: z.string().optional(),
   currentLandlordPhone: z.string().optional(),
@@ -101,24 +101,24 @@ const applyFormSchema = z.object({
   hasBankruptcies: z.boolean().default(false),
   disclosureExplanation: z.string().optional(),
   // Original acknowledgments
-  acknowledgePetPolicy: z.boolean().refine(val => val === true, "You must acknowledge the pet policy"),
-  acknowledgeSmokingPolicy: z.boolean().refine(val => val === true, "You must acknowledge the smoking policy"),
-  acknowledgeOccupancyLimit: z.boolean().refine(val => val === true, "You must acknowledge the occupancy limit"),
-  acknowledgeUtilities: z.boolean().refine(val => val === true, "You must acknowledge the utilities policy"),
-  rulesAcknowledged: z.boolean().refine(val => val === true, "You must acknowledge the property rules"),
-  agreeToBackgroundCheck: z.boolean().refine(val => val === true, "You must agree to the background check"),
-  agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms"),
-  signature: z.string().min(2, "Electronic signature is required"),
+  acknowledgePetPolicy: z.boolean().refine(val => val === true, "You must acknowledge the property's pet policy to proceed"),
+  acknowledgeSmokingPolicy: z.boolean().refine(val => val === true, "You must acknowledge the smoking policy for this property"),
+  acknowledgeOccupancyLimit: z.boolean().refine(val => val === true, "You must acknowledge the legal occupancy limits"),
+  acknowledgeUtilities: z.boolean().refine(val => val === true, "You must acknowledge how utilities are handled for this property"),
+  rulesAcknowledged: z.boolean().refine(val => val === true, "You must acknowledge all property rules before submitting"),
+  agreeToBackgroundCheck: z.boolean().refine(val => val === true, "Consent for a background check is required for this application"),
+  agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the application terms and conditions"),
+  signature: z.string().min(2, "Your electronic signature is required to certify this application"),
   legalAcknowledgement: z.boolean().refine(val => val === true, "You must agree to the legal terms before submitting your application."),
   legalDisclosures: z.object({
-    fairHousingAcknowledged: z.boolean().refine(val => val === true, "Required"),
-    creditCheckAuthorized: z.boolean().refine(val => val === true, "Required"),
-    accuracyCertified: z.boolean().refine(val => val === true, "Required"),
-    feeAcknowledged: z.boolean().refine(val => val === true, "Required"),
-    electronicConsent: z.boolean().refine(val => val === true, "Required"),
+    fairHousingAcknowledged: z.boolean().refine(val => val === true, "Fair Housing acknowledgment is required"),
+    creditCheckAuthorized: z.boolean().refine(val => val === true, "Credit check authorization is required"),
+    accuracyCertified: z.boolean().refine(val => val === true, "You must certify the accuracy of your information"),
+    feeAcknowledged: z.boolean().refine(val => val === true, "Application fee acknowledgment is required"),
+    electronicConsent: z.boolean().refine(val => val === true, "Electronic record consent is required"),
   }),
   stateDisclosures: z.record(z.object({
-    acknowledged: z.boolean().refine(val => val === true, "Required"),
+    acknowledged: z.boolean().refine(val => val === true, "State disclosure acknowledgment is required"),
   })).optional(),
   customAnswers: z.record(z.string()).optional(),
 });
@@ -604,7 +604,12 @@ export default function Apply() {
     <div className="flex flex-col gap-4 mb-8" role="progressbar" aria-valuenow={progressPercentage} aria-valuemin={0} aria-valuemax={100}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+          <div className={cn(
+            "h-10 w-10 rounded-full flex items-center justify-center font-bold transition-colors",
+            steps[currentStep - 1].fields.some(f => form.formState.errors[f as keyof ApplyFormValues]) 
+              ? "bg-destructive/10 text-destructive border-2 border-destructive" 
+              : "bg-primary/10 text-primary"
+          )}>
             {currentStep}
           </div>
           <div>
@@ -618,18 +623,25 @@ export default function Apply() {
         </div>
       </div>
       <div className="flex items-center gap-1.5 h-1.5">
-        {steps.map((step) => (
-          <div
-            key={step.id}
-            className={`h-full flex-1 transition-all duration-500 rounded-full ${
-              currentStep > step.id 
-                ? "bg-primary" 
-                : currentStep === step.id 
-                  ? "bg-primary/30" 
-                  : "bg-muted"
-            }`}
-          />
-        ))}
+        {steps.map((step) => {
+          const stepIndex = step.id - 1;
+          const hasError = step.fields.some(f => form.formState.errors[f as keyof ApplyFormValues]);
+          const isCurrent = currentStep === step.id;
+          const isCompleted = currentStep > step.id;
+          
+          return (
+            <div
+              key={step.id}
+              className={cn(
+                "h-full flex-1 transition-all duration-500 rounded-full",
+                hasError ? "bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.5)]" :
+                isCompleted ? "bg-primary" : 
+                isCurrent ? "bg-primary/30" : 
+                "bg-muted"
+              )}
+            />
+          );
+        })}
       </div>
     </div>
   );

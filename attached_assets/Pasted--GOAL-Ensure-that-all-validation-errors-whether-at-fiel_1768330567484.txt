@@ -1,0 +1,39 @@
+/**
+ * GOAL:
+ * Ensure that all validation errors, whether at field-level, step-level, global pre-submit,
+ * or submission-time, are displayed consistently, professionally, and clearly to the user.
+ *
+ * REQUIREMENTS:
+ * 1. Error Messaging Standardization:
+ *    - All error messages must originate from the Zod schema (applyFormSchema) for consistency.
+ *    - Each field must have a specific, clear message (e.g., "Monthly income is required to verify rent-to-income ratio").
+ *    - Generic "Required" messages are not allowed.
+ *    - Backend must use the exact same schema to validate incoming requests to prevent mismatched errors.
+ *
+ * 2. UX Display:
+ *    - Field-Level Errors: Display inline messages directly below or next to the corresponding input field.
+ *    - Step-Level Errors: Highlight incomplete steps in the wizard progress bar (e.g., with a red marker or icon).
+ *    - Toast Notifications: For global pre-submit or runtime submission errors, show non-blocking toast notifications that summarize missing or invalid fields.
+ *    - Focus Behavior: When the user clicks "Next" or "Submit" and validation fails, automatically focus on the first invalid field in the current step.
+ *
+ * 3. Conditional Fields:
+ *    - Error messages for conditional fields (e.g., creditCheckAuthorized, feeAcknowledged, electronicConsent) should only appear if the field is relevant based on property context.
+ *    - Hide errors for irrelevant fields without affecting validation flow.
+ *
+ * 4. Integration:
+ *    - Use react-hook-form's setError and trigger methods to display errors in the UI.
+ *    - Ensure toast notifications use the same message content as inline field errors to avoid confusion.
+ *    - Keep step progression blocked until current step fields are valid.
+ *
+ * 5. AI TASKS:
+ *    - Implement inline error messages for all fields based on Zod schema.
+ *    - Integrate global toast notifications for pre-submit or runtime errors.
+ *    - Highlight invalid steps in the progress bar dynamically.
+ *    - Ensure focus jumps to first invalid field upon validation failure.
+ *    - Maintain conditional validation messaging based on property-specific rules.
+ *
+ * 6. NOTES:
+ *    - This prompt focuses **only on error messaging and user experience refinement**.
+ *    - Do NOT modify any Zod schemas or backend logic.
+ *    - The goal is a professional, clear, and legally sound UX that builds user trust and reduces submission errors.
+ */
