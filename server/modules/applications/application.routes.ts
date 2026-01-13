@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authenticateToken, type AuthenticatedRequest } from "../../auth-middleware";
 import { success, error as errorResponse } from "../../response";
 import * as applicationService from "./application.service";
+import * as applicationRepository from "./application.repository";
 import { createPdfStream } from "../../services/applicationDisclosurePdf";
 import { createLeasePdfStream } from "../../services/leaseAgreementPdf";
 
@@ -286,7 +287,7 @@ router.post("/:id/payment/verify", authenticateToken, async (req: AuthenticatedR
     if (!application) return res.status(404).json(errorResponse("Application not found"));
 
     // Verify requester is the property owner (landlord)
-    const property = await applicationService.getProperty(application.property_id);
+    const property = await applicationRepository.getProperty(application.property_id);
     if (!property || property.owner_id !== req.user!.id) {
       return res.status(403).json(errorResponse("Only the property owner can verify payments"));
     }
