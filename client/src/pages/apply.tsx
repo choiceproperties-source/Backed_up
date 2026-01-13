@@ -100,6 +100,7 @@ const applyFormSchema = z.object({
   agreeToBackgroundCheck: z.boolean().refine(val => val === true, "You must agree to the background check"),
   agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms"),
   signature: z.string().min(2, "Electronic signature is required"),
+  legalAcknowledgement: z.boolean().refine(val => val === true, "You must agree to the legal terms before submitting your application."),
   legalDisclosures: z.object({
     fairHousingAcknowledged: z.boolean().refine(val => val === true, "Required"),
     creditCheckAuthorized: z.boolean().refine(val => val === true, "Required"),
@@ -194,6 +195,7 @@ export default function Apply() {
       agreeToTerms: false,
       rulesAcknowledged: false,
       signature: "",
+      legalAcknowledgement: false,
     },
   });
 
@@ -259,6 +261,7 @@ export default function Apply() {
         agreeToTerms: !!appToLoad.legalDisclosures?.accuracyCertified,
         rulesAcknowledged: !!appToLoad.rulesAcknowledged,
         signature: appToLoad.signature || "",
+        legalAcknowledgement: !!appToLoad.legalAcknowledgement,
         legalDisclosures: appToLoad.legalDisclosures || {
           fairHousingAcknowledged: false,
           creditCheckAuthorized: false,
@@ -1409,24 +1412,68 @@ export default function Apply() {
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   ) : (
-                    <Button 
-                      type="submit"
-                      size="lg"
-                      className="rounded-none px-8 font-black uppercase tracking-widest bg-primary hover:bg-primary/90"
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        <>
-                          Submit Application
-                          <CheckCircle2 className="ml-2 h-5 w-5" />
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex flex-col gap-8 w-full">
+                      {/* Legal Acknowledgement Section */}
+                      <div className="bg-gray-50/50 dark:bg-gray-900/50 p-6 rounded-none border border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-3 mb-4">
+                          <Shield className="h-5 w-5 text-primary" />
+                          <h3 className="text-sm font-black uppercase tracking-widest">Legal Acknowledgement & Consent</h3>
+                        </div>
+                        
+                        <FormField
+                          control={form.control}
+                          name="legalAcknowledgement"
+                          render={({ field }) => (
+                            <FormItem className="space-y-4">
+                              <div className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className="mt-1 rounded-none"
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel className="text-sm font-medium">
+                                    I agree to the{" "}
+                                    <a href="/legal#rental-application-terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold">Rental Application Terms</a>,{" "}
+                                    <a href="/legal#privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold">Privacy Policy</a>, and{" "}
+                                    <a href="/legal#fair-housing-notice" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold">Fair Housing Notice</a>.
+                                  </FormLabel>
+                                </div>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <div className="mt-4 flex items-center gap-2 text-[11px] text-muted-foreground font-medium">
+                          <Shield className="h-3 w-3" />
+                          Your information is securely processed and handled in accordance with applicable privacy and housing laws.
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <Button 
+                          type="submit"
+                          size="lg"
+                          className="rounded-none px-8 font-black uppercase tracking-widest bg-primary hover:bg-primary/90"
+                          disabled={isProcessing || !form.watch("legalAcknowledgement")}
+                        >
+                          {isProcessing ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            <>
+                              Submit Application
+                              <CheckCircle2 className="ml-2 h-5 w-5" />
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   )}
                 </div>
               </form>
