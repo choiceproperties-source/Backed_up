@@ -208,6 +208,10 @@ export default function Apply() {
     // Trigger validation for current step fields
     const isValid = await form.trigger(fieldsToValidate);
     
+    if (!isValid) {
+      console.log("[Apply] Step validation errors:", form.formState.errors);
+    }
+    
     if (isValid) {
       if (currentStep < steps.length) {
         const nextStep = currentStep + 1;
@@ -483,7 +487,11 @@ export default function Apply() {
     }
   }, [params?.id, applicationId]);
 
-  const handleBlur = () => {
+  const handleBlur = async (fieldName: keyof ApplyFormValues) => {
+    if (typeof fieldName === 'string') {
+      // Validate the field on blur to show error immediately
+      await form.trigger(fieldName);
+    }
     autosave(getValues(), currentStep);
   };
 
@@ -869,7 +877,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Email Address</FormLabel>
                               <FormControl>
-                                <Input type="email" placeholder="email@example.com" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
+                                <Input type="email" placeholder="email@example.com" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={() => handleBlur("email")} />
                               </FormControl>
                               <FormMessage className="text-[10px] uppercase font-bold" />
                             </FormItem>
@@ -882,7 +890,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Phone Number</FormLabel>
                               <FormControl>
-                                <Input placeholder="(555) 000-0000" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
+                                <Input placeholder="(555) 000-0000" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={() => handleBlur("phone")} />
                               </FormControl>
                               <FormMessage className="text-[10px] uppercase font-bold" />
                             </FormItem>
@@ -897,7 +905,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Date of Birth</FormLabel>
                               <FormControl>
-                                <Input type="date" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
+                                <Input type="date" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={() => handleBlur("dateOfBirth")} />
                               </FormControl>
                               <FormMessage className="text-[10px] uppercase font-bold" />
                             </FormItem>
@@ -920,7 +928,7 @@ export default function Apply() {
                                     const val = e.target.value.replace(/\D/g, "").slice(0, 4);
                                     field.onChange(val);
                                   }}
-                                  onBlur={handleBlur} 
+                                  onBlur={() => handleBlur("ssn")} 
                                 />
                               </FormControl>
                               <FormDescription className="text-[10px] font-medium text-muted-foreground uppercase">For identity verification purposes only.</FormDescription>
@@ -936,7 +944,7 @@ export default function Apply() {
                           <FormItem>
                             <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Current Full Address</FormLabel>
                             <FormControl>
-                              <Input placeholder="Street, City, State, Zip" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={handleBlur} />
+                              <Input placeholder="Street, City, State, Zip" className="h-12 bg-white dark:bg-gray-950 border-gray-200 focus:border-primary focus:ring-0 rounded-none transition-colors" {...field} onBlur={() => handleBlur("currentAddress")} />
                             </FormControl>
                             <FormMessage className="text-[10px] uppercase font-bold" />
                           </FormItem>
@@ -961,7 +969,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Employer Name</FormLabel>
                               <FormControl>
-                                <Input placeholder="Current Company" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="Current Company" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} onBlur={() => handleBlur("employerName")} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -974,7 +982,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Job Title</FormLabel>
                               <FormControl>
-                                <Input placeholder="Software Engineer" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="Software Engineer" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} onBlur={() => handleBlur("jobTitle")} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -989,7 +997,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Monthly Gross Income</FormLabel>
                               <FormControl>
-                                <Input placeholder="5000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="5000" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} onBlur={() => handleBlur("monthlyIncome")} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1002,7 +1010,7 @@ export default function Apply() {
                             <FormItem>
                               <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Duration (Years/Months)</FormLabel>
                               <FormControl>
-                                <Input placeholder="2 Years" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} />
+                                <Input placeholder="2 Years" className="h-12 bg-gray-50/50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 focus:ring-primary rounded-none" {...field} onBlur={() => handleBlur("employmentDuration")} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
