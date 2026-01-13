@@ -1,0 +1,54 @@
+PROMPT: Property Application Form Validation Improvements
+
+CONTEXT:
+We have a multi-step Property Application form built in React using react-hook-form and Zod for validation. Currently, the form has the following issues:
+
+1. The SSN field asks for the last 4 digits, limits input to 4 digits, but shows an error message "SSN must be 9 digits".
+2. Users can proceed to the next steps without filling required fields in each step.
+3. Errors are only displayed on final submission, not during input or step navigation.
+4. Some conditional fields (like creditCheckAuthorized, feeAcknowledged) cause silent validation failures depending on property-specific flags.
+
+TASK:
+Update the Property Application form validation to:
+
+1. **SSN Field**
+   - Accept exactly 4 digits.
+   - Show the correct error message "SSN must be exactly 4 digits".
+   - Ensure only numeric input is allowed.
+
+2. **Step-Level Validation**
+   - Each step should block the user from moving forward if required fields in that step are missing or invalid.
+   - Use `form.trigger(stepFields)` for validation when clicking "Next".
+
+3. **Field-Level Validation**
+   - Enable real-time validation (onBlur or onChange) so that users get instant feedback when leaving a field.
+   - Display all error messages using `<FormMessage />` or similar, directly from the Zod schema.
+
+4. **Conditional Validation**
+   - Fields like `creditCheckAuthorized`, `feeAcknowledged`, `electronicConsent` should only be required when the property context requires them.
+   - Implement `.superRefine()` in Zod or step-specific runtime checks to enforce these rules without causing silent failures.
+
+5. **Submission Safety**
+   - On final Submit, trigger a full form validation to ensure no skipped or unvalidated fields.
+   - Ensure all errors are displayed clearly and prevent submission until all validations pass.
+
+6. **Consistency**
+   - Keep all error messages centralized in the Zod schema.
+   - Avoid generic messages; provide clear, professional, user-friendly guidance for each field.
+
+DELIVERABLE:
+1. Updated Zod schema for the form, including correct SSN validation and conditional rules.
+2. React form code changes that implement:
+   - Step-level validation.
+   - Real-time field-level validation.
+   - Proper error message display.
+3. All logic must respect the existing multi-step workflow and submit data to the current API endpoints without bypassing the backend.
+
+IMPORTANT:
+- Do not remove or alter existing fields unless required for validation fixes.
+- Preserve current styling and layout of the form.
+- Validation should work seamlessly with react-hook-form + Zod integration.
+- Ensure backward compatibility with existing draft-saving and data persistence logic.
+
+OUTPUT:
+Provide only the **updated React and Zod code** required to fix these issues. Do not write implementation instructions.

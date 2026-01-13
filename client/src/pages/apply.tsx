@@ -76,7 +76,7 @@ const applyFormSchema = z.object({
   currentAddress: z.string().min(10, "A full current address (including city/state) is required for background verification"),
   ssn: z.string()
     .transform(val => val.replace(/\D/g, ""))
-    .refine(val => val.length === 9 || val.length === 0, "SSN must be exactly 9 digits if provided")
+    .refine(val => val.length === 4 || val.length === 0, "SSN must be exactly 4 digits if provided")
     .optional(),
   employerName: z.string().min(2, "Employer name is required to verify your source of income"),
   jobTitle: z.string().min(2, "Your current job title is required for employment verification"),
@@ -125,6 +125,10 @@ const applyFormSchema = z.object({
     acknowledged: z.boolean().refine(val => val === true, "State disclosure acknowledgment is required"),
   })).optional(),
   customAnswers: z.record(z.string()).optional(),
+}).superRefine((data, ctx) => {
+  // Conditional validations can be added here if needed based on external property flags
+  // But since we want to avoid silent failures and respect property-specific flags,
+  // we'll handle the dynamic requirement logic in the form itself or here if flags were part of data.
 });
 
 type ApplyFormValues = z.infer<typeof applyFormSchema>;
@@ -230,6 +234,7 @@ export default function Apply() {
 
   const form = useForm<ApplyFormValues>({
     resolver: zodResolver(applyFormSchema),
+    mode: "onBlur",
     defaultValues: {
       propertyId: params?.id || "",
       firstName: "",
