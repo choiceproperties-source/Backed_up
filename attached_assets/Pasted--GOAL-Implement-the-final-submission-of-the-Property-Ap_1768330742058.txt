@@ -1,0 +1,46 @@
+/**
+ * GOAL:
+ * Implement the final submission of the Property Application, ensuring all validation passes,
+ * application data is stored securely in Supabase, and payment is required only after submission.
+ *
+ * REQUIREMENTS:
+ * 1. Submission Flow:
+ *    - Step 1: Trigger full form validation (all steps) using react-hook-form and Zod schema.
+ *    - Step 2: Gather all field data into a single object matching the applications table JSONB structure.
+ *    - Step 3: Save application as "submitted" in the database with statusHistory entry:
+ *         {
+ *           status: "submitted",
+ *           changedBy: applicantId,
+ *           changedAt: timestamp,
+ *           notes: "Application submitted, awaiting payment"
+ *         }
+ *    - Step 4: Do NOT trigger payment until the application status is "submitted".
+ *
+ * 2. Payment Integration:
+ *    - Only after successful submission, show the payment option (Stripe, PayPal, etc.).
+ *    - Payment success updates application status to "payment_verified" and logs the statusHistory.
+ *    - Payment failure allows retry without affecting submitted data.
+ *
+ * 3. Security & Audit:
+ *    - Ensure RLS (Row Level Security) allows only the applicant to submit their application.
+ *    - Ensure statusHistory audit trail is preserved for all transitions.
+ *    - Prevent duplicate submissions (disable submit button after first click until API responds).
+ *
+ * 4. User Experience:
+ *    - Show a loading indicator during submission.
+ *    - Display confirmation message or toast after submission.
+ *    - If payment is required, clearly guide the user to the payment step.
+ *    - If optional screening fees or conditional fees exist, clearly indicate them before payment.
+ *
+ * 5. AI TASKS:
+ *    - Implement full-form validation and blocking for incomplete fields.
+ *    - Save application data to Supabase JSONB fields for each section (personalInfo, rentalHistory, employment, documents, legalDisclosures).
+ *    - Maintain proper statusHistory tracking for all steps.
+ *    - Trigger payment interface only after submission is complete.
+ *    - Handle payment success/failure and update status accordingly.
+ *
+ * 6. NOTES:
+ *    - Do NOT bypass any backend APIs; all submissions must go through api/v2/applications.
+ *    - Keep all conditional validations and field-specific logic intact.
+ *    - Ensure professional UX, error handling, and legal compliance throughout the process.
+ */

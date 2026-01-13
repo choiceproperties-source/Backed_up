@@ -444,7 +444,7 @@ export default function Apply() {
   const onSubmit = async (values: ApplyFormValues) => {
     console.log("[Apply] onSubmit called with values:", values);
     
-    // 1. Global Pre-Submit Validation
+    // 1. Full Form Validation
     const isFormValid = await form.trigger();
     if (!isFormValid) {
       console.error("[Apply] Global validation failed:", form.formState.errors);
@@ -468,20 +468,18 @@ export default function Apply() {
 
     setIsProcessing(true);
     try {
-      // 2. Submission-Time Business Logic Checks
+      // 2. Gather all field data into single object
+      // This is handled by autosave(values, currentStep) below and then finalized via status update
       
-      // a. Availability check
+      // 3. Final business logic checks
       if (!property || property.status !== "active") {
         throw new Error("This property is no longer available for new applications.");
       }
 
-      // b. Document verification (Example: checking if custom uploads or required fields that act as documents are filled)
-      // Since specific document upload fields might be dynamic, we check the core signature as a proxy for "signed documents"
       if (!values.signature || values.signature.length < 2) {
-        throw new Error("Electronic signature is required to verify your application documents.");
+        throw new Error("Electronic signature is required to certify your application documents.");
       }
 
-      // c. Conditional business rules
       if (requiresScreening) {
         if (!values.legalDisclosures?.creditCheckAuthorized || !values.legalDisclosures?.feeAcknowledged) {
           throw new Error("Screening authorization and fee acknowledgment are required for this property.");
@@ -489,11 +487,17 @@ export default function Apply() {
       }
 
       console.log("[Apply] Submitting application:", applicationId);
-      // Ensure we have the latest values synced
+      // Ensure we have the latest values synced before status transition
       await autosave(values, currentStep);
       
+      // 4. Update status to 'submitted' with status history
       const submitResponse = await apiRequest("PATCH", `/api/v2/applications/${applicationId}/status`, { 
         status: "submitted",
+        statusHistoryEntry: {
+          status: "submitted",
+          notes: "Application submitted, awaiting payment",
+          changedAt: new Date().toISOString()
+        },
         legalAcceptance: {
           accepted: true,
           acceptedAt: new Date().toISOString(),
@@ -516,7 +520,7 @@ export default function Apply() {
       setIsSubmitted(true);
       toast({
         title: "Application Submitted",
-        description: "Your rental application has been received successfully.",
+        description: "Your rental application has been received successfully. Please proceed to payment if required.",
       });
     } catch (error: any) {
       console.error("[Apply] Submission error:", error);
@@ -548,6 +552,8 @@ export default function Apply() {
   }
 
   if (isSubmitted) {
+    const showPayment = requiresScreening || (property && parseFloat(String(property.applicationFee || 0)) > 0);
+
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center space-y-6">
         <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-full">
@@ -560,40 +566,63 @@ export default function Apply() {
           </p>
         </div>
         
-        <Card className="max-w-md w-full p-6 text-left bg-muted/50">
-          <h3 className="font-semibold mb-4 text-sm uppercase tracking-widest">Next Steps:</h3>
-          <ul className="space-y-4 text-sm">
-            <li className="flex gap-3">
-              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">1</div>
-              <div className="space-y-1">
-                <p className="font-bold">Landlord Review</p>
-                <p className="text-muted-foreground text-xs leading-relaxed">The property manager will review your documents and rental history. This typically takes 2-3 business days.</p>
-              </div>
-            </li>
-            <li className="flex gap-3">
-              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">2</div>
-              <div className="space-y-1">
-                <p className="font-bold">Identity Verification</p>
-                <p className="text-muted-foreground text-xs leading-relaxed">You may be asked to complete a credit or background check if you haven't already authorized it.</p>
-              </div>
-            </li>
-            <li className="flex gap-3">
-              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">3</div>
-              <div className="space-y-1">
-                <p className="font-bold">Shortlist & Payment</p>
-                <p className="text-muted-foreground text-xs leading-relaxed">If shortlisted, you will receive a notification to pay the application fee or security deposit via your dashboard.</p>
-              </div>
-            </li>
-          </ul>
-        </Card>
+        {showPayment ? (
+          <Card className="max-w-md w-full p-8 text-left bg-primary/5 border-primary/20 space-y-6">
+            <div className="flex items-center gap-3 text-primary">
+              <DollarSign className="h-6 w-6" />
+              <h3 className="text-xl font-bold uppercase tracking-tight">Payment Required</h3>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              To finalize your application, a non-refundable application fee of <strong>${property?.applicationFee || "45.00"}</strong> is required for background and credit screening.
+            </p>
+            <Button 
+              onClick={() => setLocation(`/payment/${applicationId}`)}
+              className="w-full h-12 rounded-none font-black uppercase tracking-widest bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              Pay & Finalize Application
+            </Button>
+            <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest">
+              Secure payment processed via Stripe
+            </p>
+          </Card>
+        ) : (
+          <Card className="max-w-md w-full p-6 text-left bg-muted/50">
+            <h3 className="font-semibold mb-4 text-sm uppercase tracking-widest">Next Steps:</h3>
+            <ul className="space-y-4 text-sm">
+              <li className="flex gap-3">
+                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">1</div>
+                <div className="space-y-1">
+                  <p className="font-bold">Landlord Review</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">The property manager will review your documents and rental history. This typically takes 2-3 business days.</p>
+                </div>
+              </li>
+              <li className="flex gap-3">
+                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">2</div>
+                <div className="space-y-1">
+                  <p className="font-bold">Identity Verification</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">You may be asked to complete a credit or background check if you haven't already authorized it.</p>
+                </div>
+              </li>
+              <li className="flex gap-3">
+                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">3</div>
+                <div className="space-y-1">
+                  <p className="font-bold">Shortlist & Lease</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">If shortlisted, you will receive a notification to review and sign the digital lease agreement.</p>
+                </div>
+              </li>
+            </ul>
+          </Card>
+        )}
 
         <div className="flex gap-4">
           <Button variant="outline" onClick={() => setLocation("/renter-dashboard")} className="h-12 px-8 rounded-none font-black uppercase tracking-widest">
             Go to Dashboard
           </Button>
-          <Button onClick={() => window.print()} className="h-12 px-8 rounded-none font-black uppercase tracking-widest">
-            Print Copy
-          </Button>
+          {!showPayment && (
+            <Button onClick={() => window.print()} className="h-12 px-8 rounded-none font-black uppercase tracking-widest">
+              Print Copy
+            </Button>
+          )}
         </div>
       </div>
     );
