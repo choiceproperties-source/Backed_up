@@ -307,6 +307,7 @@ export default function Apply() {
   };
 
   const onSubmit = async (values: ApplyFormValues) => {
+    console.log("[Apply] onSubmit triggered with values:", values);
     if (!applicationId) {
       toast({
         title: "Error",
@@ -319,11 +320,13 @@ export default function Apply() {
     setIsProcessing(true);
     try {
       const submitResponse = await apiRequest("PATCH", `/api/applications/${applicationId}/status`, { 
-        status: "submitted"
+        status: "submitted",
+        ...values // Pass all values to ensure backend has everything for final submission
       });
 
       if (!submitResponse.ok) {
-        throw new Error("Submission failed");
+        const errorData = await submitResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || "Submission failed");
       }
 
       setIsSubmitted(true);
@@ -332,6 +335,7 @@ export default function Apply() {
         description: "Your rental application has been received successfully.",
       });
     } catch (error: any) {
+      console.error("[Apply] Submission error:", error);
       toast({
         title: "Submission Error",
         description: error.message || "There was an error submitting your application.",
@@ -463,8 +467,22 @@ export default function Apply() {
               <StepIndicator />
             </div>
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <Form {...form}>
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      console.log("[Apply] Form submit event intercepted");
+                      form.handleSubmit(onSubmit, (errors) => {
+                        console.error("[Apply] Form validation failed on submit:", errors);
+                        toast({
+                          title: "Validation Error",
+                          description: "Please check all steps for missing required information.",
+                          variant: "destructive",
+                        });
+                      })(e);
+                    }} 
+                    className="space-y-8"
+                  >
                 {/* Step 1: Personal Info */}
                 {currentStep === 1 && (
                   <Card>
@@ -1036,7 +1054,7 @@ export default function Apply() {
                     ) : (
                       <Button
                         type="submit"
-                        disabled={isProcessing || !form.watch("agreeToTerms") || !form.watch("signature")}
+                        disabled={isProcessing}
                         className="flex items-center gap-2"
                       >
                         {isProcessing ? (
