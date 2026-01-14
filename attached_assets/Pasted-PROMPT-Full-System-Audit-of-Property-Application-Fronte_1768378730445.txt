@@ -1,0 +1,124 @@
+PROMPT: Full-System Audit of Property Application (Frontend + Backend)
+
+MODE: AUDIT / ANALYSIS ONLY  
+⚠️ DO NOT modify, refactor, or implement fixes yet.
+
+OBJECTIVE:
+Perform a complete end-to-end audit of the Property Application system to identify why the form behaves inconsistently, where validation fails, and what prevents reliable submission. The goal is to understand exactly what is wrong before making fixes.
+
+SYSTEM CONTEXT:
+The Property Application system includes:
+- React multi-step ApplicationWizard
+- react-hook-form for form state
+- Zod schema validation
+- Conditional fields (screening, disclosures, SSN, fees)
+- Supabase backend (applications table with JSONB sections)
+- API endpoints for create/update/submit application
+- Status-based lifecycle (draft → submitted)
+
+AUDIT SCOPE:
+
+════════════════════════════
+1️⃣ FRONTEND FORM AUDIT
+════════════════════════════
+Scan and verify:
+- All steps render expected inputs
+- Required fields are correctly marked and enforced
+- SSN field logic (4 digits vs 9 digits mismatch)
+- Field-level validation triggers (onChange / onBlur)
+- Step-level validation on "Next"
+- Whether steps allow users to advance with invalid or missing data
+- Error messages visibility, clarity, and timing
+- Whether errors only appear on submit instead of per-step
+- Wizard progress state accuracy
+
+Identify:
+- Validation gaps
+- Misconfigured react-hook-form triggers
+- Schema/UI mismatches
+- Hidden or unreachable fields
+- Any “silent failure” UX
+
+════════════════════════════
+2️⃣ VALIDATION ARCHITECTURE AUDIT
+════════════════════════════
+Analyze:
+- Zod schema completeness and correctness
+- Required vs optional fields
+- Conditional validation conflicts
+- SSN regex vs input masking
+- Step-scoped validation vs global validation
+- Schema vs UI rendering consistency
+
+Flag:
+- Contradictions (e.g. field required in schema but hidden in UI)
+- Overly strict or incorrect rules
+- Fields that bypass validation
+
+════════════════════════════
+3️⃣ BACKEND & API AUDIT
+════════════════════════════
+Inspect:
+- Application create/update endpoints
+- Payload validation on backend
+- Schema alignment between frontend and backend
+- Status transitions and enforcement
+- Draft vs submitted behavior
+- Error handling and response consistency
+
+Verify:
+- Backend rejects invalid payloads
+- Submitted applications cannot be incomplete
+- JSONB sections are correctly structured
+- No silent backend failures
+
+════════════════════════════
+4️⃣ DATA FLOW & STATE CONSISTENCY
+════════════════════════════
+Trace:
+- Frontend → API → Supabase → Response
+- Draft saves vs final submission
+- Rehydration of saved data into the form
+- Whether invalid drafts cause validation bypass
+
+Detect:
+- State desync
+- Corrupted drafts
+- Missing fields during submit
+
+════════════════════════════
+5️⃣ UX & TRUST REVIEW
+════════════════════════════
+Evaluate:
+- Professionalism of error messages
+- Confidence and clarity for sensitive fields
+- User feedback on progress and success
+- Whether the form feels legally and professionally reliable
+
+════════════════════════════
+6️⃣ DELIVERABLE (REQUIRED OUTPUT)
+════════════════════════════
+Return a structured audit report containing:
+
+A. Critical Blocking Issues (must fix before production)
+B. Validation & Logic Errors
+C. UX / Trust Issues
+D. Backend/Data Integrity Risks
+E. Recommended Fix Strategy (HIGH-LEVEL ONLY)
+
+For each issue include:
+- Severity (Critical / Major / Minor)
+- Exact file(s) and function(s)
+- Why it breaks or degrades the system
+- Recommended fix approach (NO CODE YET)
+
+FINAL REQUIREMENT:
+End the report with:
+✔ Production Readiness Verdict: PASS / FAIL
+✔ Confidence Level (%)
+
+IMPORTANT:
+Do NOT implement fixes.
+Do NOT rewrite architecture.
+Do NOT enter autonomous mode.
+This is DIAGNOSTIC ONLY.
