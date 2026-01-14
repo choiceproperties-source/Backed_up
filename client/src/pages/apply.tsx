@@ -487,10 +487,17 @@ export default function Apply() {
     }
   }, [params?.id, applicationId]);
 
-  const handleBlur = async (fieldName: keyof ApplyFormValues) => {
+  const handleBlur = async (fieldName: string | React.FocusEvent) => {
+    let name = "";
     if (typeof fieldName === 'string') {
+      name = fieldName;
+    } else if (fieldName && fieldName.target && (fieldName.target as HTMLInputElement).name) {
+      name = (fieldName.target as HTMLInputElement).name;
+    }
+    
+    if (name && name.length > 0) {
       // Validate the field on blur to show error immediately
-      await form.trigger(fieldName);
+      await form.trigger(name as any);
     }
     autosave(getValues(), currentStep);
   };
