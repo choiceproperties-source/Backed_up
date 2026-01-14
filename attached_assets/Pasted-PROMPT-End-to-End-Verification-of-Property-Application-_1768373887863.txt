@@ -1,0 +1,85 @@
+PROMPT: End-to-End Verification of Property Application Form
+
+MODE: AUDIT + VERIFY ONLY  
+IMPORTANT: Do NOT refactor, redesign, or add new features unless a blocking issue is found.  
+Goal is to CONFIRM correctness, not introduce changes.
+
+CONTEXT:
+We have a multi-step Property Application form built with:
+- React
+- react-hook-form
+- Zod validation
+- Supabase backend (applications table, JSONB fields)
+- Step-based ApplicationWizard
+
+TASK:
+Scan the Property Application system END-TO-END and verify that it works correctly from first input to final submission.
+
+SCOPE OF VERIFICATION:
+
+1️⃣ FRONTEND FORM BEHAVIOR
+Verify the following:
+- All steps render the correct input fields
+- Required fields are clearly marked and enforced
+- Field-level validation runs on blur/change
+- Error messages display immediately when input is invalid
+- SSN field correctly accepts exactly 4 digits and shows correct errors
+- Users CANNOT proceed to the next step if required fields are missing or invalid
+- Step progress only advances when validation passes
+- Errors are cleared correctly when fields are fixed
+
+2️⃣ STEP-LEVEL VALIDATION
+Confirm:
+- Each step validates ONLY its own fields on "Next"
+- No step allows bypassing required inputs
+- Optional steps do not block progress
+- Final submit triggers full-form validation
+
+3️⃣ CONDITIONAL LOGIC
+Verify:
+- Property-specific rules (screening required, fees, disclosures) behave correctly
+- Conditional fields are validated ONLY when required
+- No silent validation failures occur
+- No hidden required fields block submission
+
+4️⃣ DATA INTEGRITY
+Confirm:
+- Form data maps correctly to application schema fields
+- JSONB sections (personalInfo, rentalHistory, employment, documents) populate correctly
+- Draft auto-save (if present) does not corrupt validation state
+
+5️⃣ SUBMISSION FLOW
+Verify:
+- Submit button is disabled or blocked until all validations pass
+- onSubmit is reached only with valid data
+- API request payload is complete and valid
+- Backend accepts submission without errors
+- Application status updates correctly after submission
+
+6️⃣ ERROR HANDLING
+Confirm:
+- No "nothing happened" scenarios exist
+- All validation failures produce visible user feedback
+- Backend errors (if any) surface correctly to the UI
+
+DELIVERABLE:
+Return a concise VERIFICATION REPORT containing:
+- ✅ Confirmed working areas
+- ⚠️ Minor UX inconsistencies (if any)
+- ❌ Blocking issues (if found)
+- Exact file names + functions where issues exist
+- Clear PASS / FAIL verdict for production readiness
+
+DO NOT:
+- Rewrite the system
+- Add features
+- Change architecture
+- Enter implementation mode unless a CRITICAL blocker is found
+
+OUTPUT FORMAT:
+Verification Summary
+Frontend Validation: PASS / FAIL
+Step Navigation: PASS / FAIL
+Conditional Logic: PASS / FAIL
+Submission Flow: PASS / FAIL
+Overall Production Readiness: PASS / FAIL
