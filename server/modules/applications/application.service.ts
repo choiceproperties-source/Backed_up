@@ -450,6 +450,8 @@ export async function autosaveApplication(
 
   // Partial update without strict validation
   console.log("[APPLICATIONS] Updating application ID:", id, "with processedBody keys:", Object.keys(processedBody));
+  // Remove logs after verification
+  // console.log("[APPLICATIONS] Full processed body:", JSON.stringify(processedBody, null, 2));
   const data = await applicationRepository.updateApplication(id, processedBody);
 
   return { data };

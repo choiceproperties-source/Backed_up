@@ -273,6 +273,7 @@ export default function Apply() {
     setSaveStatus('saving');
     try {
       console.log("[Apply] Autosaving step:", step, "applicationId:", applicationId);
+      const values = form.getValues();
       const payload = {
         step: step,
         ...values
