@@ -272,14 +272,10 @@ export default function Apply() {
 
     setSaveStatus('saving');
     try {
-      console.log("[Apply] Autosaving step:", step, "applicationId:", applicationId);
-      const values = form.getValues();
       const payload = {
         step: step,
         ...values
       };
-
-      console.log("[Apply] Autosaving with payload:", payload);
 
       let response;
       if (applicationId) {
@@ -289,9 +285,7 @@ export default function Apply() {
       }
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("[Apply] Autosave API error:", response.status, errorData);
-        throw new Error(errorData.error || errorData.message || "Save failed");
+        throw new Error("Save failed");
       }
 
       const data = await response.json();
@@ -302,7 +296,6 @@ export default function Apply() {
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {
-      console.error("Autosave failed:", error);
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
