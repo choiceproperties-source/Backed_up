@@ -449,6 +449,7 @@ export async function autosaveApplication(
   }
 
   // Partial update without strict validation
+  console.log("[APPLICATIONS] Updating application ID:", id, "with processedBody keys:", Object.keys(processedBody));
   const data = await applicationRepository.updateApplication(id, processedBody);
 
   return { data };
