@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, XCircle, Clock, AlertCircle, FileText, MessageSquare, History, ThumbsUp, ThumbsDown, HelpCircle, AlertTriangle, Plus, Trash2, User, Briefcase, Home, CreditCard, ShieldCheck, Fingerprint, FileCheck, Search, BadgeCheck, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface ApplicationReviewWorkflowProps {
   applicationId: string;
