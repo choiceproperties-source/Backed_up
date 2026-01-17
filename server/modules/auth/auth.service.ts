@@ -31,13 +31,15 @@ export class AuthService {
         throw { status: 500, message: "Failed to create user account. Please try again." };
       }
 
-      // Explicitly send verification email after admin user creation
-      await this.repository.resendVerificationEmail(normalizedEmail);
-
       try {
+        // 1. First store the profile (this confirms we can persist user data)
         await this.repository.storeUserProfile(authData.user.id, normalizedEmail, fullName, phone, role, legalConsent);
+        
+        // 2. ONLY if profile is saved, send the verification email
+        await this.repository.resendVerificationEmail(normalizedEmail);
       } catch (profileError: any) {
-        console.error('Failed to save user profile, rolling back auth user:', profileError);
+        console.error('Failed to finalize user registration, rolling back auth user:', profileError);
+        // Rollback: delete the Auth user if profile storage or email sending fails
         await this.repository.deleteAuthUser(authData.user.id);
         throw { status: 500, message: "Failed to create user profile. Please try again." };
       }
