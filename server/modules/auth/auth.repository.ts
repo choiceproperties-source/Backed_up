@@ -60,7 +60,11 @@ export class AuthRepository {
         full_name: fullName,
         phone: phone || null,
         role,
-        ...legalConsent
+        terms_version: legalConsent?.termsVersion,
+        privacy_version: legalConsent?.privacyVersion,
+        accepted_terms_at: legalConsent?.acceptedTermsAt,
+        accepted_privacy_at: legalConsent?.acceptedPrivacyAt,
+        accepted_ip: legalConsent?.acceptedIp
       }, { onConflict: 'id' })
       .select();
 
