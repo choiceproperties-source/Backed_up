@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -83,6 +84,9 @@ export function AgentAssignmentDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Assign Listing Agent</DialogTitle>
+          <DialogDescription className="sr-only">
+            Select an agent from the list to assign to this property.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 py-4">

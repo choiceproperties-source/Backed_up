@@ -42,10 +42,11 @@ export function PropertyQuickView({ property, isOpen, onClose }: QuickViewProps)
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
-        <DialogTitle className="sr-only">Property Details: {property?.title}</DialogTitle>
-        <DialogDescription className="sr-only">View images and details for {property?.title}</DialogDescription>
         <DialogHeader>
-          <DialogTitle>Quick View</DialogTitle>
+          <DialogTitle>Quick View: {property?.title}</DialogTitle>
+          <DialogDescription className="sr-only">
+            View images and details for {property?.title}
+          </DialogDescription>
           <button
             onClick={onClose}
             className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100"

@@ -109,7 +109,7 @@ export function AgentContactDialog({
         <DialogHeader>
           <DialogTitle>Contact {agent.name}</DialogTitle>
           <DialogDescription>
-            Send a message to discuss {propertyTitle ? `${propertyTitle} or ` : ''}your real estate needs
+            Send a message to discuss {propertyTitle ? `${propertyTitle} or ` : ''}your real estate needs.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

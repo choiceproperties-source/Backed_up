@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -124,6 +125,9 @@ export function AgentPropertyEditDialog({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Edit Assigned Property</DialogTitle>
+            <DialogDescription className="sr-only">
+              Modify the details of the assigned property.
+            </DialogDescription>
             <div className="text-sm font-medium">
               {saveStatus === 'saving' && <span className="text-blue-500 flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Saving...</span>}
               {saveStatus === 'saved' && <span className="text-green-500 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> All changes saved</span>}
