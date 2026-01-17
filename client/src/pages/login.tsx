@@ -18,7 +18,10 @@ import {
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, type LoginInput } from "@shared/schema";
+import { loginSchema } from "@shared/schema";
+import type { z } from "zod";
+
+type LoginInput = z.infer<typeof loginSchema>;
 import {
   Form,
   FormControl,
@@ -71,6 +74,16 @@ export default function Login() {
         description: "You are now signed in."
       });
       
+      // Redirect based on role
+      const userRes = await fetch('/api/v2/auth/me');
+      const userJson = await userRes.json();
+      if (userJson.success) {
+        const role = userJson.data.role;
+        if (role === 'admin') setLocation('/admin');
+        else if (role === 'landlord' || role === 'owner') setLocation('/landlord-dashboard');
+        else if (role === 'agent' || role === 'property_manager') setLocation('/agent-dashboard-new');
+        else setLocation('/renter-dashboard');
+      }
     } catch (err: any) {
       console.error("[Login] Error:", err);
       

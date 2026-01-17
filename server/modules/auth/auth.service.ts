@@ -65,7 +65,13 @@ export class AuthService {
       return { success: true, session: data.session };
     } catch (err: any) {
       console.error("[AUTH] Login error:", err.message);
-      throw { status: 401, message: "Invalid credentials" };
+      
+      const message = err.message || "";
+      if (message.includes("Email not confirmed") || message.includes("verify")) {
+        throw { status: 403, message: "Please verify your email address before logging in." };
+      }
+      
+      throw { status: 401, message: "Invalid email or password. Please check your credentials and try again." };
     }
   }
 
