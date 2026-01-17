@@ -8,7 +8,7 @@ export class AuthService {
   }
 
   async signup(email: string, password: string, fullName: string, phone: string | null, role: string = 'renter', legalConsent?: any) {
-    const allowedRoles = ['renter', 'landlord', 'agent', 'property_manager', 'buyer'];
+    const allowedRoles = ['renter', 'landlord', 'agent', 'property_manager'];
     if (!allowedRoles.includes(role)) {
       throw { status: 400, message: `Invalid role selected: ${role}. Please choose a valid role.` };
     }

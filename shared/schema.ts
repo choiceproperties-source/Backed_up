@@ -56,7 +56,6 @@ export const users = pgTable("users", {
   lastLoginAt: timestamp("last_login_at"),
   failedLoginAttempts: integer("failed_login_attempts").default(0),
   lockedUntil: timestamp("locked_until"),
-  // Legal Consent
   termsVersion: text("terms_version"),
   privacyVersion: text("privacy_version"),
   acceptedTermsAt: timestamp("accepted_terms_at"),

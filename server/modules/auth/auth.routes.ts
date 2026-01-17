@@ -34,16 +34,17 @@ export function registerAuthRoutes(app: Express): void {
         termsVersion, 
         privacyVersion, 
         acceptedTermsAt, 
-        acceptedPrivacyAt, 
-        acceptedIp 
+        acceptedPrivacyAt 
       } = validation.data as any;
+
+      const clientIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown') as string;
 
       const result = await authService.signup(email, password, fullName, phone || null, role as string, {
         termsVersion,
         privacyVersion,
         acceptedTermsAt: acceptedTermsAt ? new Date(acceptedTermsAt) : undefined,
         acceptedPrivacyAt: acceptedPrivacyAt ? new Date(acceptedPrivacyAt) : undefined,
-        acceptedIp
+        acceptedIp: clientIp
       });
       return res.json(apiSuccess(result.user, "Account created successfully"));
     } catch (err: any) {
