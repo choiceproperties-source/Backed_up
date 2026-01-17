@@ -26,7 +26,9 @@ import {
   Calendar
 } from "lucide-react";
 import { format } from "date-fns";
-import type { Property, PropertyNote } from "@shared/schema";
+import type { Property, propertyNotes } from "@shared/schema";
+
+type PropertyNote = typeof propertyNotes.$inferSelect;
 
 interface PropertyAnalytics {
   views: number;
