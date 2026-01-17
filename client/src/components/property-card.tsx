@@ -19,6 +19,7 @@ import type { Property } from "@/lib/types";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/utils";
 import placeholderExterior from "@assets/generated_images/modern_luxury_home_exterior_with_blue_sky.png";
+import { getMainImageUrl } from "@/lib/imagekit";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -38,7 +39,7 @@ export const PropertyCard = memo(function PropertyCard({ property, onShare }: Pr
   const { toggleFavorite, isFavorited } = useFavorites();
   const [isHovered, setIsHovered] = useState(false);
 
-  const mainImage = property.images?.[0] || placeholderExterior;
+  const mainImage = getMainImageUrl(property.images?.[0] || placeholderExterior);
   const isAvailable = property.listing_status === 'available' || property.status === 'active';
   const favorited = isFavorited(property.id);
 

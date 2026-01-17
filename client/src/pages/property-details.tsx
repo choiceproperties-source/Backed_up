@@ -30,6 +30,7 @@ import { InteractiveMap } from "@/components/interactive-map";
 import { PostedBy } from "@/components/property/posted-by";
 import { updateMetaTags, getPropertyStructuredData, addStructuredData, removeStructuredData } from "@/lib/seo";
 import { PropertyDetailsSkeleton } from "@/components/property-details-skeleton";
+import { getMainImageUrl, getFullscreenImageUrl } from "@/lib/imagekit";
 
 /**
  * Extract allowlisted rules and filter empty/null values.
@@ -212,7 +213,7 @@ export default function PropertyDetails() {
               <div className="flex w-full h-full">
                 <div className="w-full h-full relative">
                   <img 
-                    src={allImages[0]} 
+                    src={getMainImageUrl(allImages[0])} 
                     alt={property.title}
                     className="w-full h-full object-cover"
                   />
@@ -279,7 +280,7 @@ export default function PropertyDetails() {
             <div className="flex w-full h-full gap-1">
               <div className={`w-full ${!isOffMarket ? 'md:w-2/3' : ''} h-full relative ${!isOffMarket ? 'cursor-pointer' : ''}`} onClick={() => !isOffMarket && setIsGalleryOpen(true)}>
                 <img 
-                  src={allImages[0]} 
+                  src={getFullscreenImageUrl(allImages[0])} 
                   alt={property.title}
                   className={`w-full h-full object-cover ${!isOffMarket ? 'transition-transform duration-500 hover:scale-105' : ''}`}
                 />
@@ -294,7 +295,7 @@ export default function PropertyDetails() {
                   {allImages.slice(1, 3).map((img, i) => (
                     <div key={i} className="h-1/2 relative cursor-pointer overflow-hidden" onClick={() => setIsGalleryOpen(true)}>
                       <img 
-                        src={img} 
+                        src={getMainImageUrl(img)} 
                         alt={`${property.title} view ${i + 2}`}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />
@@ -400,7 +401,7 @@ export default function PropertyDetails() {
                             </div>
                             <span className="text-sm font-black uppercase tracking-widest">Pet Policy</span>
                           </div>
-                          <Badge variant={(property as any).pets_allowed ? "success" : "destructive"} className="rounded-none uppercase tracking-tighter text-[10px] font-black">
+                          <Badge variant={(property as any).pets_allowed ? "secondary" : "destructive"} className="rounded-none uppercase tracking-tighter text-[10px] font-black">
                             {(property as any).pets_allowed ? "Allowed" : "Not Allowed"}
                           </Badge>
                         </div>
@@ -416,7 +417,7 @@ export default function PropertyDetails() {
                             </div>
                             <span className="text-sm font-black uppercase tracking-widest">Smoking Policy</span>
                           </div>
-                          <Badge variant={(property as any).smoking_allowed ? "success" : "destructive"} className="rounded-none uppercase tracking-tighter text-[10px] font-black">
+                          <Badge variant={(property as any).smoking_allowed ? "secondary" : "destructive"} className="rounded-none uppercase tracking-tighter text-[10px] font-black">
                             {(property as any).smoking_allowed ? "Allowed" : "No Smoking"}
                           </Badge>
                         </div>
